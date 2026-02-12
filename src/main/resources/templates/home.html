@@ -5,6 +5,18 @@
     <title>Title</title>
 </head>
 <body>
+<h1 th:text="${title}"></h1>
 
+<div th:if="${#lists.isEmpty(posts)}">
+    Пока пусто.
+</div>
+
+<div th:each="p : ${posts}">
+    <h2 th:text="${p.title}"></h2>
+    <p th:text="${p.description}"></p>
+    <small th:text="${p.date}"></small>
+    <hr/>
+</div>
 </body>
+
 </html>

@@ -11,15 +11,6 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("""
-            select  p from Post p 
-            where p.user.id in (
-                        select s.followed.id from Subscription s
-                        where s.followed.id = :userId           
-                        )            
-                        """)
-    List<Post> findFeed(
-            @Param("userId") Long userId
-    );
+
 
 }

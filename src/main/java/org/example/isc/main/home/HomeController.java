@@ -11,9 +11,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class HomeController {
 
+    private final HomeService homeService;
+
+    public HomeController(HomeService homeService) {
+        this.homeService = homeService;
+    }
+
     @GetMapping("/")
     public String home(Model model){
+        Long userId = 1L; // hardcode
         model.addAttribute("title", "Home");
+        model.addAttribute("posts", homeService.getFeed(userId));
 
         return "home";
     }
