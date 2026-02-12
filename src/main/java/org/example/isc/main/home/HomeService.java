@@ -1,9 +1,12 @@
 package org.example.isc.main.home;
 
+import org.example.isc.main.models.Post;
 import org.example.isc.main.repositories.SubscriptionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class HomeService {
@@ -17,6 +20,10 @@ public class HomeService {
 
     public void getSubscriptionList(Long userId){
         subscriptionRepository.findSubscriptionByFollowedId(userId);
+    }
+
+    public List<Post> getPostsToHomePage(){
+
     }
 
 }
