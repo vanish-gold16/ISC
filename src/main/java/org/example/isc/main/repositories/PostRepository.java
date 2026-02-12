@@ -15,6 +15,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         select p from Post p
                 where p.user = :userId
         """)
-    List<Long> findPostsByUserId(@Param("userId") Long userId);
+    List<Post> findPostsByUserId(@Param("userId") Long userId);
 
 }
