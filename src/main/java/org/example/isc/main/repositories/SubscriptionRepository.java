@@ -13,9 +13,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     @Query("""
         select s from Subscription s
-                where s.followed.id = :followedId
+                where s.follower.id = :followerId
                 """)
-    List<Subscription> findSubscriptionByFollowedId(
+    List<Subscription> findByFollowerId(
             @Param("followedId") Long followedId
     );
 
@@ -23,7 +23,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
         select s.follower from Subscription s
                 where s.followed.id = :followedId
                 """)
-    List<User> findSubscribersByFollowedId(
+    List<User> findByFollowedId(
             @Param("followedId") Long followedId
     );
 

@@ -20,7 +20,7 @@ public class HomeService {
     }
 
     public List<Subscription> getSubscriptionList(Long userId){
-        return subscriptionRepository.findSubscriptionByFollowedId(userId).stream().toList();
+        return subscriptionRepository.findByFollowerId(userId).stream().toList();
     }
 
     public List<Post> getPostsToHomePage(Long userId){
