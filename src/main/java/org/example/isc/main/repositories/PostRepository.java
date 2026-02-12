@@ -13,7 +13,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("""
         select p from Post p
-                where p.user = :userId
+                where p.user.id = :userId
         """)
     List<Post> findPostsByUserId(@Param("userId") Long userId);
 

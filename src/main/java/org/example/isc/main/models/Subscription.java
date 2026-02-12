@@ -10,12 +10,12 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "follower_id")
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "follower_id")
     private User follower;
 
-    @Column(name = "followed_id")
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "followed_id")
     private User followed;
 
 }

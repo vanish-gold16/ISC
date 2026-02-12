@@ -2,6 +2,7 @@ package org.example.isc.main.repositories;
 
 
 import org.example.isc.main.models.Subscription;
+import org.example.isc.main.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +13,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     @Query("""
         select s from Subscription s
-                where s.followed = :followedId
+                where s.followed.id = :followedId
                 """)
     List<Subscription> findSubscriptionByFollowedId(
             @Param("followedId") Long followedId
@@ -20,9 +21,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     @Query("""
         select s.follower from Subscription s
-                where s.followed = :followedId
+                where s.followed.id = :followedId
                 """)
-    List<Subscription> findSubscribersByFollowedId(
+    List<User> findSubscribersByFollowedId(
             @Param("followedId") Long followedId
     );
 
