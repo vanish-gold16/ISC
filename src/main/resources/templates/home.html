@@ -1,22 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} ?: 'ISC | Home'">ISC | Home</title>
+
+    <!-- static css: src/main/resources/static/css/home.css -->
+    <link rel="stylesheet" href="/css/home.css" />
 </head>
+
 <body>
-<h1 th:text="${title}"></h1>
+<header class="topbar">
+    <div class="topbar__inner container">
+        <a class="brand" href="/">
+            <span class="brand__logo">ISC</span>
+            <span class="brand__text">International Student Community</span>
+        </a>
 
-<div th:if="${#lists.isEmpty(posts)}">
-    Пока пусто.
-</div>
+        <div class="topbar__actions">
+            <a class="btn btn--ghost" th:href="@{/auth/login}">Sign in</a>
+            <a class="btn btn--primary" th:href="@{/auth/register}">Sign up</a>
+        </div>
+    </div>
+</header>
 
-<div th:each="p : ${posts}">
-    <h2 th:text="${p.title}"></h2>
-    <p th:text="${p.description}"></p>
-    <small th:text="${p.date}"></small>
-    <hr/>
-</div>
+<main class="container page">
+    <!-- Feed -->
+    <section class="feed">
+
+        <!-- Composer (пока без логики) -->
+        <div class="composer card">
+            <div class="composer__row">
+                <div class="avatar" aria-hidden="true">🙂</div>
+                <div class="composer__input">
+                    <div class="inputlike" contenteditable="true" role="textbox" aria-label="Create a post"
+                         data-placeholder="Share something with the community..."></div>
+                    <div class="composer__actions">
+                        <button class="btn btn--ghost btn--sm" type="button">Attach</button>
+                        <button class="btn btn--ghost btn--sm" type="button">Poll</button>
+                        <button class="btn btn--primary btn--sm" type="button">Post</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
+            <h3>No posts yet</h3>
+            <p class="muted">Follow people or join communities to see content here.</p>
+        </div>
+
+        <!-- Posts -->
+        <article class="post card" th:each="p : ${posts}">
+            <div class="post__header">
+                <div class="avatar" th:text="${p.authorInitials} ?: 'IS'">IS</div>
+                <div class="post__meta">
+                    <div class="post__name" th:text="${p.authorName} ?: 'ISC Member'">ISC Member</div>
+                    <div class="post__sub muted">
+                        <span th:text="${p.location} ?: 'Somewhere'">Somewhere</span>
+                        <span>·</span>
+                        <span th:text="${p.relativeTime} ?: 'just now'">just now</span>
+                    </div>
+                </div>
+                <button class="icon-btn" aria-label="More" type="button"><span class="icon">⋯</span></button>
+            </div>
+
+            <div class="post__content">
+                <h2 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h2>
+                <p th:text="${p.description}">Post content</p>
+            </div>
+
+            <div class="post__footer">
+                <button class="action" type="button"><span class="icon">♡</span> Like</button>
+                <button class="action" type="button"><span class="icon">💬</span> Comment</button>
+                <button class="action" type="button"><span class="icon">↗</span> Share</button>
+            </div>
+        </article>
+
+        <div class="feed__end muted" th:if="${posts != null and !#lists.isEmpty(posts)}">You’re all caught up.</div>
+    </section>
+
+    <!-- Right sidebar: tabs placeholder -->
+    <aside class="sidebar-right">
+        <div class="card card--sticky">
+            <div class="tabs">
+                <button class="tab tab--active" type="button">Trending</button>
+                <button class="tab" type="button">Events</button>
+                <button class="tab" type="button">Chats</button>
+            </div>
+
+            <div class="tabpane">
+                <p class="muted">Empty for now. You’ll fill it with something cool later.</p>
+                <div class="placeholder">
+                    <div class="ph-row"></div>
+                    <div class="ph-row"></div>
+                    <div class="ph-row short"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</main>
+
+<footer class="footer container muted">
+    <span>© ISC</span>
+    <span>·</span>
+    <a class="footer__link" href="/privacy">Privacy</a>
+    <span>·</span>
+    <a class="footer__link" href="/terms">Terms</a>
+</footer>
 </body>
-
 </html>
