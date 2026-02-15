@@ -7,17 +7,7 @@
     <link rel="stylesheet" href="/css/public/auth/auth.css" />
 </head>
 <body>
-<header class="topbar">
-    <div class="topbar__inner container">
-        <a class="brand" th:href="@{/}">
-            <span class="brand__logo">ISC</span>
-            <span class="brand__text">International Student Community</span>
-        </a>
-        <div class="topbar__actions">
-            <a class="btn btn--ghost" th:href="@{/register}">Sign up</a>
-        </div>
-    </div>
-</header>
+<header th:replace="~{public/blocks/public-header :: header}"></header>
 
 <main class="container auth">
     <section class="auth__card card">
@@ -45,5 +35,8 @@
         </div>
     </section>
 </main>
+
+<footer th:replace="~{public/blocks/public-footer :: footer}"></footer>
+
 </body>
 </html>

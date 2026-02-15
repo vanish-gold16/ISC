@@ -1,0 +1,15 @@
+<div th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+    <header class="topbar">
+        <div class="topbar__inner container">
+            <a class="brand" th:href="@{/}">
+                <span class="brand__logo">ISC</span>
+                <span class="brand__text">International Student Community</span>
+            </a>
+
+            <div class="topbar__actions">
+                <a class="btn btn--ghost" th:href="@{/auth/login}">Sign in</a>
+                <a class="btn btn--primary" th:href="@{/auth/register}">Sign up</a>
+            </div>
+        </div>
+    </header>
+</div>
