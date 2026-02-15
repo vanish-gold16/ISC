@@ -14,8 +14,7 @@
     <h1>Create account</h1>
     <p class="muted">Join the community. Be normal. Or at least respectful.</p>
 
-    <!-- action под твой контроллер регистрации -->
-    <form class="form" method="post" th:action="@{/register}">
+    <form class="form" method="post" th:action="@{/auth/register}">
       <div class="grid2">
         <label class="field">
           <span>First name</span>
@@ -26,6 +25,11 @@
           <input class="input" name="lastName" placeholder="Johnson" required />
         </label>
       </div>
+
+      <label class="field">
+        <span>Username</span>
+        <input class="input" type="username" placeholder="TheBestStudent" required>
+      </label>
 
       <label class="field">
         <span>Email</span>
