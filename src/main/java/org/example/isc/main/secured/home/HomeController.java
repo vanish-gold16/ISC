@@ -16,7 +16,7 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(Model model){
+    public String getHome(Model model){
         Long userId = 1L; // hardcode
         model.addAttribute("title", "Home");
         model.addAttribute("posts", homeService.getFeed(userId));
