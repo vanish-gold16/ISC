@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/")
+@RequestMapping("/home")
 public class HomeController {
 
     private final HomeService homeService;
@@ -15,13 +15,13 @@ public class HomeController {
         this.homeService = homeService;
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public String getHome(Model model){
         Long userId = 1L; // hardcode
         model.addAttribute("title", "Home");
         model.addAttribute("posts", homeService.getFeed(userId));
 
-        return "home";
+        return "private/home";
     }
 
 }
