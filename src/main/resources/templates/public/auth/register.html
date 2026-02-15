@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ISC | Sign up</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar__inner container">
+    <a class="brand" th:href="@{/}">
+      <span class="brand__logo">ISC</span>
+      <span class="brand__text">International Student Community</span>
+    </a>
+    <div class="topbar__actions">
+      <a class="btn btn--ghost" th:href="@{/login}">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<main class="container auth">
+  <section class="auth__card card">
+    <h1>Create account</h1>
+    <p class="muted">Join the community. Be normal. Or at least respectful.</p>
+
+    <!-- action под твой контроллер регистрации -->
+    <form class="form" method="post" th:action="@{/register}">
+      <div class="grid2">
+        <label class="field">
+          <span>First name</span>
+          <input class="input" name="firstName" placeholder="Ivan" required />
+        </label>
+        <label class="field">
+          <span>Last name</span>
+          <input class="input" name="lastName" placeholder="Mitro..." required />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Email</span>
+        <input class="input" type="email" name="email" placeholder="you@school.edu" required />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input class="input" type="password" name="password" minlength="8" required />
+        <span class="hint muted">At least 8 characters. Not “qwerty”.</span>
+      </label>
+
+      <button class="btn btn--primary btn--block" type="submit">Sign up</button>
+    </form>
+
+    <div class="auth__footer">
+      <span class="muted">Already have an account?</span>
+      <a th:href="@{/login}">Sign in</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

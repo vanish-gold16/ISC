@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISC | Sign in</title>
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar__inner container">
+        <a class="brand" th:href="@{/}">
+            <span class="brand__logo">ISC</span>
+            <span class="brand__text">International Student Community</span>
+        </a>
+        <div class="topbar__actions">
+            <a class="btn btn--ghost" th:href="@{/register}">Sign up</a>
+        </div>
+    </div>
+</header>
+
+<main class="container auth">
+    <section class="auth__card card">
+        <h1>Sign in</h1>
+        <p class="muted">Welcome back. Try not to forget your password this time.</p>
+
+        <!-- Если Spring Security: action обычно /login POST -->
+        <form class="form" method="post" th:action="@{/login}">
+            <label class="field">
+                <span>Email</span>
+                <input class="input" type="email" name="username" placeholder="you@school.edu" required />
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input class="input" type="password" name="password" placeholder="••••••••" required />
+            </label>
+
+            <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+        </form>
+
+        <div class="auth__footer">
+            <span class="muted">New here?</span>
+            <a th:href="@{/register}">Create an account</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

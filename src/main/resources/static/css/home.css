@@ -82,6 +82,27 @@ button { font: inherit; }
 
 .brand__text { font-weight: 700; }
 
+.profile{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 10px 22px rgba(15,23,42,0.08);
+}
+.profile:hover{ background: var(--panel-hover); }
+
+.profile__img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+
 .topbar__actions { display: flex; gap: 10px; }
 
 /* layout */

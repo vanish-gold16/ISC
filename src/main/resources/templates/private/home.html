@@ -18,9 +18,13 @@
         </a>
 
         <div class="topbar__actions">
-            <a class="btn btn--ghost" th:href="@{/auth/login}">Sign in</a>
-            <a class="btn btn--primary" th:href="@{/auth/register}">Sign up</a>
+            <a class="profile" th:href="@{/profile}" aria-label="Profile">
+                <img class="profile__img"
+                     th:src="${userAvatarUrl} ?: '/images/default-avatar.png'"
+                     alt="Your profile" />
+            </a>
         </div>
+
     </div>
 </header>
 

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISC | International Student Community</title>
+    <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar__inner container">
+        <a class="brand" th:href="@{/}">
+            <span class="brand__logo">ISC</span>
+            <span class="brand__text">International Student Community</span>
+        </a>
+
+        <div class="topbar__actions">
+            <a class="btn btn--ghost" th:href="@{/login}">Sign in</a>
+            <a class="btn btn--primary" th:href="@{/register}">Sign up</a>
+        </div>
+    </div>
+</header>
+
+<main class="container hero">
+    <section class="hero__left">
+        <h1>Meet students. Build your circle. Feel at home anywhere.</h1>
+        <p class="muted">
+            A community feed for international students: friends, subscriptions, events, and practical help in your city.
+        </p>
+
+        <div class="hero__cta">
+            <a class="btn btn--primary" th:href="@{/register}">Create account</a>
+            <a class="btn btn--ghost" th:href="@{/login}">I already have one</a>
+        </div>
+
+        <div class="hero__badges">
+            <div class="badge">Friends-only feed</div>
+            <div class="badge">City communities</div>
+            <div class="badge">Events & meetups</div>
+        </div>
+    </section>
+
+    <aside class="hero__right card">
+        <h3>What you’ll get</h3>
+        <ul class="list">
+            <li>Personal feed from friends & subscriptions</li>
+            <li>Find people in your city and your school</li>
+            <li>Ask questions and get real answers</li>
+        </ul>
+        <div class="divider"></div>
+        <p class="muted small">No spam. No cringe. Ideally.</p>
+    </aside>
+</main>
+
+<footer class="footer container muted">
+    <span>© ISC</span>
+    <span>·</span>
+    <a class="footer__link" th:href="@{/privacy}">Privacy</a>
+    <span>·</span>
+    <a class="footer__link" th:href="@{/terms}">Terms</a>
+</footer>
+</body>
+</html>
