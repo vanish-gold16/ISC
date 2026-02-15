@@ -1,4 +1,4 @@
-package org.example.isc.main.home;
+package org.example.isc.main.secured.home;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

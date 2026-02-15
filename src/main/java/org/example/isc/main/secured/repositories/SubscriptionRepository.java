@@ -1,8 +1,8 @@
-package org.example.isc.main.repositories;
+package org.example.isc.main.secured.repositories;
 
 
-import org.example.isc.main.models.Subscription;
-import org.example.isc.main.models.User;
+import org.example.isc.main.secured.models.Subscription;
+import org.example.isc.main.secured.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

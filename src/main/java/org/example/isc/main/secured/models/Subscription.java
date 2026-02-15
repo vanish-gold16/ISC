@@ -1,4 +1,4 @@
-package org.example.isc.main.models;
+package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 

@@ -1,10 +1,7 @@
-package org.example.isc.main.home;
+package org.example.isc.main.secured.home;
 
-import org.example.isc.main.models.Post;
-import org.example.isc.main.models.Subscription;
-import org.example.isc.main.repositories.PostRepository;
-import org.example.isc.main.repositories.SubscriptionRepository;
-import org.example.isc.main.repositories.UserRepository;
+import org.example.isc.main.secured.models.Post;
+import org.example.isc.main.secured.repositories.PostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

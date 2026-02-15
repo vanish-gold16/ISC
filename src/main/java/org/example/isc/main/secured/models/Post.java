@@ -1,9 +1,8 @@
-package org.example.isc.main.models;
+package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "posts")
