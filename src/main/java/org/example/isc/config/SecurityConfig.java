@@ -1,5 +1,6 @@
 package org.example.isc.config;
 
+import org.example.isc.main.enums.RoleEnum;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +27,8 @@ public class SecurityConfig {
                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                 // public
                                 .requestMatchers("/", "/landing", "/error", "/auth/**").permitAll()
+                                // admin
+                                .requestMatchers("/admin/**").hasAnyRole(RoleEnum.ADMIN.name())
                                 // others only after login
                                 .anyRequest().authenticated()
                 )
