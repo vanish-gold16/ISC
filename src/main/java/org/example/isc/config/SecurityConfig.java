@@ -26,7 +26,7 @@ public class SecurityConfig {
                                 // static
                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                 // public
-                                .requestMatchers("/", "/landing", "/error", "/auth/**").permitAll()
+                                .requestMatchers("/", "/landing", "/auth/**").permitAll()
                                 // admin
                                 .requestMatchers("/admin/**").hasAnyRole(RoleEnum.ADMIN.name())
                                 // others only after login
@@ -36,8 +36,9 @@ public class SecurityConfig {
                         // redirect to login
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/auth/login?logout=true")
+                        .usernameParameter("username")
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/auth/login?error=true")
                 );
         return http.build();
     }

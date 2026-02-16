@@ -3,6 +3,7 @@ package org.example.isc.main.common.service;
 import org.example.isc.main.common.dto.RegistrationRequest;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class UserService {
     private final PasswordEncoder encoder;
 
 
+    @Autowired
     public UserService(UserRepository repository, PasswordEncoder encoder) {
         this.repository = repository;
         this.encoder = encoder;
@@ -33,7 +35,7 @@ public class UserService {
         user.setFirstName(request.getFirstName().trim());
         user.setLastName(request.getLastName().trim());
         user.setUsername(request.getUsername().trim());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setPasswordHash(encoder.encode(request.getPassword()));
 
         repository.save(user);

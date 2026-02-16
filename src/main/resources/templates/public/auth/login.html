@@ -13,12 +13,12 @@
     <section class="auth__card card">
         <h1>Sign in</h1>
         <p class="muted">Welcome back. Try not to forget your password this time.</p>
-
+        <p class="error" th:if="${param.error}">Invalid username or password.</p>
         <!-- Если Spring Security: action обычно /login POST -->
         <form class="form" method="post" th:action="@{/login}">
             <label class="field">
-                <span>Email</span>
-                <input class="input" type="email" name="username" placeholder="you@school.edu" required />
+                <span>Username</span>
+                <input class="input" type="text" name="username" placeholder="username" required />
             </label>
 
             <label class="field">
@@ -40,3 +40,5 @@
 
 </body>
 </html>
+
+

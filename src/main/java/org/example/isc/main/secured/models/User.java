@@ -2,6 +2,7 @@ package org.example.isc.main.secured.models;
 
 
 import jakarta.persistence.*;
+import org.example.isc.main.enums.RoleEnum;
 
 @Entity
 @Table(name="users")
@@ -26,8 +27,24 @@ public class User {
     @Column(name = "password", nullable = false)
     private String passwordHash;
 
+    @Column(name = "role", nullable = false)
+    private String role;
+
     @Column(name = "current_study")
     private String currentStudy;
+
+
+    public User() {
+        role = RoleEnum.USER.name();
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public String getFirstName() {
         return firstName;
