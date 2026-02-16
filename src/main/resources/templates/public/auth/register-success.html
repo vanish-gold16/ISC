@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISC | Registration Complete</title>
+    <link rel="stylesheet" href="/css/public/auth/auth.css" />
+</head>
+<body>
+<header th:replace="~{public/blocks/public-header :: header}"></header>
+
+<main class="container auth">
+    <section class="auth__card card">
+        <h1>Account created</h1>
+        <p class="muted">Registration completed successfully. You can sign in now.</p>
+
+        <a class="btn btn--primary btn--block" th:href="@{/auth/login}">Sign in</a>
+    </section>
+</main>
+
+<footer th:replace="~{public/blocks/public-footer :: footer}"></footer>
+</body>
+</html>

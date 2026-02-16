@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/auth")
@@ -33,12 +32,15 @@ public class AuthController {
         return "public/auth/register";
     }
 
+    @GetMapping("/register/success")
+    public String getRegistrationSuccess() {
+        return "public/auth/register-success";
+    }
+
     @PostMapping("/register")
     public String registerUser(
             @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
-            Model model) {
+            BindingResult bindingResult) {
         if(bindingResult.hasErrors()) return "public/auth/register";
 
         try{
@@ -49,7 +51,6 @@ public class AuthController {
             return "public/auth/register";
         }
 
-        redirectAttributes.addFlashAttribute("success", "Account created. Now sign in");
-        return "redirect:/auth/login";
+        return "redirect:/auth/register/success";
     }
 }
