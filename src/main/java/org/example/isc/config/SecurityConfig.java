@@ -17,5 +17,27 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception{
+        http
+                .authorizeHttpRequests(
+                        auth -> auth
+                                // static
+                                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                                // public
+                                .requestMatchers("/", "/landing", "/auth/**").permitAll()
+                                // others only after login
+                                .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        // redirect to login
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/", true)
+                        .failureUrl("/auth/login?logout=true")
+                );
+        return http.build();
+    }
+
 }
 

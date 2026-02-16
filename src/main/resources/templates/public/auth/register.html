@@ -14,32 +14,52 @@
     <h1>Create account</h1>
     <p class="muted">Join the community. Be normal. Or at least respectful.</p>
 
-    <form class="form" method="post" th:action="@{/auth/register}">
+    <form class="form" method="post" th:action="@{/auth/register}" th:object="${registrationRequest}">
       <div class="grid2">
         <label class="field">
           <span>First name</span>
-          <input class="input" name="firstName" placeholder="John" required />
+          <input th:field="*{firstName}" name="firstName" placeholder="John" required />
+          <small class="error"
+                 th:if="${#fields.hasErrors('firstName')}"
+                 th:errors="*{firstName}">
+          </small>
         </label>
         <label class="field">
           <span>Last name</span>
-          <input class="input" name="lastName" placeholder="Johnson" required />
+          <input th:field="*{lastName}" name="lastName" placeholder="Johnson" required />
+          <small class="error"
+                 th:if="${#fields.hasErrors('lastName')}"
+                 th:errors="*{lastName}">
+          </small>
         </label>
       </div>
 
       <label class="field">
         <span>Username</span>
-        <input class="input" type="username" placeholder="TheBestStudent" required>
+        <input th:field="*{username}" type="username" placeholder="TheBestStudent" required>
+        <small class="error"
+               th:if="${#fields.hasErrors('username')}"
+               th:errors="*{username}">
+        </small>
       </label>
 
       <label class="field">
         <span>Email</span>
-        <input class="input" type="email" name="email" placeholder="you@school.edu" required />
+        <input th:field="*{email}" type="email" name="email" placeholder="you@school.edu" required />
+        <small class="error"
+               th:if="${#fields.hasErrors('email')}"
+               th:errors="*{email}">
+        </small>
       </label>
 
       <label class="field">
         <span>Password</span>
-        <input class="input" type="password" name="password" minlength="8" required />
+        <input th:field="*{password}" type="password" name="password" minlength="8" required />
         <span class="hint muted">At least 8 characters. </span>
+        <small class="error"
+               th:if="${#fields.hasErrors('password')}"
+               th:errors="*{password}">
+        </small>
       </label>
 
       <button class="btn btn--primary btn--block" type="submit">Sign up</button>

@@ -40,5 +40,16 @@ public class AuthController {
             RedirectAttributes redirectAttributes,
             Model model) {
         if(bindingResult.hasErrors()) return "public/auth/register";
+
+        try{
+            userService.register(request);
+        }
+        catch(IllegalStateException ex){
+            bindingResult.rejectValue("email", "email.exists", ex.getMessage());
+            return "public/auth/register";
+        }
+
+        redirectAttributes.addFlashAttribute("success", "Account created. Now sign in");
+        return "redirect:/auth/login";
     }
 }
