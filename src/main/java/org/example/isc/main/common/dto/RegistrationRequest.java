@@ -59,6 +59,8 @@ public class RegistrationRequest {
         this.email = email;
     }
 
+
+
     public String getPassword() {
         return password;
     }

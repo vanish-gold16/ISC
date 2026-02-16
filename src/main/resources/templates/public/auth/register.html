@@ -36,7 +36,7 @@
 
       <label class="field">
         <span>Username</span>
-        <input th:field="*{username}" type="username" placeholder="TheBestStudent" required>
+        <input th:field="*{username}" type="text" placeholder="TheBestStudent" required>
         <small class="error"
                th:if="${#fields.hasErrors('username')}"
                th:errors="*{username}">
