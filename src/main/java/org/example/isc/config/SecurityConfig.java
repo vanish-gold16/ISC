@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public BCryptPasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
@@ -25,7 +25,7 @@ public class SecurityConfig {
                                 // static
                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                 // public
-                                .requestMatchers("/", "/landing", "/auth/**").permitAll()
+                                .requestMatchers("/", "/landing", "/error", "/auth/**").permitAll()
                                 // others only after login
                                 .anyRequest().authenticated()
                 )
