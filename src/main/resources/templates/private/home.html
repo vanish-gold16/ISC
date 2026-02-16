@@ -10,23 +10,7 @@
 </head>
 
 <body>
-<header class="topbar">
-    <div class="topbar__inner container">
-        <a class="brand" href="/">
-            <span class="brand__logo">ISC</span>
-            <span class="brand__text">International Student Community</span>
-        </a>
-
-        <div class="topbar__actions">
-            <a class="profile" th:href="@{/profile}" aria-label="Profile">
-                <img class="profile__img"
-                     th:src="${userAvatarUrl} ?: '/images/default-avatar.png'"
-                     alt="Your profile" />
-            </a>
-        </div>
-
-    </div>
-</header>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container page">
     <!-- Feed -->
@@ -105,12 +89,6 @@
     </aside>
 </main>
 
-<footer class="footer container muted">
-    <span>© ISC</span>
-    <span>·</span>
-    <a class="footer__link" href="/privacy">Privacy</a>
-    <span>·</span>
-    <a class="footer__link" href="/terms">Terms</a>
-</footer>
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>

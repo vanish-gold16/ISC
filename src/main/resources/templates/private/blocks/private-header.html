@@ -1,0 +1,19 @@
+<div th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+<header class="topbar">
+    <div class="topbar__inner container">
+        <a class="brand" href="/">
+            <span class="brand__logo">ISC</span>
+            <span class="brand__text">International Student Community</span>
+        </a>
+
+        <div class="topbar__actions">
+            <a class="profile" th:href="@{/profile}" aria-label="Profile">
+                <img class="profile__img"
+                     th:src="${userAvatarUrl} ?: '/images/default-avatar.png'"
+                     alt="Your profile" />
+            </a>
+        </div>
+
+    </div>
+</header>
+</div>
