@@ -39,6 +39,6 @@ public class AuthController {
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
             Model model) {
-
+        if(bindingResult.hasErrors()) return "public/auth/register";
     }
 }

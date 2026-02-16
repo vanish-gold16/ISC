@@ -11,4 +11,31 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private final UserRepository repository;
+    private final PasswordEncoder encoder;
+
+
+    public UserService(UserRepository repository, PasswordEncoder encoder) {
+        this.repository = repository;
+        this.encoder = encoder;
+    }
+
+    public void register(
+            RegistrationRequest request
+    ){
+        String email = request.getEmail().trim().toLowerCase();
+
+        if(repository.existsByEmail(email))
+            throw new IllegalStateException("This email is already registered!");
+
+        User user = new User();
+
+        user.setFirstName(request.getFirstName().trim());
+        user.setLastName(request.getLastName().trim());
+        user.setUsername(request.getUsername().trim());
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(encoder.encode(request.getPassword()));
+
+        repository.save(user);
+    }
 }
