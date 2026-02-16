@@ -1,17 +1,32 @@
 package org.example.isc.config;
 
 import org.example.isc.main.enums.RoleEnum;
+import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final UserRepository repository;
+
+    public SecurityConfig(UserRepository repository) {
+        this.repository = repository;
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
@@ -41,6 +56,22 @@ public class SecurityConfig {
                         .failureUrl("/auth/login?error=true")
                 );
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(){
+        return new UserDetailsService(){
+            @Override
+            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
+                User user = repository.findByUsername(username).orElseThrow(
+                        () -> new UsernameNotFoundException("User with this username not found")
+                );
+                Set<SimpleGrantedAuthority> roles = Collections.singleton(user.getRole().toAuthority());
+                return new org.springframework.security.core.userdetails.User(
+                        user.getUsername(), user.getPasswordHash(), roles
+                );
+            }
+        };
     }
 
 }

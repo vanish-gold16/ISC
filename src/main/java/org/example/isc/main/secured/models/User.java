@@ -28,21 +28,21 @@ public class User {
     private String passwordHash;
 
     @Column(name = "role", nullable = false)
-    private String role;
+    private RoleEnum role;
 
     @Column(name = "current_study")
     private String currentStudy;
 
 
     public User() {
-        role = RoleEnum.USER.name();
+        role = RoleEnum.USER;
     }
 
-    public String getRole() {
+    public RoleEnum getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(RoleEnum role) {
         this.role = role;
     }
 
