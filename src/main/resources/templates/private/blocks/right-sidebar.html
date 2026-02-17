@@ -21,16 +21,16 @@
             <a class="nav__item"
                th:href="@{/messages}"
                th:classappend="${active}=='messages' ? ' is-active' : ''">
+                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/messages.png}" src="/images/private/sidebar-icons/messages.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Messages</span>
-                <img class="nav__icon" th:src="@{/img/private/sidebar-icons/messages.svg}" src="/img/private/sidebar-icons/messages.svg" alt="" aria-hidden="true" />
-            </a>
+                </a>
 
             <a class="nav__item"
                th:href="@{/friends}"
                th:classappend="${active}=='friends' ? ' is-active' : ''">
+                <img class="nav__icon" th:src="@{/img/private/sidebar-icons/friends.png}" src="/img/private/sidebar-icons/friends.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Friends</span>
-                <img class="nav__icon" th:src="@{/img/private/sidebar-icons/friends.svg}" src="/img/private/sidebar-icons/friends.svg" alt="" aria-hidden="true" />
-            </a>
+                </a>
         </nav>
     </div>
 </aside>
