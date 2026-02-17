@@ -1,0 +1,23 @@
+<<div th:fragment="footer" xmlns:th="http://www.thymeleaf.org">>
+    <div class="card card--sticky nav-card">
+        <div class="nav-title">Navigation</div>
+
+        <nav class="nav">
+            <a class="nav__item"
+               th:href="@{/profile}"
+               th:classappend="${active}=='profile' ? ' is-active' : ''">Profile</a>
+
+            <a class="nav__item"
+               th:href="@{/home}"
+               th:classappend="${active}=='home' ? ' is-active' : ''">Home</a>
+
+            <a class="nav__item"
+               th:href="@{/messages}"
+               th:classappend="${active}=='messages' ? ' is-active' : ''">Messages</a>
+
+            <a class="nav__item"
+               th:href="@{/friends}"
+               th:classappend="${active}=='friends' ? ' is-active' : ''">Friends</a>
+        </nav>
+    </div>
+</div>
