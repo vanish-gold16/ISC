@@ -14,9 +14,9 @@
             <a class="nav__item"
                th:href="@{/home}"
                th:classappend="${active}=='home' ? ' is-active' : ''">
+                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/home.png}" src="/images/private/sidebar-icons/home.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Home</span>
-                <img class="nav__icon" th:src="@{/img/private/sidebar-icons/home.svg}" src="/img/private/sidebar-icons/home.svg" alt="" aria-hidden="true" />
-            </a>
+                </a>
 
             <a class="nav__item"
                th:href="@{/messages}"
