@@ -1,4 +1,5 @@
-<<div th:fragment="footer" xmlns:th="http://www.thymeleaf.org">>
+<aside class="sidebar-right" th:fragment="rightSidebar(active)">
+    <link rel="stylesheet" href="/css/private/blocks/right-sidebar.css" />
     <div class="card card--sticky nav-card">
         <div class="nav-title">Navigation</div>
 
@@ -20,4 +21,4 @@
                th:classappend="${active}=='friends' ? ' is-active' : ''">Friends</a>
         </nav>
     </div>
-</div>
+</aside>
