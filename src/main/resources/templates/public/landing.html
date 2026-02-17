@@ -9,32 +9,30 @@
 <body>
 <header th:replace="~{public/blocks/public-header :: header}"></header>
 
-<main class="container hero">
-    <section class="hero__left">
-        <h1>Meet students. Build your circle. Feel at home anywhere.</h1>
-        <p class="muted">
-            A community feed for international students: friends, subscriptions, events, and practical help in your city.
-        </p>
+<main class="snap">
+    <!-- Screen 1 -->
+    <section class="snap__page">
+        <div class="container">
+            <div class="hero__left">
+                <h1></h1>
+                <p class="muted"></p>
 
-
-        <div class="hero__badges">
-            <div class="badge">Friends-only feed</div>
-            <div class="badge">City communities</div>
-            <div class="badge">Events & meetups</div>
+                <div class="hero__badges">
+                    <div class="badge"></div>
+                    <div class="badge"></div>
+                    <div class="badge"></div>
+                </div>
+            </div>
         </div>
+        <div class="scroll-hint" aria-hidden="true">Scroll</div>
     </section>
 
-    <aside class="hero__right card">
-        <h3>What you’ll get</h3>
-        <ul class="list">
-            <li>Personal feed from friends & subscriptions</li>
-            <li>Find people in your city and your school</li>
-            <li>Ask questions and get real answers</li>
-        </ul>
-        <div class="divider"></div>
-        <p class="muted small">No spam. No cringe. Ideally.</p>
-    </aside>
-</main>
+    <!-- Screen 2 -->
+    <section class="snap__page">
+        <div class="container">
+            <div class="section-block">
+                <h2></h2>
+
 
 <footer th:replace="~{public/blocks/public-footer :: footer}"></footer>
 
