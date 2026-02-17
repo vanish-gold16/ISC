@@ -3,6 +3,11 @@ package org.example.isc.main.common;
 import jakarta.validation.Valid;
 import org.example.isc.main.common.dto.RegistrationRequest;
 import org.example.isc.main.common.service.UserService;
+import org.example.isc.main.enums.RoleEnum;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,6 +15,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Collections;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/auth")
@@ -51,6 +59,21 @@ public class AuthController {
             return "public/auth/register";
         }
 
+
         return "redirect:/auth/register/success";
     }
+
+    // TODO
+    private void forceAutoLogin(String username, String password){
+        Set<SimpleGrantedAuthority> roles = Collections.singleton(
+                RoleEnum.USER.toAuthority()
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                username, password, roles
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
 }

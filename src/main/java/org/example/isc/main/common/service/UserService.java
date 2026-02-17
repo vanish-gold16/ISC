@@ -1,6 +1,7 @@
 package org.example.isc.main.common.service;
 
 import org.example.isc.main.common.dto.RegistrationRequest;
+import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ public class UserService {
         user.setUsername(request.getUsername().trim());
         user.setEmail(email);
         user.setPasswordHash(encoder.encode(request.getPassword()));
+        user.setRole(RoleEnum.USER);
 
         repository.save(user);
     }
