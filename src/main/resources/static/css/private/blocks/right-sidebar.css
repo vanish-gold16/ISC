@@ -18,7 +18,8 @@
 .nav__item{
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 8px;
     padding: 10px 12px;
     border-radius: 12px;
 
@@ -27,6 +28,13 @@
     color: var(--text);
 
     transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+
+.nav__icon{
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .nav__item:hover{

@@ -102,6 +102,14 @@ button { font: inherit; }
     display: block;
 }
 
+.nav__item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px; /* было меньше */
+}
+
+
 
 .topbar__actions { display: flex; gap: 10px; }
 
@@ -274,3 +282,16 @@ button { font: inherit; }
 }
 .footer__link { color: var(--muted); }
 .footer__link:hover { color: var(--text); }
+
+/* sidebar icons size */
+.nav__icon{
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: block;
+}
+
+/* чтобы текст и иконка красиво стояли */
+.nav__label{
+    flex: 1;
+}
