@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} ?: 'ISC | Profile'">ISC | Profile</title>
+
+    <link rel="stylesheet" href="/css/private/profile.css" />
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container page profile-page">
+
+    <section class="profile-main">
+
+        <!-- Profile header -->
+        <article class="card profile-card">
+            <div class="profile-cover">
+                <!-- если когда-то добавишь coverUrl -->
+                <img class="profile-cover__img"
+                     th:if="${userCoverUrl != null}"
+                     th:src="${userCoverUrl}"
+                     alt="" />
+            </div>
+
+            <div class="profile-head">
+                <div class="profile-avatar">
+                    <img
+                            th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                            src="/images/private/profile/common-profile.png"
+                            alt=""
+                    />
+                </div>
+
+                <div class="profile-info">
+                    <div class="profile-topline">
+                        <div class="profile-namewrap">
+                            <h1 class="profile-name" th:text="${userFullName} ?: 'ISC Member'">ISC Member</h1>
+                            <div class="profile-username muted" th:text="${userUsername} ?: '@username'">@username</div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <!-- если у тебя есть логика "это мой профиль" -->
+                            <a class="btn btn--ghost" th:if="${isMyProfile}" th:href="@{/profile/edit}">Edit</a>
+                            <button class="btn btn--primary" th:if="${!isMyProfile}" type="button">Follow</button>
+                            <a class="btn btn--ghost" th:if="${isMyProfile == false}" th:href="@{/messages}">Message</a>
+                        </div>
+                    </div>
+
+                    <p class="profile-bio" th:text="${userBio} ?: 'No bio yet. Humans are mysterious.'">
+                        No bio yet. Humans are mysterious.
+                    </p>
+
+                    <div class="profile-meta">
+                        <div class="pill" th:if="${userLocation != null}">
+                            <span class="pill__icon">📍</span>
+                            <span th:text="${userLocation}">Prague</span>
+                        </div>
+
+                        <div class="pill" th:if="${userJoined != null}">
+                            <span class="pill__icon">🗓</span>
+                            <span>Joined:</span>
+                            <span th:text="${userJoined}">2026</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <div class="stat__num" th:text="${postsCount} ?: 0">0</div>
+                            <div class="stat__label muted">Posts</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat__num" th:text="${followersCount} ?: 0">0</div>
+                            <div class="stat__label muted">Followers</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat__num" th:text="${followingCount} ?: 0">0</div>
+                            <div class="stat__label muted">Following</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Tabs -->
+        <div class="tabs card">
+            <div class="tabs__bar">
+                <a class="tab is-active" href="#posts">Posts</a>
+                <a class="tab" href="#about">About</a>
+                <a class="tab" href="#friends">Friends</a>
+            </div>
+
+            <div class="tabs__content">
+
+                <!-- POSTS -->
+                <section id="posts" class="tab-panel">
+                    <div class="panel-title">
+                        <h2>Posts</h2>
+                        <a class="btn btn--ghost btn--sm" th:href="@{/post}">New Post</a>
+                    </div>
+
+                    <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
+                        <h3>No posts yet</h3>
+                        <p class="muted">Time to leave a trace in the universe.</p>
+                    </div>
+
+                    <article class="post card" th:each="p : ${posts}">
+                        <div class="post__header">
+                            <div class="avatar" th:text="${p.authorInitials} ?: 'IS'">IS</div>
+                            <div class="post__meta">
+                                <div class="post__name" th:text="${p.authorName} ?: 'ISC Member'">ISC Member</div>
+                                <div class="post__sub muted">
+                                    <span th:text="${p.location} ?: 'Somewhere'">Somewhere</span>
+                                    <span>·</span>
+                                    <span th:text="${p.relativeTime} ?: 'just now'">just now</span>
+                                </div>
+                            </div>
+                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">⋯</span></button>
+                        </div>
+
+                        <div class="post__content">
+                            <h3 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h3>
+                            <p th:text="${p.description}">Post content</p>
+                        </div>
+
+                        <div class="post__footer">
+                            <button class="action" type="button"><span class="icon">♡</span> Like</button>
+                            <button class="action" type="button"><span class="icon">💬</span> Comment</button>
+                            <button class="action" type="button"><span class="icon">↗</span> Share</button>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- ABOUT -->
+                <section id="about" class="tab-panel">
+                    <div class="panel-title">
+                        <h2>About</h2>
+                    </div>
+
+                    <div class="about-grid">
+                        <div class="about-card">
+                            <div class="about-card__title">Main</div>
+                            <div class="about-list">
+                                <div class="about-row">
+                                    <div class="about-k muted">Full name</div>
+                                    <div class="about-v" th:text="${userFullName} ?: 'ISC Member'">ISC Member</div>
+                                </div>
+                                <div class="about-row">
+                                    <div class="about-k muted">Username</div>
+                                    <div class="about-v" th:text="${userUsername} ?: '@username'">@username</div>
+                                </div>
+                                <div class="about-row" th:if="${userEmail != null}">
+                                    <div class="about-k muted">Email</div>
+                                    <div class="about-v" th:text="${userEmail}">mail@example.com</div>
+                                </div>
+                                <div class="about-row" th:if="${userLocation != null}">
+                                    <div class="about-k muted">Location</div>
+                                    <div class="about-v" th:text="${userLocation}">Prague</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="about-card">
+                            <div class="about-card__title">Bio</div>
+                            <p class="about-text" th:text="${userBio} ?: 'No bio yet.'">No bio yet.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FRIENDS -->
+                <section id="friends" class="tab-panel">
+                    <div class="panel-title">
+                        <h2>Friends</h2>
+                    </div>
+
+                    <div class="friends-grid" th:if="${friends != null and !#lists.isEmpty(friends)}">
+                        <a class="friend card" th:each="f : ${friends}" th:href="@{/profile/{id}(id=${f.id})}">
+                            <img class="friend__avatar"
+                                 th:src="${f.avatarUrl} ?: '/images/private/profile/common-profile.png'"
+                                 alt="" />
+                            <div class="friend__info">
+                                <div class="friend__name" th:text="${f.name} ?: 'ISC Member'">ISC Member</div>
+                                <div class="friend__sub muted" th:text="${f.username} ?: '@user'">@user</div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="card empty" th:if="${friends == null or #lists.isEmpty(friends)}">
+                        <h3>No friends listed</h3>
+                        <p class="muted">Either you’re selective, or the backend isn’t ready. Both believable.</p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Right sidebar -->
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('profile')}"></aside>
+
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>
