@@ -5,6 +5,13 @@
 
         <nav class="nav">
             <a class="nav__item"
+               th:href="@{/post}"
+               th:classappend="${active}=='post' ? ' is-active' : ''">
+                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/post.png}" src="/images/private/sidebar-icons/post.png" alt="" aria-hidden="true" />
+                <span class="nav__label">New Post</span>
+            </a>
+
+            <a class="nav__item"
                th:href="@{/profile}"
                th:classappend="${active}=='profile' ? ' is-active' : ''">
                 <img class="nav__icon" th:src="@{/images/private/sidebar-icons/profile.png}" src="/images/private/sidebar-icons/profile.png" alt="" aria-hidden="true" />
