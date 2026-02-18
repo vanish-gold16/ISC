@@ -3,6 +3,7 @@ package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
+import org.example.isc.main.enums.RoleEnumConverter;
 
 @Entity
 @Table(name="users")
@@ -28,6 +29,7 @@ public class User {
     private String passwordHash;
 
     @Column(name = "role", nullable = false)
+    @Convert(converter = RoleEnumConverter.class)
     private RoleEnum role;
 
     @Column(name = "current_study")
