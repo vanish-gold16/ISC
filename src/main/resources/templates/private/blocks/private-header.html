@@ -6,6 +6,16 @@
             <span class="brand__text">International Student Community</span>
         </a>
 
+        <div class="topbar__search" aria-hidden="false">
+            <span class="search__icon" aria-hidden="true">🔍</span>
+            <input
+                class="search"
+                type="search"
+                placeholder="Search people, posts, communities..."
+                aria-label="Search"
+            />
+        </div>
+
         <div class="topbar__actions">
             <a class="profile" th:href="@{/profile}" aria-label="Profile">
                 <img class="profile__img"

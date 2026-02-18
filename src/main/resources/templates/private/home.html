@@ -16,22 +16,6 @@
     <!-- Feed -->
     <section class="feed">
 
-        <!-- Composer (пока без логики) -->
-        <div class="composer card">
-            <div class="composer__row">
-                <div class="avatar" aria-hidden="true">🙂</div>
-                <div class="composer__input">
-                    <div class="inputlike" contenteditable="true" role="textbox" aria-label="Create a post"
-                         data-placeholder="Share something with the community..."></div>
-                    <div class="composer__actions">
-                        <button class="btn btn--ghost btn--sm" type="button">Attach</button>
-                        <button class="btn btn--ghost btn--sm" type="button">Poll</button>
-                        <button class="btn btn--primary btn--sm" type="button">Post</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Empty state -->
         <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
             <h3>No posts yet</h3>
