@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 // static
                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                 // public
-                                .requestMatchers("/", "/landing", "/auth/**").permitAll()
+                                .requestMatchers("/", "/landing", "/auth/**", "/error").permitAll()
                                 // admin
                                 .requestMatchers("/admin/**").hasAnyRole(RoleEnum.ADMIN.name())
                                 // others only after login
@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .usernameParameter("username")
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/auth/login?error=true")
+                        .permitAll()
                 );
         return http.build();
     }

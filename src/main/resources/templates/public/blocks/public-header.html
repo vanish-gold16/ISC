@@ -7,8 +7,19 @@
             </a>
 
             <div class="topbar__actions">
-                <a class="btn btn--ghost" th:href="@{/auth/login}">Sign in</a>
-                <a class="btn btn--primary" th:href="@{/auth/register}">Sign up</a>
+                <a class="btn btn--ghost"
+                   th:if="${!isAuthenticated}"
+                   th:href="@{/auth/login}">Sign in</a>
+                <a class="btn btn--primary"
+                   th:if="${!isAuthenticated}"
+                   th:href="@{/auth/register}">Sign up</a>
+
+                <a class="btn btn--ghost"
+                   th:if="${isAuthenticated}"
+                   th:href="@{/home}">Home</a>
+                <a class="btn btn--primary"
+                   th:if="${isAuthenticated}"
+                   th:href="@{/profile}">Profile</a>
             </div>
         </div>
     </header>

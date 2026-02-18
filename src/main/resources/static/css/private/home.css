@@ -94,10 +94,11 @@ button { font: inherit; }
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 15px;
-    line-height: 1;
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
     pointer-events: none;
-    opacity: 0.75;
+    opacity: 0.7;
 }
 
 .search {
