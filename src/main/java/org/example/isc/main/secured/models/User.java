@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.enums.RoleEnumConverter;
 
+import java.time.Year;
+import java.util.Date;
+
 @Entity
 @Table(name="users")
 public class User {
@@ -35,6 +38,8 @@ public class User {
     @Column(name = "current_study")
     private String currentStudy;
 
+    @Column(name = "createdAt")
+    private Date date;
 
     public User() {
         role = RoleEnum.USER;
