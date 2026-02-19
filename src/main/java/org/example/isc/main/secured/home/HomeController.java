@@ -24,7 +24,7 @@ public class HomeController {
     public String getHome(Model model, Authentication authentication){
         String username = authentication.getName();
         User me = userRepository.findByUsernameIgnoreCase(username).orElseThrow(() ->
-                new IllegalStateException("User not found: " + username));
+                new IllegalStateException("Logged-in user not found: " + username));
         model.addAttribute("title", "Home");
         model.addAttribute("posts", homeService.getFeed(me.getId()));
 

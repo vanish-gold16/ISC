@@ -19,7 +19,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             select  p from Post p 
             where p.user.id in (
                         select s.followed.id from Subscription s
-                        where s.followed.id = :userId           
+                        where s.follower.id = :userId           
                         )            
                         """)
     List<Post> findFeed(
