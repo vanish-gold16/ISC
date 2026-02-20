@@ -12,6 +12,7 @@
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container page profile-page">
+    <aside th:replace="~{/private/blocks/left-sidebar :: leftSidebar}"></aside>
 
     <section class="profile-main">
 
@@ -41,7 +42,6 @@
                         </div>
 
                         <div class="profile-actions">
-                            <!-- Follow / Unfollow -->
                             <form th:if="${isFollowing}" th:action="@{/profile/{id}/unfollow(id=${user.id})}" method="post">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button class="btn btn--ghost" type="submit">Unfollow</button>
@@ -52,7 +52,6 @@
                                 <button class="btn btn--primary" type="submit">Follow</button>
                             </form>
 
-                            <!-- Friends (пока заглушка) -->
                             <button class="btn btn--ghost" type="button" disabled title="Friend system not wired yet">
                                 Add friend
                             </button>
@@ -67,13 +66,12 @@
 
                     <div class="profile-meta">
                         <div class="pill" th:if="${userLocation != null}">
-                            <span class="pill__icon">📍</span>
+                            <span class="pill__icon">Location</span>
                             <span th:text="${userLocation}">Prague</span>
                         </div>
 
                         <div class="pill" th:if="${userJoined != null}">
-                            <span class="pill__icon">🗓</span>
-                            <span>Joined:</span>
+                            <span class="pill__icon">Joined</span>
                             <span th:text="${userJoined}">2026</span>
                         </div>
                     </div>
@@ -99,7 +97,6 @@
         <div class="tabs card" data-tabs>
             <div class="tabs__bar" role="tablist" aria-label="Profile tabs">
                 <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab-btn="posts">Posts</button>
-                <button class="tab" type="button" role="tab" aria-selected="false" data-tab-btn="about">About</button>
                 <button class="tab" type="button" role="tab" aria-selected="false" data-tab-btn="friends">Friends</button>
             </div>
 
@@ -126,7 +123,7 @@
                                     <span th:text="${p.relativeTime} ?: 'just now'">just now</span>
                                 </div>
                             </div>
-                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">⋯</span></button>
+                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">...</span></button>
                         </div>
 
                         <div class="post__content">
@@ -135,39 +132,11 @@
                         </div>
 
                         <div class="post__footer">
-                            <button class="action" type="button"><span class="icon">♡</span> Like</button>
-                            <button class="action" type="button"><span class="icon">💬</span> Comment</button>
-                            <button class="action" type="button"><span class="icon">↗</span> Share</button>
+                            <button class="action" type="button"><span class="icon">Like</span></button>
+                            <button class="action" type="button"><span class="icon">Comment</span></button>
+                            <button class="action" type="button"><span class="icon">Share</span></button>
                         </div>
                     </article>
-                </section>
-
-                <section id="about" class="tab-panel" role="tabpanel" data-tab-panel="about">
-                    <div class="panel-title">
-                        <h2>About</h2>
-                    </div>
-
-                    <div class="about-grid">
-                        <div class="about-card">
-                            <div class="about-card__title">Main</div>
-                            <div class="about-list">
-                                <div class="about-row">
-                                    <div class="about-k muted">Full name</div>
-                                    <div class="about-v" th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</div>
-                                </div>
-                                <div class="about-row">
-                                    <div class="about-k muted">Username</div>
-                                    <div class="about-v" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
-                                </div>
-                                <!-- Location поле можно добавить позже в User -->
-                            </div>
-                        </div>
-
-                        <div class="about-card">
-                            <div class="about-card__title">Bio</div>
-                            <p class="about-text" th:text="${userBio} ?: 'No bio yet.'">No bio yet.</p>
-                        </div>
-                    </div>
                 </section>
 
                 <section id="friends" class="tab-panel" role="tabpanel" data-tab-panel="friends">

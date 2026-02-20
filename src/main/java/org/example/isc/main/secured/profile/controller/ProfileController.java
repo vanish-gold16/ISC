@@ -1,5 +1,8 @@
 package org.example.isc.main.secured.profile.controller;
 
+import org.example.isc.main.common.dto.EditRequest;
+import org.example.isc.main.enums.CountryEnum;
+import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
@@ -8,6 +11,7 @@ import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -114,6 +118,43 @@ public class ProfileController {
         }
 
         return "redirect:/profile/" + id;
+    }
+
+    @GetMapping("/edit")
+    public String edit(Model model, Authentication authentication){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
+
+        model.addAttribute("title", "Edit profile");
+        model.addAttribute("user", me);
+        model.addAttribute("profile", me.getProfile());
+        model.addAttribute("countries", CountryEnum.values());
+        model.addAttribute("occupations", OccupationEnum.values());
+        addProfileViewAttributes(model, me);
+
+        return "private/profile-edit";
+    }
+
+    @Transactional
+    @PostMapping("/edit")
+    public String saveEdit(
+            EditRequest request,
+            Authentication authentication
+    ) {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
+        String username = request.getUsername();
+        String email = request.getEmail();
+
+        if(userRepository.existsByUsername(username) && !authentication.getName().equals(username))
+            throw new IllegalArgumentException("This username already exists!");
+        if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
+            throw new IllegalArgumentException("This email has already been used!");
+
+        me.setFirstName(request.getFirstName());
+        //TODO
+
+        return "redirect:/profile";
     }
 
     private void addProfileViewAttributes(Model model, User user) {

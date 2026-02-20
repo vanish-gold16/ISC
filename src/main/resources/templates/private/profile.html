@@ -12,6 +12,7 @@
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container page profile-page">
+    <aside th:replace="~{/private/blocks/left-sidebar :: leftSidebar}"></aside>
 
     <section class="profile-main">
 
@@ -89,7 +90,6 @@
         <div class="tabs card" data-tabs>
             <div class="tabs__bar" role="tablist" aria-label="Profile tabs">
                 <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab-btn="posts">Posts</button>
-                <button class="tab" type="button" role="tab" aria-selected="false" data-tab-btn="about">About</button>
                 <button class="tab" type="button" role="tab" aria-selected="false" data-tab-btn="friends">Friends</button>
             </div>
 
@@ -132,42 +132,6 @@
                             <button class="action" type="button"><span class="icon">↗</span> Share</button>
                         </div>
                     </article>
-                </section>
-
-                <!-- ABOUT -->
-                <section id="about" class="tab-panel" role="tabpanel" data-tab-panel="about">
-                    <div class="panel-title">
-                        <h2>About</h2>
-                    </div>
-
-                    <div class="about-grid">
-                        <div class="about-card">
-                            <div class="about-card__title">Main</div>
-                            <div class="about-list">
-                                <div class="about-row">
-                                    <div class="about-k muted">Full name</div>
-                                    <div class="about-v" th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</div>
-                                </div>
-                                <div class="about-row">
-                                    <div class="about-k muted">Username</div>
-                                    <div class="about-v" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
-                                </div>
-                                <div class="about-row" th:if="${user != null && user.email != null}">
-                                    <div class="about-k muted">Email</div>
-                                    <div class="about-v" th:text="${user.email}">mail@example.com</div>
-                                </div>
-                                <div class="about-row" th:if="${userLocation != null}">
-                                    <div class="about-k muted">Location</div>
-                                    <div class="about-v" th:text="${userLocation}">Prague</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="about-card">
-                            <div class="about-card__title">Bio</div>
-                            <p class="about-text" th:text="${userBio} ?: 'No bio yet.'">No bio yet.</p>
-                        </div>
-                    </div>
                 </section>
 
                 <!-- FRIENDS -->
