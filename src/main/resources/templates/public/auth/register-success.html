@@ -12,9 +12,10 @@
 <main class="container auth">
     <section class="auth__card card">
         <h1>Account created</h1>
-        <p class="muted">Registration completed successfully. You can now sign in.</p>
+        <p class="muted">Registration completed successfully. Sign in to continue.</p>
+        <p class="muted small">After sign in you will see onboarding. It is optional and can be skipped.</p>
 
-        <a class="btn btn--primary btn--block" th:href="@{/auth/login}">Sign in</a>
+        <a class="btn btn--primary btn--block" th:href="@{/auth/login(registered=true)}">Sign in</a>
     </section>
 </main>
 

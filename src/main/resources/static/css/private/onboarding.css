@@ -1,0 +1,99 @@
+:root {
+    --bg: #ffffff;
+    --panel: #f8faff;
+    --panel-hover: #f1f6ff;
+    --border: #d9e2f2;
+    --text: #0f172a;
+    --muted: #475569;
+    --shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
+    --r: 16px;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --focus: rgba(37, 99, 235, 0.25);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+    margin: 0;
+    color: var(--text);
+    background:
+            radial-gradient(900px 420px at 12% 0%, rgba(37, 99, 235, 0.1), transparent 60%),
+            radial-gradient(900px 420px at 88% 12%, rgba(37, 99, 235, 0.06), transparent 55%),
+            var(--bg);
+    font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+}
+
+.container { width: min(980px, calc(100% - 32px)); margin: 0 auto; }
+.muted { color: var(--muted); }
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+}
+
+.onboarding { padding: 26px 0; }
+.onboarding__card { padding: 18px; }
+.onboarding__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.onboarding__top h1 { margin: 0; }
+
+.form { display: grid; gap: 12px; margin-top: 14px; }
+.field { display: grid; gap: 6px; }
+.field > span { font-weight: 700; font-size: 13px; }
+
+.input {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+}
+.input:focus { outline: 3px solid var(--focus); border-color: rgba(37, 99, 235, 0.3); }
+.input--textarea { min-height: 96px; resize: vertical; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 720px) {
+    .grid2 { grid-template-columns: 1fr; }
+    .onboarding__top { flex-direction: column; align-items: flex-start; }
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn--primary {
+    background: var(--accent);
+    border-color: rgba(37, 99, 235, 0.35);
+    color: #fff;
+    font-weight: 800;
+}
+.btn--primary:hover { background: var(--accent-hover); }
+.btn--ghost:hover { background: var(--panel-hover); }
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.error {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #c0392b;
+}

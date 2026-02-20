@@ -54,7 +54,19 @@ public class SecurityConfig {
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/login")
                         .usernameParameter("username")
-                        .defaultSuccessUrl("/home", true)
+                        .successHandler((request, response, authentication) -> {
+                            Object onboardingFlag = request.getSession(false) == null
+                                    ? null
+                                    : request.getSession(false).getAttribute("POST_REGISTER_ONBOARDING");
+
+                            if (Boolean.TRUE.equals(onboardingFlag)) {
+                                request.getSession(false).removeAttribute("POST_REGISTER_ONBOARDING");
+                                response.sendRedirect("/onboarding");
+                                return;
+                            }
+
+                            response.sendRedirect("/home");
+                        })
                         .failureUrl("/auth/login?error=true")
                         .permitAll()
                 );

@@ -1,5 +1,6 @@
 package org.example.isc.main.common.controller;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.common.dto.RegistrationRequest;
 import org.example.isc.main.common.service.UserService;
@@ -48,7 +49,8 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(
             @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            HttpSession session) {
         if(bindingResult.hasErrors()) return "public/auth/register";
 
         try{
@@ -59,6 +61,7 @@ public class AuthController {
             return "public/auth/register";
         }
 
+        session.setAttribute("POST_REGISTER_ONBOARDING", true);
 
         return "redirect:/auth/register/success";
     }

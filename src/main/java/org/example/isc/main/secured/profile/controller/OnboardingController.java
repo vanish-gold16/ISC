@@ -2,9 +2,10 @@ package org.example.isc.main.secured.profile.controller;
 
 import jakarta.validation.Valid;
 import org.example.isc.main.common.dto.ProfileSetupForm;
+import org.example.isc.main.enums.CountryEnum;
+import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
-import org.example.isc.main.secured.repositories.UserProfileRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -20,11 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class OnboardingController {
 
     private final UserRepository userRepository;
-    private final UserProfileRepository profileRepository;
 
-    public OnboardingController(UserRepository userRepository, UserProfileRepository profileRepository) {
+    public OnboardingController(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.profileRepository = profileRepository;
     }
 
     @GetMapping
@@ -48,17 +47,21 @@ public class OnboardingController {
         }
 
         model.addAttribute("form", form);
-
-        return "/private/onboarding";
+        addReferenceData(model);
+        return "private/onboarding";
     }
 
     @PostMapping
     public String submit(
             @ModelAttribute("form") @Valid ProfileSetupForm form,
             BindingResult binding,
+            Model model,
             Authentication authentication
     ){
-        if (binding.hasErrors()) return "private/onboarding";
+        if (binding.hasErrors()) {
+            addReferenceData(model);
+            return "private/onboarding";
+        }
 
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Registrated user not found: " + authentication.getName()));
@@ -71,18 +74,21 @@ public class OnboardingController {
             me.setProfile(profile);
         }
 
-        form.setBio(profile.getBio());
-        form.setCountry(profile.getCountry());
-        form.setCity(profile.getCity());
-        form.setCurrentStudy(profile.getCurrentStudy());
-        form.setOccupationEnum(profile.getOccupationEnum());
-        if(profile.getAvatarUrl() == null) form.setAvatarUrl("/images/private/profile/common-profile.png");
-        else form.setAvatarUrl(profile.getAvatarUrl());
-        if(profile.getCoverUrl() != null) form.setCoverUrl(profile.getCoverUrl());
-        form.setBirthDate(profile.getBirthDate());
+        profile.setBio(form.getBio());
+        profile.setCountry(form.getCountry());
+        profile.setCity(form.getCity());
+        profile.setCurrentStudy(form.getCurrentStudy());
+        profile.setOccupationEnum(form.getOccupationEnum());
+        profile.setAvatarUrl(form.getAvatarUrl());
+        profile.setCoverUrl(form.getCoverUrl());
+        profile.setBirthDate(form.getBirthDate());
 
         userRepository.save(me);
         return "redirect:/profile";
     }
 
+    private void addReferenceData(Model model) {
+        model.addAttribute("countries", CountryEnum.values());
+        model.addAttribute("occupations", OccupationEnum.values());
+    }
 }
