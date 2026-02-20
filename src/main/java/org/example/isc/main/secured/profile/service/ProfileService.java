@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.profile;
+package org.example.isc.main.secured.profile.service;
 
 import org.springframework.stereotype.Service;
 

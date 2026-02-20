@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.profile;
+package org.example.isc.main.secured.profile.controller;
 
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;

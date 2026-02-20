@@ -34,11 +34,27 @@ public class User {
     @Convert(converter = RoleEnumConverter.class)
     private RoleEnum role;
 
-    @Column(name = "current_study")
-    private String currentStudy;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserProfile profile;
 
     @Column(name = "createdAt")
     private Date date;
+
+    public UserProfile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public User() {
         role = RoleEnum.USER;
@@ -100,11 +116,4 @@ public class User {
         this.username = username;
     }
 
-    public String getCurrentStudy() {
-        return currentStudy;
-    }
-
-    public void setCurrentStudy(String currentStudy) {
-        this.currentStudy = currentStudy;
-    }
 }
