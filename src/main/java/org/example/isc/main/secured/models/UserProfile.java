@@ -1,9 +1,11 @@
 package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
-import org.example.isc.main.enums.OccupationEnumConverter;
-import org.example.isc.main.enums.RoleEnumConverter;
+import org.example.isc.main.enums.converter.CountryEnumConverter;
+import org.example.isc.main.enums.converter.OccupationEnumConverter;
 
 import java.util.Date;
 
@@ -15,17 +17,20 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "bio")
+    @Column(name = "bio", length = 300)
+    @Size(max = 300)
     private String bio;
 
-    @Column(name = "country")
-    private String country;
+    @Column(name = "country", length = 80)
+    @Convert(converter = CountryEnumConverter.class)
+    private CountryEnum country;
 
-    @Column(name = "city")
+    @Column(name = "city", length = 80)
     private String city;
 
     @Column(name = "current_study")

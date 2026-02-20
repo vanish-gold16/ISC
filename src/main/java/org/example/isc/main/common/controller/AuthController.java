@@ -1,4 +1,4 @@
-package org.example.isc.main.common;
+package org.example.isc.main.common.controller;
 
 import jakarta.validation.Valid;
 import org.example.isc.main.common.dto.RegistrationRequest;

@@ -1,7 +1,8 @@
-package org.example.isc.main.enums;
+package org.example.isc.main.enums.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.example.isc.main.enums.RoleEnum;
 
 @Converter(autoApply = false)
 public class RoleEnumConverter implements AttributeConverter<RoleEnum, String> {

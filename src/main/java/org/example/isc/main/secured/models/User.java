@@ -3,9 +3,8 @@ package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
-import org.example.isc.main.enums.RoleEnumConverter;
+import org.example.isc.main.enums.converter.RoleEnumConverter;
 
-import java.time.Year;
 import java.util.Date;
 
 @Entity

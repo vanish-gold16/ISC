@@ -1,8 +1,10 @@
-package org.example.isc.main.enums;
+package org.example.isc.main.enums.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.example.isc.main.enums.OccupationEnum;
 
+@Converter(autoApply = false)
 public class OccupationEnumConverter implements AttributeConverter<OccupationEnum, String> {
     @Override
     public String convertToDatabaseColumn(OccupationEnum attribute) {
