@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -39,6 +41,7 @@ public class UserService {
         user.setEmail(email);
         user.setPasswordHash(encoder.encode(request.getPassword()));
         user.setRole(RoleEnum.USER);
+        user.setDate(LocalDate.now());
 
         repository.save(user);
     }

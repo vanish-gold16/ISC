@@ -61,7 +61,7 @@
                         </div>
                     </div>
 
-                    <p class="profile-bio" th:text="${'No bio yet. Humans are mysterious.'}">
+                    <p class="profile-bio" th:text="${userBio} ?: 'No bio yet. Humans are mysterious.'">
                         No bio yet. Humans are mysterious.
                     </p>
 
@@ -165,7 +165,7 @@
 
                         <div class="about-card">
                             <div class="about-card__title">Bio</div>
-                            <p class="about-text" th:text="${'No bio yet.'}">No bio yet.</p>
+                            <p class="about-text" th:text="${userBio} ?: 'No bio yet.'">No bio yet.</p>
                         </div>
                     </div>
                 </section>

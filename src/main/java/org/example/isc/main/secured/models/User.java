@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.enums.converter.RoleEnumConverter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -38,7 +40,7 @@ public class User {
     private UserProfile profile;
 
     @Column(name = "createdAt")
-    private Date date;
+    private LocalDate date;
 
     public UserProfile getProfile() {
         return profile;
@@ -48,11 +50,11 @@ public class User {
         this.profile = profile;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 

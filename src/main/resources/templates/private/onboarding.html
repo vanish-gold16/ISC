@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISC | Onboarding</title>
+
+    <link rel="stylesheet" href="/css/private/profile.css" />
+    <link rel="stylesheet" href="/css/private/onboarding.css" />
+</head>
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container onboarding">
+    <section class="card onboarding__card">
+        <div class="onboarding__top">
+            <h1>Complete your profile</h1>
+            <a class="btn btn--ghost" th:href="@{/home}">Skip for now</a>
+        </div>
+        <p class="muted">This step is optional. You can fill everything later from your profile.</p>
+        <p class="error" th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+
+        <form class="form" method="post" th:action="@{/onboarding}" th:object="${form}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <label class="field">
+                <span>Bio</span>
+                <textarea class="input input--textarea" th:field="*{bio}" maxlength="300" placeholder="Tell a bit about yourself"></textarea>
+                <small class="error" th:if="${#fields.hasErrors('bio')}" th:errors="*{bio}"></small>
+            </label>
+
+            <div class="grid2">
+                <label class="field">
+                    <span>Country</span>
+                    <select class="input" th:field="*{country}">
+                        <option value="">Not specified</option>
+                        <option th:each="country : ${countries}"
+                                th:value="${country.name()}"
+                                th:text="${#strings.replace(country.name(), '_', ' ')}">
+                        </option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>City</span>
+                    <input class="input" th:field="*{city}" maxlength="80" placeholder="City" />
+                    <small class="error" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></small>
+                </label>
+            </div>
+
+            <div class="grid2">
+                <label class="field">
+                    <span>Current study</span>
+                    <input class="input" th:field="*{currentStudy}" maxlength="120" placeholder="University / Program" />
+                    <small class="error" th:if="${#fields.hasErrors('currentStudy')}" th:errors="*{currentStudy}"></small>
+                </label>
+
+                <label class="field">
+                    <span>Occupation</span>
+                    <select class="input" th:field="*{occupationEnum}">
+                        <option value="">Not specified</option>
+                        <option th:each="occupation : ${occupations}"
+                                th:value="${occupation.name()}"
+                                th:text="${#strings.replace(occupation.name(), '_', ' ')}">
+                        </option>
+                    </select>
+                </label>
+            </div>
+
+            <p class="muted">
+                Avatar and cover are loaded only from local app storage:
+                <code>/images/private/profile/</code>.
+                Upload UI will be added later.
+            </p>
+
+            <label class="field">
+                <span>Birth date</span>
+                <input class="input" type="date" th:field="*{birthDate}" />
+                <small class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></small>
+            </label>
+
+            <div class="actions">
+                <button class="btn btn--primary" type="submit">Save and continue</button>
+                <a class="btn btn--ghost" th:href="@{/home}">Skip for now</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>

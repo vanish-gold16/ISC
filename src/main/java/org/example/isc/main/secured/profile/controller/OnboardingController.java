@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/onboarding")
 public class OnboardingController {
 
+    private static final String PROFILE_IMAGES_BASE = "/images/private/profile/";
+    private static final String DEFAULT_AVATAR = "/images/private/profile/common-profile.png";
+
     private final UserRepository userRepository;
 
     public OnboardingController(UserRepository userRepository) {
@@ -40,7 +43,7 @@ public class OnboardingController {
             form.setCity(profile.getCity());
             form.setCurrentStudy(profile.getCurrentStudy());
             form.setOccupationEnum(profile.getOccupationEnum());
-            if(profile.getAvatarUrl() == null) form.setAvatarUrl("/images/private/profile/common-profile.png");
+            if(profile.getAvatarUrl() == null) form.setAvatarUrl(DEFAULT_AVATAR);
             else form.setAvatarUrl(profile.getAvatarUrl());
             if(profile.getCoverUrl() != null) form.setCoverUrl(profile.getCoverUrl());
             form.setBirthDate(profile.getBirthDate());
@@ -59,6 +62,7 @@ public class OnboardingController {
             Authentication authentication
     ){
         if (binding.hasErrors()) {
+            binding.reject("form.invalid", "Please check the highlighted fields and try again.");
             addReferenceData(model);
             return "private/onboarding";
         }
@@ -79,8 +83,10 @@ public class OnboardingController {
         profile.setCity(form.getCity());
         profile.setCurrentStudy(form.getCurrentStudy());
         profile.setOccupationEnum(form.getOccupationEnum());
-        profile.setAvatarUrl(form.getAvatarUrl());
-        profile.setCoverUrl(form.getCoverUrl());
+        String currentAvatar = normalizeImagePath(profile.getAvatarUrl(), DEFAULT_AVATAR);
+        String currentCover = normalizeImagePath(profile.getCoverUrl(), null);
+        profile.setAvatarUrl(normalizeImagePath(form.getAvatarUrl(), currentAvatar));
+        profile.setCoverUrl(normalizeImagePath(form.getCoverUrl(), currentCover));
         profile.setBirthDate(form.getBirthDate());
 
         userRepository.save(me);
@@ -90,5 +96,17 @@ public class OnboardingController {
     private void addReferenceData(Model model) {
         model.addAttribute("countries", CountryEnum.values());
         model.addAttribute("occupations", OccupationEnum.values());
+    }
+
+    private String normalizeImagePath(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+
+        String path = value.trim().replace('\\', '/');
+        if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
+            return fallback;
+        }
+        return path;
     }
 }

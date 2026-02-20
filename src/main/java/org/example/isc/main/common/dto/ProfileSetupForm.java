@@ -3,6 +3,7 @@ package org.example.isc.main.common.dto;
 import jakarta.validation.constraints.Size;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -25,6 +26,7 @@ public class ProfileSetupForm {
 
     private String coverUrl;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private Date birthDate;
 
     public String getBio() {

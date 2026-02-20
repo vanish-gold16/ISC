@@ -2,6 +2,7 @@ package org.example.isc.main.secured.profile.controller;
 
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
+
+    private static final String PROFILE_IMAGES_BASE = "/images/private/profile/";
+    private static final String DEFAULT_AVATAR = "/images/private/profile/common-profile.png";
 
     private final UserRepository userRepository;
     private final PostRepository postRepository;
@@ -35,6 +39,7 @@ public class ProfileController {
         model.addAttribute("title", "Profile");
         model.addAttribute("user", me);
         model.addAttribute("isMyProfile", true);
+        addProfileViewAttributes(model, me);
 
         model.addAttribute("posts", postRepository.findPostsByUserId(me.getId()));
         model.addAttribute("postsCount", postRepository.findPostsByUserId(me.getId()).size());
@@ -55,6 +60,7 @@ public class ProfileController {
         model.addAttribute("title", "Profile");
         model.addAttribute("user", target);
         model.addAttribute("isMyProfile", me.getId().equals(target.getId()));
+        addProfileViewAttributes(model, target);
 
         model.addAttribute("posts", postRepository.findPostsByUserId(target.getId()));
         model.addAttribute("postsCount", postRepository.findPostsByUserId(target.getId()).size());
@@ -108,6 +114,49 @@ public class ProfileController {
         }
 
         return "redirect:/profile/" + id;
+    }
+
+    private void addProfileViewAttributes(Model model, User user) {
+        UserProfile profile = user.getProfile();
+
+        String avatarUrl = null;
+        String coverUrl = null;
+        String bio = null;
+        String location = null;
+
+        if (profile != null) {
+            avatarUrl = normalizeImagePath(profile.getAvatarUrl(), DEFAULT_AVATAR);
+            coverUrl = normalizeImagePath(profile.getCoverUrl(), null);
+            bio = profile.getBio();
+
+            String city = profile.getCity();
+            String country = profile.getCountry() == null ? null : profile.getCountry().name().replace('_', ' ');
+            if (city != null && !city.isBlank() && country != null && !country.isBlank()) {
+                location = city + ", " + country;
+            } else if (city != null && !city.isBlank()) {
+                location = city;
+            } else if (country != null && !country.isBlank()) {
+                location = country;
+            }
+        }
+
+        model.addAttribute("userAvatarUrl", avatarUrl);
+        model.addAttribute("userCoverUrl", coverUrl);
+        model.addAttribute("userBio", bio);
+        model.addAttribute("userLocation", location);
+        model.addAttribute("userJoined", user.getDate());
+    }
+
+    private String normalizeImagePath(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+
+        String path = value.trim().replace('\\', '/');
+        if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
+            return fallback;
+        }
+        return path;
     }
 
 }
