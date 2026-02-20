@@ -1,5 +1,52 @@
 <div th:fragment="header" xmlns:th="http://www.thymeleaf.org">
 <header class="topbar">
+    <style>
+        .profile-menu {
+            position: relative;
+        }
+
+        .profile-menu > summary {
+            list-style: none;
+            cursor: pointer;
+        }
+
+        .profile-menu > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .profile-menu__panel {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            min-width: 180px;
+            background: #fff;
+            border: 1px solid #d9e2f2;
+            border-radius: 12px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+            padding: 6px;
+            z-index: 30;
+            display: grid;
+            gap: 2px;
+        }
+
+        .profile-menu__item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: 0;
+            background: transparent;
+            color: #0f172a;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .profile-menu__item:hover {
+            background: #f1f6ff;
+        }
+    </style>
     <div class="topbar__inner container">
         <a class="brand" href="/home">
             <span class="brand__logo">ISC</span>
@@ -21,14 +68,24 @@
         </div>
 
         <div class="topbar__actions">
-            <a class="profile" th:href="@{/profile}" aria-label="Profile">
-                <img class="profile__img"
-                     th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
-                     alt="" />
-            </a>
+            <details class="profile-menu">
+                <summary class="profile" aria-label="Open profile menu">
+                    <img class="profile__img"
+                         th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                         alt="" />
+                </summary>
+
+                <nav class="profile-menu__panel" aria-label="Profile menu">
+                    <a class="profile-menu__item" th:href="@{/profile/edit}">Edit profile</a>
+                    <a class="profile-menu__item" th:href="@{/settings}">Settings</a>
+                    <form th:action="@{/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button class="profile-menu__item" type="submit">Logout</button>
+                    </form>
+                </nav>
+            </details>
         </div>
 
     </div>
 </header>
 </div>
-

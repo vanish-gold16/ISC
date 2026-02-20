@@ -211,6 +211,7 @@ button { font: inherit; }
             #ffffff;
     border-bottom: 1px solid var(--border);
     position: relative;
+    z-index: 1;
 }
 .profile-cover__img{
     width: 100%;
@@ -220,6 +221,8 @@ button { font: inherit; }
 }
 
 .profile-head{
+    position: relative;
+    z-index: 2;
     display: grid;
     grid-template-columns: 120px 1fr;
     gap: 16px;
@@ -227,6 +230,8 @@ button { font: inherit; }
 }
 
 .profile-avatar{
+    position: relative;
+    z-index: 3;
     width: 120px;
     height: 120px;
     margin-top: -52px;
