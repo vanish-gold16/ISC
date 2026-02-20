@@ -2,7 +2,10 @@ package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.OccupationEnum;
+import org.example.isc.main.enums.OccupationEnumConverter;
 import org.example.isc.main.enums.RoleEnumConverter;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "profiles")
@@ -29,9 +32,16 @@ public class UserProfile {
     private String currentStudy;
 
     @Column(name = "occupation")
-    @Convert(converter = OccupationEnum.class)
+    @Convert(converter = OccupationEnumConverter.class)
     private OccupationEnum occupationEnum;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
 
+    @Column(name = "cover_url")
+    private String coverUrl;
+
+    @Column(name = "birth_date")
+    private Date birthDate;
 
 }
