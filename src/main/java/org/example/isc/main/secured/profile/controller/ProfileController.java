@@ -25,6 +25,7 @@ public class ProfileController {
 
     private static final String PROFILE_IMAGES_BASE = "/images/private/profile/";
     private static final String DEFAULT_AVATAR = "/images/private/profile/common-profile.png";
+    private static final String DEFAULT_COVER = "/images/private/profile/common-cover.png";
 
     private final UserRepository userRepository;
     private final PostRepository postRepository;
@@ -203,7 +204,7 @@ public class ProfileController {
 
         if (profile != null) {
             avatarUrl = normalizeImagePath(profile.getAvatarUrl(), DEFAULT_AVATAR);
-            coverUrl = normalizeImagePath(profile.getCoverUrl(), null);
+            coverUrl = normalizeImagePath(profile.getCoverUrl(), DEFAULT_COVER);
             bio = profile.getBio();
 
             String city = profile.getCity();
@@ -218,7 +219,7 @@ public class ProfileController {
         }
 
         model.addAttribute("userAvatarUrl", avatarUrl);
-        model.addAttribute("userCoverUrl", coverUrl);
+        model.addAttribute("userCoverUrl", coverUrl == null ? DEFAULT_COVER : coverUrl);
         model.addAttribute("userBio", bio);
         model.addAttribute("userLocation", location);
         model.addAttribute("userJoined", user.getDate());
