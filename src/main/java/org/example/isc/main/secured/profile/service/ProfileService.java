@@ -3,12 +3,19 @@ package org.example.isc.main.secured.profile.service;
 import org.example.isc.main.common.dto.EditRequest;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
+import org.example.isc.main.secured.repositories.UserProfileRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProfileService {
+
+    private final UserProfileRepository userProfileRepository;
+
+    public ProfileService(UserProfileRepository userProfileRepository) {
+        this.userProfileRepository = userProfileRepository;
+    }
 
     public void edit(UserRepository userRepository, Authentication authentication, EditRequest request){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
@@ -21,15 +28,16 @@ public class ProfileService {
         if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
             throw new IllegalArgumentException("This email has already been used!");
 
-        UserProfile newProfile = new UserProfile(
-                me,
-                request.getBio(),
-                request.getCountry(),
-                request.getCity(),
-                request.getCurrentStudy(),
-                request.getOccupationEnum(),
-                request.getBirthDate()
+        UserProfile newProfile = userProfileRepository.findByUserId(me.getId()).orElseThrow(
+                () -> new IllegalStateException("Profile not found!")
         );
+        newProfile.setUser(me);
+        newProfile.setBio(request.getBio());
+        newProfile.setCountry(request.getCountry());
+        newProfile.setCity(request.getCity());
+        newProfile.setCurrentStudy(request.getCurrentStudy());
+        newProfile.setOccupationEnum(request.getOccupationEnum());
+        newProfile.setBirthDate(request.getBirthDate());
 
         me.setFirstName(request.getFirstName());
         me.setLastName(request.getLastName());
