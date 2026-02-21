@@ -1,5 +1,7 @@
 package org.example.isc.main.secured.profile.controller;
 
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.example.isc.main.common.dto.EditRequest;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
@@ -14,10 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/profile")
@@ -141,10 +141,21 @@ public class ProfileController {
     @Transactional
     @PostMapping("/edit")
     public String saveEdit(
-            EditRequest request,
+            @Valid @ModelAttribute EditRequest request,
+            BindingResult bindingResult,
+            HttpSession session,
             Authentication authentication
     ) {
-        profileService.edit(userRepository, authentication, request);
+        if(bindingResult.hasErrors()) return "public/auth/register";
+        try {
+            profileService.edit(userRepository, authentication, request);
+        } catch(IllegalStateException e){
+            bindingResult.rejectValue("username", "username.exists", e.getMessage());
+            bindingResult.rejectValue("email", "email.exists", e.getMessage());
+            return "redirect:/profile";
+        }
+
+        session.setAttribute("POST_EDIT_PROFILE", true);
 
         return "redirect:/profile";
     }
