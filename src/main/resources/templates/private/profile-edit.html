@@ -12,35 +12,71 @@
 <main class="container page-edit">
     <section class="editor">
         <article class="card editor__card">
+            <div class="editor__head">
+                <h1>Edit profile</h1>
+                <p class="muted">Update basic data and public profile details.</p>
+            </div>
 
             <form class="form" method="post" th:action="@{/profile/edit}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <p class="notice notice--error" th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
 
                 <div class="grid2">
                     <label class="field">
                         <span>First name</span>
-                        <input class="input" name="firstName" th:value="${user != null ? user.firstName : ''}" />
+                        <input class="input"
+                               name="firstName"
+                               maxlength="50"
+                               autocomplete="given-name"
+                               required
+                               th:value="${user != null ? user.firstName : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('firstName')}" th:text="${#fields.errors('firstName')[0]}"></small>
                     </label>
                     <label class="field">
                         <span>Last name</span>
-                        <input class="input" name="lastName" th:value="${user != null ? user.lastName : ''}" />
+                        <input class="input"
+                               name="lastName"
+                               maxlength="50"
+                               autocomplete="family-name"
+                               required
+                               th:value="${user != null ? user.lastName : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('lastName')}" th:text="${#fields.errors('lastName')[0]}"></small>
                     </label>
                 </div>
 
                 <div class="grid2">
                     <label class="field">
                         <span>Username</span>
-                        <input class="input" name="username" th:value="${user != null ? user.username : ''}" />
+                        <input class="input"
+                               name="username"
+                               minlength="4"
+                               maxlength="20"
+                               autocomplete="username"
+                               required
+                               th:value="${user != null ? user.username : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('username')}" th:text="${#fields.errors('username')[0]}"></small>
                     </label>
                     <label class="field">
                         <span>Email</span>
-                        <input class="input" type="email" name="email" th:value="${user != null ? user.email : ''}" />
+                        <input class="input"
+                               type="email"
+                               name="email"
+                               autocomplete="email"
+                               required
+                               th:value="${user != null ? user.email : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('email')}" th:text="${#fields.errors('email')[0]}"></small>
                     </label>
                 </div>
 
                 <label class="field">
                     <span>Bio</span>
-                    <textarea class="input input--textarea" name="bio" maxlength="300" th:text="${profile != null ? profile.bio : ''}"></textarea>
+                    <textarea class="input input--textarea"
+                              name="bio"
+                              maxlength="300"
+                              placeholder="Tell a bit about yourself"
+                              th:text="${profile != null ? profile.bio : ''}"></textarea>
+                    <small class="meta">Up to 300 characters.</small>
+                    <small class="error" th:if="${#fields.hasErrors('bio')}" th:text="${#fields.errors('bio')[0]}"></small>
                 </label>
 
                 <div class="grid2">
@@ -57,14 +93,24 @@
                     </label>
                     <label class="field">
                         <span>City</span>
-                        <input class="input" name="city" th:value="${profile != null ? profile.city : ''}" />
+                        <input class="input"
+                               name="city"
+                               maxlength="80"
+                               autocomplete="address-level2"
+                               th:value="${profile != null ? profile.city : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('city')}" th:text="${#fields.errors('city')[0]}"></small>
                     </label>
                 </div>
 
                 <div class="grid2">
                     <label class="field">
                         <span>Current study</span>
-                        <input class="input" name="currentStudy" th:value="${profile != null ? profile.currentStudy : ''}" />
+                        <input class="input"
+                               name="currentStudy"
+                               maxlength="120"
+                               placeholder="University / Program"
+                               th:value="${profile != null ? profile.currentStudy : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('currentStudy')}" th:text="${#fields.errors('currentStudy')[0]}"></small>
                     </label>
                     <label class="field">
                         <span>Occupation</span>
@@ -84,10 +130,12 @@
                         <span>Birth date</span>
                         <input class="input" type="date" name="birthDate"
                                th:value="${profile != null and profile.birthDate != null ? #dates.format(profile.birthDate, 'yyyy-MM-dd') : ''}" />
+                        <small class="error" th:if="${#fields.hasErrors('birthDate')}" th:text="${#fields.errors('birthDate')[0]}"></small>
                     </label>
-                    <label class="field">
+                    <label class="field field--readonly">
                         <span>Avatar file path (local)</span>
-                        <input class="input" disabled th:value="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'" />
+                        <input class="input" readonly th:value="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'" />
+                        <small class="meta">Upload UI can be added later.</small>
                     </label>
                 </div>
 

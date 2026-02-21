@@ -127,16 +127,19 @@ button { font: inherit; }
 .editor__card { padding: 16px; }
 .editor__head {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     gap: 12px;
 }
 .editor__head h1 { margin: 0; }
+.editor__head p { margin: 0; }
 
 .form { display: grid; gap: 12px; margin-top: 14px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .field { display: grid; gap: 6px; }
 .field > span { font-weight: 700; font-size: 13px; }
+.meta { color: var(--muted); font-size: 12px; }
 
 .input {
     width: 100%;
@@ -150,9 +153,35 @@ button { font: inherit; }
     outline: 3px solid var(--focus);
     border-color: rgba(37,99,235,0.3);
 }
+.input[readonly] {
+    background: #f5f8ff;
+    color: #334155;
+}
 .input--textarea {
     min-height: 110px;
     resize: vertical;
+}
+.field--readonly .input {
+    cursor: default;
+}
+
+.notice {
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+.notice--error {
+    border-color: rgba(185, 28, 28, 0.28);
+    background: rgba(254, 242, 242, 0.95);
+    color: #b91c1c;
+}
+
+.error {
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.35;
 }
 
 .actions {
@@ -200,5 +229,10 @@ button { font: inherit; }
 
 @media (max-width: 640px) {
     .grid2 { grid-template-columns: 1fr; }
-    .editor__head { flex-direction: column; align-items: flex-start; }
+    .actions {
+        flex-direction: column;
+    }
+    .actions .btn {
+        width: 100%;
+    }
 }
