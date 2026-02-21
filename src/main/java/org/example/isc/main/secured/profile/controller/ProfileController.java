@@ -127,10 +127,25 @@ public class ProfileController {
     public String edit(Model model, Authentication authentication){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
+        UserProfile profile = me.getProfile();
+        EditRequest form = new EditRequest();
+        form.setFirstName(me.getFirstName());
+        form.setLastName(me.getLastName());
+        form.setUsername(me.getUsername());
+        form.setEmail(me.getEmail());
+        if (profile != null) {
+            form.setBio(profile.getBio());
+            form.setCountry(profile.getCountry());
+            form.setCity(profile.getCity());
+            form.setCurrentStudy(profile.getCurrentStudy());
+            form.setOccupationEnum(profile.getOccupationEnum());
+            form.setBirthDate(profile.getBirthDate());
+        }
 
         model.addAttribute("title", "Edit profile");
+        model.addAttribute("form", form);
         model.addAttribute("user", me);
-        model.addAttribute("profile", me.getProfile());
+        model.addAttribute("profile", profile);
         model.addAttribute("countries", CountryEnum.values());
         model.addAttribute("occupations", OccupationEnum.values());
         addProfileViewAttributes(model, me);
@@ -141,17 +156,35 @@ public class ProfileController {
     @Transactional
     @PostMapping("/edit")
     public String saveEdit(
-            @Valid @ModelAttribute EditRequest request,
+            @Valid @ModelAttribute("form") EditRequest request,
             BindingResult bindingResult,
             HttpSession session,
+            Model model,
             Authentication authentication
     ) {
-        if(bindingResult.hasErrors()) return "private/profile-edit";
+        if(bindingResult.hasErrors()) {
+            User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                    .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
+            model.addAttribute("title", "Edit profile");
+            model.addAttribute("user", me);
+            model.addAttribute("profile", me.getProfile());
+            model.addAttribute("countries", CountryEnum.values());
+            model.addAttribute("occupations", OccupationEnum.values());
+            addProfileViewAttributes(model, me);
+            return "private/profile-edit";
+        }
         try {
             profileService.edit(authentication, request);
         } catch(IllegalArgumentException e){
             bindingResult.rejectValue("username", "username.exists", e.getMessage());
-            bindingResult.rejectValue("email", "email.exists", e.getMessage());
+            User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                    .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
+            model.addAttribute("title", "Edit profile");
+            model.addAttribute("user", me);
+            model.addAttribute("profile", me.getProfile());
+            model.addAttribute("countries", CountryEnum.values());
+            model.addAttribute("occupations", OccupationEnum.values());
+            addProfileViewAttributes(model, me);
             return "private/profile-edit";
         }
 
