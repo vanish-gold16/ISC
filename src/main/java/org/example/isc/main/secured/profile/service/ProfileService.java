@@ -23,10 +23,14 @@ public class ProfileService {
         String username = request.getUsername();
         String email = request.getEmail();
 
-        if(userRepository.existsByUsername(username) && !authentication.getName().equals(username))
+        if(userRepository.existsByUsernameIgnoreCase(username) && !me.getUsername().equals(username))
             throw new IllegalArgumentException("This username already exists!");
-        if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
+//        if(userRepository.existsByUsername(username) && !authentication.getName().equals(username))
+//            throw new IllegalArgumentException("This username already exists!");
+        if(userRepository.existsByEmailIgnoreCase(email) && !me.getEmail().equals(email))
             throw new IllegalArgumentException("This email has already been used!");
+//        if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
+//            throw new IllegalArgumentException("This email has already been used!");
 
         UserProfile newProfile = userProfileRepository.findByUserId(me.getId()).orElseThrow(
                 () -> new IllegalStateException("Profile not found!")
