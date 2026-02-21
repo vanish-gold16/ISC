@@ -76,7 +76,7 @@ public class ProfileController {
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((target.getId()))));
 
         boolean isFollowing = subscriptionRepository
-                .findByFollowedIdAndFollowerId(me.getId(), target.getId())
+                .findByFollowedIdAndFollowerId(target.getId(), me.getId())
                 .isPresent();
         model.addAttribute("isFollowing", isFollowing);
 
@@ -93,7 +93,7 @@ public class ProfileController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not fount " + authentication.getName()));
 
         if(!me.getId().equals(target.getId())){
-            subscriptionRepository.findByFollowedIdAndFollowerId(me.getId(), target.getId())
+            subscriptionRepository.findByFollowedIdAndFollowerId(target.getId(), me.getId())
                     .orElseGet(() -> {
                         Subscription subscription = new Subscription();
                         subscription.setFollower(me);
@@ -117,7 +117,7 @@ public class ProfileController {
                         new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         if(!me.getId().equals(target.getId())){
-            subscriptionRepository.findByFollowedIdAndFollowerId(me.getId(), target.getId())
+            subscriptionRepository.findByFollowedIdAndFollowerId(target.getId(), me.getId())
                     .ifPresent(subscriptionRepository::delete);
         }
 

@@ -17,7 +17,7 @@
                         <div class="about-k muted">Username</div>
                         <div class="about-v" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
                     </div>
-                    <div class="about-row" th:if="${user != null && user.email != null}">
+                    <div class="about-row" th:if="${isMyProfile and user != null and user.email != null}">
                         <div class="about-k muted">Email</div>
                         <div class="about-v" th:text="${user.email}">mail@example.com</div>
                     </div>
