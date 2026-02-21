@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} ?: 'ISC | Edit Profile'">ISC | Edit Profile</title>
+    <link rel="stylesheet" href="/css/private/profile-edit.css" />
+</head>
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container page-edit">
+    <section class="editor">
+        <article class="card editor__card">
+
+            <form class="form" method="post" th:action="@{/profile/edit}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <div class="grid2">
+                    <label class="field">
+                        <span>First name</span>
+                        <input class="input" name="firstName" th:value="${user != null ? user.firstName : ''}" />
+                    </label>
+                    <label class="field">
+                        <span>Last name</span>
+                        <input class="input" name="lastName" th:value="${user != null ? user.lastName : ''}" />
+                    </label>
+                </div>
+
+                <div class="grid2">
+                    <label class="field">
+                        <span>Username</span>
+                        <input class="input" name="username" th:value="${user != null ? user.username : ''}" />
+                    </label>
+                    <label class="field">
+                        <span>Email</span>
+                        <input class="input" type="email" name="email" th:value="${user != null ? user.email : ''}" />
+                    </label>
+                </div>
+
+                <label class="field">
+                    <span>Bio</span>
+                    <textarea class="input input--textarea" name="bio" maxlength="300" th:text="${profile != null ? profile.bio : ''}"></textarea>
+                </label>
+
+                <div class="grid2">
+                    <label class="field">
+                        <span>Country</span>
+                        <select class="input" name="country">
+                            <option value="">Not specified</option>
+                            <option th:each="country : ${countries}"
+                                    th:value="${country.name()}"
+                                    th:selected="${profile != null and profile.country != null and profile.country.name() == country.name()}"
+                                    th:text="${#strings.replace(country.name(), '_', ' ')}">
+                            </option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>City</span>
+                        <input class="input" name="city" th:value="${profile != null ? profile.city : ''}" />
+                    </label>
+                </div>
+
+                <div class="grid2">
+                    <label class="field">
+                        <span>Current study</span>
+                        <input class="input" name="currentStudy" th:value="${profile != null ? profile.currentStudy : ''}" />
+                    </label>
+                    <label class="field">
+                        <span>Occupation</span>
+                        <select class="input" name="occupationEnum">
+                            <option value="">Not specified</option>
+                            <option th:each="occupation : ${occupations}"
+                                    th:value="${occupation.name()}"
+                                    th:selected="${profile != null and profile.occupationEnum != null and profile.occupationEnum.name() == occupation.name()}"
+                                    th:text="${#strings.replace(occupation.name(), '_', ' ')}">
+                            </option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="grid2">
+                    <label class="field">
+                        <span>Birth date</span>
+                        <input class="input" type="date" name="birthDate"
+                               th:value="${profile != null and profile.birthDate != null ? #dates.format(profile.birthDate, 'yyyy-MM-dd') : ''}" />
+                    </label>
+                    <label class="field">
+                        <span>Avatar file path (local)</span>
+                        <input class="input" disabled th:value="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'" />
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn--primary" type="submit">Save changes</button>
+                    <a class="btn btn--ghost" th:href="@{/profile}">Cancel</a>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('profile')}"></aside>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>

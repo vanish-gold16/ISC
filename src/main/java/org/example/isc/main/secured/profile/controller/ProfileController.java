@@ -6,6 +6,7 @@ import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
+import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -28,11 +29,13 @@ public class ProfileController {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final ProfileService profileService;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.profileService = profileService;
     }
 
     @GetMapping()
@@ -141,18 +144,7 @@ public class ProfileController {
             EditRequest request,
             Authentication authentication
     ) {
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
-        String username = request.getUsername();
-        String email = request.getEmail();
-
-        if(userRepository.existsByUsername(username) && !authentication.getName().equals(username))
-            throw new IllegalArgumentException("This username already exists!");
-        if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
-            throw new IllegalArgumentException("This email has already been used!");
-
-        me.setFirstName(request.getFirstName());
-        //TODO
+        profileService.edit(userRepository, authentication, request);
 
         return "redirect:/profile";
     }

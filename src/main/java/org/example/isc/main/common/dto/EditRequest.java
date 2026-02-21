@@ -8,6 +8,7 @@ import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class EditRequest {
@@ -42,7 +43,7 @@ public class EditRequest {
     private OccupationEnum occupationEnum;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private Date birthDate;
+    private LocalDate birthDate;
 
     public String getFirstName() {
         return firstName;
@@ -116,11 +117,11 @@ public class EditRequest {
         this.occupationEnum = occupationEnum;
     }
 
-    public Date getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 }
