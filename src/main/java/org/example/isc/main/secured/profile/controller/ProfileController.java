@@ -146,13 +146,13 @@ public class ProfileController {
             HttpSession session,
             Authentication authentication
     ) {
-        if(bindingResult.hasErrors()) return "public/auth/register";
+        if(bindingResult.hasErrors()) return "private/profile-edit";
         try {
-            profileService.edit(userRepository, authentication, request);
-        } catch(IllegalStateException e){
+            profileService.edit(authentication, request);
+        } catch(IllegalArgumentException e){
             bindingResult.rejectValue("username", "username.exists", e.getMessage());
             bindingResult.rejectValue("email", "email.exists", e.getMessage());
-            return "redirect:/profile";
+            return "private/profile-edit";
         }
 
         session.setAttribute("POST_EDIT_PROFILE", true);

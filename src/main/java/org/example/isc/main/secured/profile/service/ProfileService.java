@@ -12,29 +12,32 @@ import org.springframework.stereotype.Service;
 public class ProfileService {
 
     private final UserProfileRepository userProfileRepository;
+    private final UserRepository userRepository;
 
-    public ProfileService(UserProfileRepository userProfileRepository) {
+    public ProfileService(UserProfileRepository userProfileRepository, UserRepository userRepository) {
         this.userProfileRepository = userProfileRepository;
+        this.userRepository = userRepository;
     }
 
-    public void edit(UserRepository userRepository, Authentication authentication, EditRequest request){
+    public void edit(Authentication authentication, EditRequest request){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
         String username = request.getUsername();
         String email = request.getEmail();
 
-        if(userRepository.existsByUsernameIgnoreCase(username) && !me.getUsername().equals(username))
+        if(userRepository.existsByUsernameIgnoreCase(username) && !me.getUsername().trim().equals(username))
             throw new IllegalArgumentException("This username already exists!");
 //        if(userRepository.existsByUsername(username) && !authentication.getName().equals(username))
 //            throw new IllegalArgumentException("This username already exists!");
-        if(userRepository.existsByEmailIgnoreCase(email) && !me.getEmail().equals(email))
+        if(userRepository.existsByEmailIgnoreCase(email) && !me.getEmail().trim().equals(email))
             throw new IllegalArgumentException("This email has already been used!");
 //        if(userRepository.existsByEmail(email) && !me.getEmail().equals(email))
 //            throw new IllegalArgumentException("This email has already been used!");
 
-        UserProfile newProfile = userProfileRepository.findByUserId(me.getId()).orElseThrow(
-                () -> new IllegalStateException("Profile not found!")
-        );
+//        UserProfile newProfile = userProfileRepository.findByUserId(me.getId()).orElseThrow(
+//                () -> new IllegalStateException("Profile not found!")
+//        );
+        UserProfile newProfile = userProfileRepository.findByUserId(me.getId()).orElse(new UserProfile());
         newProfile.setUser(me);
         newProfile.setBio(request.getBio());
         newProfile.setCountry(request.getCountry());

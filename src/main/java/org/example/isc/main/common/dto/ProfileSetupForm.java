@@ -5,6 +5,7 @@ import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class ProfileSetupForm {
@@ -27,7 +28,7 @@ public class ProfileSetupForm {
     private String coverUrl;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private Date birthDate;
+    private LocalDate birthDate;
 
     public String getBio() {
         return bio;
@@ -85,11 +86,11 @@ public class ProfileSetupForm {
         this.coverUrl = coverUrl;
     }
 
-    public Date getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 }
