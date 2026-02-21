@@ -35,4 +35,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     boolean findByFollowed(User followed);
 
     Optional<Subscription> findByFollowedIdAndFollowerId(Long followedId, Long followerId);
+
+    boolean existsByFollowedIdAndFollowerId(Long followedId, Long followerId);
+
+    List<Subscription> findAllByFollowedIdAndFollowerId(Long followedId, Long followerId);
+
+    List<Subscription> findAllByFollowedIdAndFollowerUsernameIgnoreCase(Long followedId, String followerUsername);
 }

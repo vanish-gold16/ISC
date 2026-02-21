@@ -14,7 +14,6 @@ import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -93,13 +92,12 @@ public class ProfileController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not fount " + authentication.getName()));
 
         if(!me.getId().equals(target.getId())){
-            subscriptionRepository.findByFollowedIdAndFollowerId(target.getId(), me.getId())
-                    .orElseGet(() -> {
-                        Subscription subscription = new Subscription();
-                        subscription.setFollower(me);
-                        subscription.setFollowed(target);
-                        return subscriptionRepository.save(subscription);
-                    });
+            if (!subscriptionRepository.existsByFollowedIdAndFollowerId(target.getId(), me.getId())) {
+                Subscription subscription = new Subscription();
+                subscription.setFollower(me);
+                subscription.setFollowed(target);
+                subscriptionRepository.save(subscription);
+            }
         }
 
         return "redirect:/profile/" + id;
@@ -109,17 +107,9 @@ public class ProfileController {
     private String unfollow(
             @PathVariable Long id, Authentication authentication
     ){
-        User target = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("User not found: " + id));
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() ->
-                        new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-
-        if(!me.getId().equals(target.getId())){
-            subscriptionRepository.findByFollowedIdAndFollowerId(target.getId(), me.getId())
-                    .ifPresent(subscriptionRepository::delete);
-        }
+        subscriptionRepository.deleteAll(
+                subscriptionRepository.findAllByFollowedIdAndFollowerUsernameIgnoreCase(id, authentication.getName())
+        );
 
         return "redirect:/profile/" + id;
     }
@@ -154,7 +144,6 @@ public class ProfileController {
         return "private/profile-edit";
     }
 
-    @Transactional
     @PostMapping("/edit")
     public String saveEdit(
             @Valid @ModelAttribute("form") EditRequest request,
@@ -175,7 +164,7 @@ public class ProfileController {
             return "private/profile-edit";
         }
         try {
-            profileService.edit(authentication, request);
+            profileService.edit(userRepository, authentication, request);
         } catch(IllegalArgumentException e){
             bindingResult.rejectValue("username", "username.exists", e.getMessage());
             User me = userRepository.findByUsernameIgnoreCase(authentication.getName())

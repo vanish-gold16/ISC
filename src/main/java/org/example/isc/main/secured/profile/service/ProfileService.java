@@ -7,19 +7,19 @@ import org.example.isc.main.secured.repositories.UserProfileRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProfileService {
 
     private final UserProfileRepository userProfileRepository;
-    private final UserRepository userRepository;
 
-    public ProfileService(UserProfileRepository userProfileRepository, UserRepository userRepository) {
+    public ProfileService(UserProfileRepository userProfileRepository) {
         this.userProfileRepository = userProfileRepository;
-        this.userRepository = userRepository;
     }
 
-    public void edit(Authentication authentication, EditRequest request){
+    @Transactional
+    public void edit(UserRepository userRepository, Authentication authentication, EditRequest request){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
         String username = request.getUsername();
