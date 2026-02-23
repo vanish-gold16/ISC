@@ -14,7 +14,7 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
 
     List<Notification> findByReceiverOrderByCreatedAtDesc(User receiver, Pageable pageable);
 
-    long countByRecieverAndReadAtIsNull(User receiver);
+    long countByReceiverAndReadAtIsNull(User receiver);
 
     @Modifying
     @Query("""
@@ -22,7 +22,7 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
                    SET n.readAt = CURRENT_TIMESTAMP
                    WHERE n.receiver = :receiver AND n.readAt IS NULL
                 """)
-    void markAllReadByReciever(User receiver);
+    void markAllReadByReceiver(User receiver);
 
     @Modifying
     @Query("""
@@ -32,6 +32,6 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
                     and n.notificationId = :notificationId
                     and n.readAt is null          
            """)
-    void markReadByNotificationIdAndReciever(Long notificationId, User receiver);
+    void markReadByNotificationIdAndReceiver(Long notificationId, User receiver);
 
 }

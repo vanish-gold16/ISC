@@ -5,6 +5,7 @@ import org.example.isc.main.secured.models.Notification;
 import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,9 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationsRepository notificationsRepository;
-    private final Pageable pageable;
 
-    public NotificationService(NotificationsRepository notificationsRepository, Pageable pageable) {
+    public NotificationService(NotificationsRepository notificationsRepository) {
         this.notificationsRepository = notificationsRepository;
-        this.pageable = pageable;
     }
 
     public void create(
@@ -41,19 +40,20 @@ public class NotificationService {
     }
 
     public List<Notification> list(User receiver, int limit){
+        Pageable pageable = PageRequest.of(0, limit);
         return notificationsRepository.findByReceiverOrderByCreatedAtDesc(receiver, pageable);
     }
 
     public long unreadCount(User receiver){
-        return notificationsRepository.countByRecieverAndReadAtIsNull(receiver);
+        return notificationsRepository.countByReceiverAndReadAtIsNull(receiver);
     }
 
     public void markRead(Long notificationId, User receiver){
-        notificationsRepository.markReadByNotificationIdAndReciever(notificationId, receiver);
+        notificationsRepository.markReadByNotificationIdAndReceiver(notificationId, receiver);
     }
 
     public void markAllRead(User receiver){
-        notificationsRepository.markAllReadByReciever(receiver);
+        notificationsRepository.markAllReadByReceiver(receiver);
     }
 
 }
