@@ -4,15 +4,18 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.EditRequest;
 import org.example.isc.main.enums.CountryEnum;
+import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.friends.service.FriendsService;
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
+import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +23,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/profile")
@@ -29,18 +36,22 @@ public class ProfileController {
     private static final String DEFAULT_AVATAR = "/images/private/profile/common-profile.png";
     private static final String DEFAULT_COVER = "/images/private/profile/common-cover.png";
 
+    //  TODO AI PLEASE private final Logger logger = LoggerFactory
+
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ProfileService profileService;
     private final FriendsService friendsService;
+    private final NotificationService notificationService;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.profileService = profileService;
         this.friendsService = friendsService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping()
@@ -102,6 +113,14 @@ public class ProfileController {
                 subscription.setFollower(me);
                 subscription.setFollowed(target);
                 subscriptionRepository.save(subscription);
+                String body = target.getUsername() + " is now following you!";
+                notificationService.create(
+                        NotificationEnum.FOLLOW,
+                        target,
+                        "New follower",
+                        body,
+                        "New follower"
+                        );
             }
         }
 
@@ -193,7 +212,13 @@ public class ProfileController {
             @PathVariable Long id,
             Authentication authentication
     ){
-        friendsService.sendFriendsRequest();
+        User target = userRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                        .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        if (!me.getId().equals(target.getId()))
+        friendsService.sendFriendsRequest(me, target);
 
         return "redirect:/profile/{id}";
     }

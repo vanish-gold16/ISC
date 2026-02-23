@@ -24,6 +24,15 @@ public class Friends {
     @Convert(converter = RoleEnumConverter.class)
     private FriendsStatusEnum status;
 
+    public Friends(User senderUser, User recieverUser, FriendsStatusEnum status) {
+        this.senderUser = senderUser;
+        this.recieverUser = recieverUser;
+        this.status = status;
+    }
+
+    public Friends() {
+    }
+
     public Long getId() {
         return Id;
     }
