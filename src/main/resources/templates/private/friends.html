@@ -1,10 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} ?: 'ISC | Friends'">ISC | Friends</title>
 
+    <link rel="stylesheet" href="/css/private/friends.css" />
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container page friends-page">
+    <section class="friends">
+        <header class="friends-head card">
+            <div class="friends-head__top">
+                <div>
+                    <h1>Friends</h1>
+                    <p class="muted">People you have connected with on ISC.</p>
+                </div>
+                <div class="friends-cta">
+                    <a class="btn btn--primary" th:href="@{/profile}">My profile</a>
+                </div>
+            </div>
+
+            <div class="friends-head__bottom">
+                <form class="friends-search" role="search">
+                    <label class="sr-only" for="friends-search">Search friends</label>
+                    <input id="friends-search" class="input" type="search" name="q" placeholder="Search by name or username" />
+                    <button class="btn btn--ghost btn--sm" type="submit">Search</button>
+                </form>
+
+                <div class="filters" role="tablist" aria-label="Friends filters">
+                    <button class="filter is-active" type="button" role="tab" aria-selected="true">All</button>
+                    <button class="filter" type="button" role="tab" aria-selected="false">Requests</button>
+                    <button class="filter" type="button" role="tab" aria-selected="false">Pending</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="friends-grid" th:if="${friends != null and !#lists.isEmpty(friends)}">
+            <article class="friend card"
+                     th:each="f : ${friends}"
+                     th:with="friend=${f.senderUser != null ? f.senderUser : f.recieverUser}">
+                <div class="friend__identity">
+                    <img class="friend__avatar"
+                         th:src="${friend != null && friend.profile != null && friend.profile.avatarUrl != null ? friend.profile.avatarUrl : '/images/private/profile/common-profile.png'}"
+                         src="/images/private/profile/common-profile.png"
+                         alt="" />
+                    <div class="friend__info">
+                        <div class="friend__name"
+                             th:text="${friend != null ? ((friend.firstName ?: 'ISC') + ' ' + (friend.lastName ?: 'Member')) : 'ISC Member'}">
+                            ISC Member
+                        </div>
+                        <div class="friend__sub muted"
+                             th:text="${friend != null && friend.username != null ? '@' + friend.username : '@user'}">
+                            @user
+                        </div>
+                        <div class="friend__status muted"
+                             th:text="${f.status != null ? f.status : 'ACCEPTED'}">
+                            ACCEPTED
+                        </div>
+                    </div>
+                </div>
+
+                <div class="friend__actions">
+                    <a class="btn btn--ghost btn--sm"
+                       th:href="@{/profile/{id}(id=${friend.id})}">
+                        View profile
+                    </a>
+                    <button class="btn btn--primary btn--sm" type="button">Message</button>
+                </div>
+            </article>
+        </div>
+
+        <div class="card empty" th:if="${friends == null or #lists.isEmpty(friends)}">
+            <h3>No friends yet</h3>
+            <p class="muted">Start following people and accept requests to build your list.</p>
+            <a class="btn btn--primary" th:href="@{/home}">Explore feed</a>
+        </div>
+    </section>
+
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('friends')}"></aside>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>
