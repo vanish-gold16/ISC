@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -20,7 +22,11 @@ public class GlobalExceptionHandler {
         return buildErrorView(HttpStatus.INTERNAL_SERVER_ERROR, exception, request, "error/500");
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({
+            EntityNotFoundException.class,
+            NoHandlerFoundException.class,
+            NoResourceFoundException.class
+    })
     public ModelAndView notFoundException(Exception exception, HttpServletRequest request) {
         logger.error(exception.getMessage(), exception);
         return buildErrorView(HttpStatus.NOT_FOUND, exception, request, "error/404");
