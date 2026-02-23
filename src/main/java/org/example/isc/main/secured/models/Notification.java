@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.models;
 
+import io.swagger.v3.core.util.Json;
 import jakarta.persistence.*;
 import org.example.isc.main.enums.NotificationEnum;
 
@@ -32,6 +33,9 @@ public class Notification {
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
+
+    @Column(name = "data")
+    private String data;
 
     public String getTitle() {
         return title;
