@@ -58,6 +58,17 @@ button { font: inherit; }
     color: rgba(0,0,0,0.85);
     font-weight: 900;
 }
+.brand__logo-stack {
+    display: grid;
+    gap: 4px;
+    place-items: center;
+}
+.brand__logo-img {
+    width: 36px;
+    height: 12px;
+    object-fit: contain;
+    display: block;
+}
 .brand__text { font-weight: 700; }
 .topbar__search {
     position: relative;

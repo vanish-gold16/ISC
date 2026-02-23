@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/images/brand/favicon.png}" href="/images/brand/favicon.png" />
+
     <title th:text="${title} ?: 'ISC | Edit Profile'">ISC | Edit Profile</title>
     <link rel="stylesheet" href="/css/private/profile-edit.css" />
 </head>
@@ -131,7 +133,7 @@
 
                 <div class="actions">
                     <button class="btn btn--primary" type="submit">Save changes</button>
-                    <a class="btn btn--ghost" th:href="@{/templates/private/profile}">Cancel</a>
+                    <a class="btn btn--ghost" th:href="@{/private/profile}">Cancel</a>
                 </div>
             </form>
         </article>

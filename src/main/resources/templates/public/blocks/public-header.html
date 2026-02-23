@@ -2,7 +2,13 @@
     <header class="topbar">
         <div class="topbar__inner container">
             <a class="brand" th:href="@{/}">
-                <span class="brand__logo">ISC</span>
+                <span class="brand__logo-stack" aria-hidden="true">
+                    <span class="brand__logo">ISC</span>
+                    <img class="brand__logo-img"
+                         th:src="@{/images/brand/logo-submark.png}"
+                         src="/images/brand/logo-submark.png"
+                         alt="" />
+                </span>
                 <span class="brand__text">International Student Community</span>
             </a>
 

@@ -46,10 +46,39 @@
         .profile-menu__item:hover {
             background: #f1f6ff;
         }
+
+        .notify-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            border: 1px solid #d9e2f2;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .notify-btn:hover {
+            background: #f1f6ff;
+        }
+
+        .notify-btn__icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            display: block;
+        }
     </style>
     <div class="topbar__inner container">
         <a class="brand" href="/home">
-            <span class="brand__logo">ISC</span>
+            <span class="brand__logo-stack" aria-hidden="true">
+                <span class="brand__logo">ISC</span>
+                <img class="brand__logo-img"
+                     th:src="@{/images/brand/logo-submark.png}"
+                     src="/images/brand/logo-submark.png"
+                     alt="" />
+            </span>
             <span class="brand__text">International Student Community</span>
         </a>
 
@@ -68,6 +97,13 @@
         </div>
 
         <div class="topbar__actions">
+            <button class="notify-btn" type="button" aria-label="Notifications">
+                <img class="notify-btn__icon"
+                     th:src="@{/images/private/header/notifications.png}"
+                     src="/images/private/header/notifications.png"
+                     alt="" />
+            </button>
+
             <details class="profile-menu">
                 <summary class="profile" aria-label="Open profile menu">
                     <img class="profile__img"
