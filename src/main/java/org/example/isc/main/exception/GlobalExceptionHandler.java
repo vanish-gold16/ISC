@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -39,6 +40,17 @@ public class GlobalExceptionHandler {
     public ModelAndView illegalIdentifierException(Exception exception, HttpServletRequest request) {
         logger.error(exception.getMessage(), exception);
         return buildErrorView(HttpStatus.BAD_REQUEST, exception, request, "error/400");
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ModelAndView responseStatusException(ResponseStatusException exception, HttpServletRequest request) {
+        logger.error(exception.getMessage(), exception);
+        HttpStatus status = HttpStatus.resolve(exception.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        String viewName = status == HttpStatus.NOT_FOUND ? "error/404" : "error/500";
+        return buildErrorView(status, exception, request, viewName);
     }
 
     private ModelAndView buildErrorView(
