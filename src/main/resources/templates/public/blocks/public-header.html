@@ -8,17 +8,17 @@
 
             <div class="topbar__actions">
                 <a class="btn btn--ghost"
-                   th:if="${!isAuthenticated}"
+                   th:if="${isAuthenticated == null or !isAuthenticated}"
                    th:href="@{/auth/login}">Sign in</a>
                 <a class="btn btn--primary"
-                   th:if="${!isAuthenticated}"
+                   th:if="${isAuthenticated == null or !isAuthenticated}"
                    th:href="@{/auth/register}">Sign up</a>
 
                 <a class="btn btn--ghost"
-                   th:if="${isAuthenticated}"
+                   th:if="${isAuthenticated != null and isAuthenticated}"
                    th:href="@{/home}">Home</a>
                 <a class="btn btn--primary"
-                   th:if="${isAuthenticated}"
+                   th:if="${isAuthenticated != null and isAuthenticated}"
                    th:href="@{/profile}">Profile</a>
             </div>
         </div>
