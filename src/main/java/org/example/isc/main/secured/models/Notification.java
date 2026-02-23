@@ -1,6 +1,5 @@
 package org.example.isc.main.secured.models;
 
-import io.swagger.v3.core.util.Json;
 import jakarta.persistence.*;
 import org.example.isc.main.enums.NotificationEnum;
 
@@ -10,17 +9,30 @@ import java.time.LocalDateTime;
 @Table(name = "notifications")
 public class Notification {
 
+    public Notification(User receiver, NotificationEnum type, String title, String body, LocalDateTime createdAt, LocalDateTime readAt, String data) {
+        this.receiver = receiver;
+        this.type = type;
+        this.title = title;
+        this.body = body;
+        this.createdAt = createdAt;
+        this.readAt = readAt;
+        this.data = data;
+    }
+
+    public Notification() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notificationId;
 
     @ManyToOne
-    @JoinColumn(name = "reciever_id", nullable = false)
-    private User reciever;
+    @JoinColumn(name = "receiver_id", nullable = false)
+    private User receiver;
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private NotificationEnum status;
+    private NotificationEnum type;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -36,6 +48,14 @@ public class Notification {
 
     @Column(name = "data")
     private String data;
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
 
     public String getTitle() {
         return title;
@@ -77,19 +97,19 @@ public class Notification {
         this.notificationId = notificationId;
     }
 
-    public User getReciever() {
-        return reciever;
+    public User getReceiver() {
+        return receiver;
     }
 
-    public void setReciever(User reciever) {
-        this.reciever = reciever;
+    public void setReceiver(User receiver) {
+        this.receiver = receiver;
     }
 
-    public NotificationEnum getStatus() {
-        return status;
+    public NotificationEnum getType() {
+        return type;
     }
 
-    public void setStatus(NotificationEnum status) {
-        this.status = status;
+    public void setType(NotificationEnum type) {
+        this.type = type;
     }
 }

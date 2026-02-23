@@ -12,16 +12,26 @@ import java.util.List;
 
 public interface NotificationsRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByRecieverOrderByCreatedAtDesc(User reciever, Pageable pageable);
+    List<Notification> findByReceiverOrderByCreatedAtDesc(User receiver, Pageable pageable);
 
-    long countByRecieverAndReadAtIsNull(User reciever);
+    long countByRecieverAndReadAtIsNull(User receiver);
 
     @Modifying
     @Query("""
-        UPDATE Notification n\s
-                   SET n.readAt = CURRENT_TIMESTAMP\s
-                   WHERE n.reciever = :reciever AND n.readAt IS NULL
+        UPDATE Notification n
+                   SET n.readAt = CURRENT_TIMESTAMP
+                   WHERE n.receiver = :receiver AND n.readAt IS NULL
                 """)
-    void markAllReadByReciever(User reciever);
+    void markAllReadByReciever(User receiver);
+
+    @Modifying
+    @Query("""
+          update Notification n
+                    set n.readAt = current_timestamp 
+                    where n.receiver = :receiver 
+                    and n.notificationId = :notificationId
+                    and n.readAt is null          
+           """)
+    void markReadByNotificationIdAndReciever(Long notificationId, User receiver);
 
 }
