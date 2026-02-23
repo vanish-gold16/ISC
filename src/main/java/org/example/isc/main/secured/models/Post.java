@@ -28,6 +28,17 @@ public class Post {
     @Column(name = "date")
     private LocalDateTime date;
 
+    @Column(name = "likes")
+    private Long likes;
+
+    public Long getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Long likes) {
+        this.likes = likes;
+    }
+
     @PrePersist
     public void prePersist() {
         this.date = LocalDateTime.now();
