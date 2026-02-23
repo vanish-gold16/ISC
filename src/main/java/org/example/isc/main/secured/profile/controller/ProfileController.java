@@ -2,9 +2,10 @@ package org.example.isc.main.secured.profile.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.example.isc.main.common.dto.EditRequest;
+import org.example.isc.main.dto.EditRequest;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
+import org.example.isc.main.secured.friends.service.FriendsService;
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
@@ -32,12 +33,14 @@ public class ProfileController {
     private final PostRepository postRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ProfileService profileService;
+    private final FriendsService friendsService;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.profileService = profileService;
+        this.friendsService = friendsService;
     }
 
     @GetMapping()
@@ -183,6 +186,16 @@ public class ProfileController {
         session.setAttribute("POST_EDIT_PROFILE", true);
 
         return "redirect:/profile";
+    }
+
+    @PostMapping("/{id}/friend-request")
+    private String friendRequest(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        friendsService.sendFriendsRequest();
+
+        return "redirect:/profile/{id}";
     }
 
     private void addProfileViewAttributes(Model model, User user) {

@@ -1,4 +1,4 @@
-package org.example.isc.main.common.dto;
+package org.example.isc.main.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

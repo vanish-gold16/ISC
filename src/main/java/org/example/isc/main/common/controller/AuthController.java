@@ -2,7 +2,7 @@ package org.example.isc.main.common.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.example.isc.main.common.dto.RegistrationRequest;
+import org.example.isc.main.dto.RegistrationRequest;
 import org.example.isc.main.common.service.UserService;
 import org.example.isc.main.enums.RoleEnum;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

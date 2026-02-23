@@ -1,7 +1,7 @@
 package org.example.isc.main.secured.profile.controller;
 
 import jakarta.validation.Valid;
-import org.example.isc.main.common.dto.ProfileSetupForm;
+import org.example.isc.main.dto.ProfileSetupForm;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.models.User;
