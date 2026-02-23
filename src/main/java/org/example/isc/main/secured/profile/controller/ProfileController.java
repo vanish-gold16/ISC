@@ -55,7 +55,7 @@ public class ProfileController {
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((me.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((me.getId()))));
 
-        return "private/profile";
+        return "private/profile/profile";
     }
 
     @GetMapping("/{id}")
@@ -81,7 +81,7 @@ public class ProfileController {
                 .isPresent();
         model.addAttribute("isFollowing", isFollowing);
 
-        return "private/user-profile";
+        return "private/profile/user-profile";
     }
 
     @PostMapping("/{id}/follow")
@@ -143,7 +143,7 @@ public class ProfileController {
         model.addAttribute("occupations", OccupationEnum.values());
         addProfileViewAttributes(model, me);
 
-        return "private/profile-edit";
+        return "private/profile/profile-edit";
     }
 
     @PostMapping("/edit")
@@ -163,7 +163,7 @@ public class ProfileController {
             model.addAttribute("countries", CountryEnum.values());
             model.addAttribute("occupations", OccupationEnum.values());
             addProfileViewAttributes(model, me);
-            return "private/profile-edit";
+            return "private/profile/profile-edit";
         }
         try {
             profileService.edit(userRepository, authentication, request);
@@ -177,7 +177,7 @@ public class ProfileController {
             model.addAttribute("countries", CountryEnum.values());
             model.addAttribute("occupations", OccupationEnum.values());
             addProfileViewAttributes(model, me);
-            return "private/profile-edit";
+            return "private/profile/profile-edit";
         }
 
         session.setAttribute("POST_EDIT_PROFILE", true);
