@@ -21,9 +21,6 @@
                     <h1>Friends</h1>
                     <p class="muted">People you have connected with on ISC.</p>
                 </div>
-                <div class="friends-cta">
-                    <a class="btn btn--primary" th:href="@{/profile}">My profile</a>
-                </div>
             </div>
 
             <div class="friends-head__bottom">
@@ -79,7 +76,7 @@
         <div class="card empty" th:if="${friends == null or #lists.isEmpty(friends)}">
             <h3>No friends yet</h3>
             <p class="muted">Start following people and accept requests to build your list.</p>
-            <a class="btn btn--primary" th:href="@{/home}">Explore feed</a>
+            <a class="btn btn--primary" th:href="@{/possible-friends}">Find friends</a>
         </div>
     </section>
 
