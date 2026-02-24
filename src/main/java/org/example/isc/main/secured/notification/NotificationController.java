@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class NotificationController {
@@ -31,6 +33,18 @@ public class NotificationController {
         model.addAttribute("unreadCount", notificationService.unreadCount(me));
 
         return "/private/notifications";
+    }
+
+    @PostMapping("/notifications/{id}/read")
+    public String read(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                        .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        notificationService.markRead(id, me);
+
+        return "redirect:/notifications";
     }
 
 }
