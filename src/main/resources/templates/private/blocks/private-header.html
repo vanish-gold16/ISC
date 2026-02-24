@@ -70,6 +70,118 @@
             display: block;
         }
 
+        .notify-menu {
+            position: relative;
+        }
+
+        .notify-menu__dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            width: min(380px, calc(100vw - 24px));
+            max-height: 360px;
+            overflow: auto;
+            background: #fff;
+            border: 1px solid #d9e2f2;
+            border-radius: 12px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+            padding: 8px;
+            z-index: 30;
+            display: none;
+        }
+
+        .notify-menu:hover .notify-menu__dropdown,
+        .notify-menu:focus-within .notify-menu__dropdown {
+            display: block;
+        }
+
+        .notify-menu__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px 10px;
+            border-bottom: 1px solid #e8eef9;
+            margin-bottom: 4px;
+        }
+
+        .notify-menu__title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .notify-menu__view-all {
+            color: #1d4ed8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notify-menu__view-all:hover {
+            text-decoration: underline;
+        }
+
+        .notify-item {
+            display: block;
+            padding: 10px 8px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #0f172a;
+        }
+
+        .notify-item:hover {
+            background: #f1f6ff;
+        }
+
+        .notify-item.is-unread {
+            background: #eef5ff;
+        }
+
+        .notify-item__title {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .notify-item__body {
+            margin: 2px 0 0;
+            color: #475569;
+            font-size: 12px;
+        }
+
+        .notify-item__date {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .notify-empty {
+            color: #64748b;
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+
+        .notify-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            background: #dc2626;
+            color: #fff;
+            border: 2px solid #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
         .brand__logo-img {
             width: 28px;
             height: 28px;
@@ -103,12 +215,39 @@
         </div>
 
         <div class="topbar__actions">
-            <button class="notify-btn" type="button" aria-label="Notifications">
-                <img class="notify-btn__icon"
-                     th:src="@{/images/private/header/notifications.png}"
-                     src="/images/private/header/notifications.png"
-                     alt="" />
-            </button>
+            <div class="notify-menu">
+                <a class="notify-btn" th:href="@{/notifications}" href="/notifications" aria-label="Notifications">
+                    <img class="notify-btn__icon"
+                         th:src="@{/images/private/header/notifications.png}"
+                         src="/images/private/header/notifications.png"
+                         alt="" />
+                    <span class="notify-badge"
+                          th:if="${unreadNotifications != null and unreadNotifications > 0}"
+                          th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}">1</span>
+                </a>
+
+                <div class="notify-menu__dropdown" role="menu" aria-label="Latest notifications">
+                    <div class="notify-menu__head">
+                        <p class="notify-menu__title">Latest notifications</p>
+                        <a class="notify-menu__view-all" th:href="@{/notifications}" href="/notifications">View all</a>
+                    </div>
+
+                    <div th:if="${notificationsPreview != null and !#lists.isEmpty(notificationsPreview)}">
+                        <a class="notify-item"
+                           th:classappend="${n.readAt == null} ? ' is-unread' : ''"
+                           th:href="@{/notifications}"
+                           th:each="n : ${#lists.size(notificationsPreview) > 5 ? notificationsPreview.subList(0,5) : notificationsPreview}">
+                            <p class="notify-item__title" th:text="${n.title} ?: 'Notification'">Notification</p>
+                            <p class="notify-item__body" th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</p>
+                            <p class="notify-item__date" th:text="${n.createdAt} ?: ''"></p>
+                        </a>
+                    </div>
+
+                    <p class="notify-empty" th:if="${notificationsPreview == null or #lists.isEmpty(notificationsPreview)}">
+                        No notifications yet.
+                    </p>
+                </div>
+            </div>
 
             <details class="profile-menu">
                 <summary class="profile" aria-label="Open profile menu">

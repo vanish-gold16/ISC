@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <title>ISC | Error</title>
+    <link rel="stylesheet" href="/css/public/auth/auth.css" />
+</head>
+<body>
+<div>
+    <header class="topbar">
+        <div class="topbar__inner container">
+            <a class="brand" href="/">
+                <span class="brand__logo-stack" aria-hidden="true">
+                    <img class="brand__logo-img"
+                         src="/images/brand/logo-submark.png"
+                         alt="" />
+                </span>
+            </a>
+
+            <div class="topbar__actions">
+                <a class="btn btn--ghost"
+                   href="/auth/login">Sign in</a>
+                <a class="btn btn--primary"
+                   href="/auth/register">Sign up</a>
+
+                
+                
+            </div>
+        </div>
+    </header>
+</div>
+
+<main class="auth">
+    <div class="card auth__card">
+        <h1>Internal Server Error</h1>
+        <p class="muted">We could not process this page.</p>
+
+        <div class="divider"></div>
+
+        <p class="small muted">
+            Status: <span>500</span>
+            <span>Internal Server Error</span>
+        </p>
+        <p class="small muted">Cannot invoke &quot;org.springframework.security.core.Authentication.getName()&quot; because &quot;authentication&quot; is null</p>
+        <p class="small muted">
+            Path: <span>/auth/login</span>
+        </p>
+
+        <div class="hero__cta">
+            <a class="btn btn--primary" href="/home">Go home</a>
+            <a class="btn btn--ghost" href="javascript:history.back()">Go back</a>
+        </div>
+    </div>
+</main>
+
+<div>
+<footer class="footer container muted">
+    <span>© ISC</span>
+    <span>·</span>
+    <a class="footer__link" href="/privacy">Privacy</a>
+    <span>·</span>
+    <a class="footer__link" href="/terms">Terms</a>
+</footer>
+</div>
+</body>
+</html>
+
+

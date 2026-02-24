@@ -1,10 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
 
+    <title th:text="${title} ?: 'ISC | Notifications'">ISC | Notifications</title>
+
+    <link rel="stylesheet" href="/css/private/home.css" />
+    <style>
+        .notifications-page {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 18px;
+            padding: 18px 0 24px;
+        }
+
+        .notifications {
+            min-width: 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        .notifications-head {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .notifications-head h1 {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+
+        .notifications-sub {
+            margin: 4px 0 0;
+            color: var(--muted);
+        }
+
+        .notifications-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .notification-item {
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .notification-item.is-unread {
+            border-color: rgba(37, 99, 235, 0.45);
+            box-shadow: 0 14px 34px rgba(37, 99, 235, 0.12);
+            background: #eef5ff;
+        }
+
+        .notification-top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .notification-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .notification-date {
+            color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .notification-body {
+            margin: 0;
+        }
+
+        .notification-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .notification-type {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        @media (max-width: 960px) {
+            .notifications-page {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container notifications-page">
+    <section class="notifications">
+        <header class="card notifications-head">
+            <div>
+                <h1>Notifications</h1>
+                <p class="notifications-sub">
+                    <span th:text="${unreadCount} ?: 0">0</span>
+                    unread updates
+                </p>
+            </div>
+
+            <form th:action="@{/notifications/read-all}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button class="btn btn--ghost btn--sm" type="submit">Mark all as read</button>
+            </form>
+        </header>
+
+        <div class="notifications-list" th:if="${notifications != null and !#lists.isEmpty(notifications)}">
+            <article class="card notification-item"
+                     th:classappend="${n.readAt == null} ? ' is-unread' : ''"
+                     th:each="n : ${notifications}">
+                <div class="notification-top">
+                    <h2 class="notification-title" th:text="${n.title} ?: 'Notification'">Notification</h2>
+                    <time class="notification-date" th:text="${n.createdAt} ?: '-'">-</time>
+                </div>
+
+                <p class="notification-body muted"
+                   th:text="${n.body} ?: 'You have a new update.'">
+                    You have a new update.
+                </p>
+
+                <div class="notification-meta">
+                    <span class="notification-type" th:text="${n.type} ?: 'SYSTEM'">SYSTEM</span>
+
+                    <form th:if="${n.readAt == null}"
+                          th:action="@{/notifications/{id}/read(id=${n.notificationId})}"
+                          method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button class="btn btn--ghost btn--sm" type="submit">Mark as read</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+
+        <div class="card empty" th:if="${notifications == null or #lists.isEmpty(notifications)}">
+            <h3>No notifications yet</h3>
+            <p class="muted">When someone interacts with your profile, updates will appear here.</p>
+        </div>
+    </section>
+
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('notifications')}"></aside>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>
