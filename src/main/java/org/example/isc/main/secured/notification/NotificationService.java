@@ -37,6 +37,7 @@ public class NotificationService {
                 null,
                 data
         );
+        notificationsRepository.save(notification);
     }
 
     public List<Notification> list(User receiver, int limit){
