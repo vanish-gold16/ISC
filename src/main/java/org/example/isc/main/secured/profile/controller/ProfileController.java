@@ -113,7 +113,7 @@ public class ProfileController {
                 subscription.setFollower(me);
                 subscription.setFollowed(target);
                 subscriptionRepository.save(subscription);
-                String body = target.getUsername() + " is now following you!";
+                String body = me.getUsername() + " is now following you!";
                 notificationService.create(
                         NotificationEnum.FOLLOW,
                         target,
