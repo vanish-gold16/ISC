@@ -47,4 +47,16 @@ public class NotificationController {
         return "redirect:/notifications";
     }
 
+    @PostMapping("/notifications/read-all")
+    public String readAll(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        notificationService.markAllRead(me);
+
+        return "redirect:/notifications";
+    }
+
 }
