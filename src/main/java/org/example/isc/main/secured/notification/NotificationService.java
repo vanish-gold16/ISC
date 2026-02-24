@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.notification;
 
+import jakarta.transaction.Transactional;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.Notification;
 import org.example.isc.main.secured.models.Post;
@@ -49,10 +50,12 @@ public class NotificationService {
         return notificationsRepository.countByReceiverAndReadAtIsNull(receiver);
     }
 
+    @Transactional
     public void markRead(Long notificationId, User receiver){
         notificationsRepository.markReadByNotificationIdAndReceiver(notificationId, receiver);
     }
 
+    @Transactional
     public void markAllRead(User receiver){
         notificationsRepository.markAllReadByReceiver(receiver);
     }
