@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 // static
-                                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/favicon.png").permitAll()
                                 // public
                                 .requestMatchers("/", "/landing", "/auth/**", "/error").permitAll()
                                 // admin

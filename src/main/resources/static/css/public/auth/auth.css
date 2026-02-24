@@ -63,8 +63,8 @@ a{ color: inherit; text-decoration: none; }
     place-items: center;
 }
 .brand__logo-img {
-    width: 36px;
-    height: 12px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     display: block;
 }
