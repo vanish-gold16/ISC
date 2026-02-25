@@ -3,8 +3,10 @@ package org.example.isc.main.secured.notification;
 import jakarta.transaction.Transactional;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.Notification;
+import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
+import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,11 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationsRepository notificationsRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
-    public NotificationService(NotificationsRepository notificationsRepository) {
+    public NotificationService(NotificationsRepository notificationsRepository, SubscriptionRepository subscriptionRepository) {
         this.notificationsRepository = notificationsRepository;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     public void create(
@@ -59,6 +63,25 @@ public class NotificationService {
     @Transactional
     public void markAllRead(User receiver){
         notificationsRepository.markAllReadByReceiver(receiver);
+    }
+
+    public void followBack(
+            User sender,
+            User receiver
+    ) {
+        if (!subscriptionRepository.existsByFollowedIdAndFollowerId(sender.getId(), receiver.getId())) {
+            Subscription subscription = new Subscription(sender, receiver);
+            subscriptionRepository.save(subscription);
+            String body = sender.getUsername() + " is now following you";
+            create(
+                    NotificationEnum.FOLLOW,
+                    receiver,
+                    sender,
+                    "New follower",
+                    body,
+                    null
+            );
+        }
     }
 
 }

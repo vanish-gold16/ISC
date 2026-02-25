@@ -1,7 +1,9 @@
 package org.example.isc.main.secured.notification;
 
+import org.example.isc.main.secured.friends.service.FriendsService;
 import org.example.isc.main.secured.models.Notification;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -23,11 +25,15 @@ public class NotificationController {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final SubscriptionRepository subscriptionRepository;
+    private final NotificationsRepository notificationsRepository;
+    private final FriendsService friendsService;
 
-    public NotificationController(UserRepository userRepository, NotificationService notificationService, SubscriptionRepository subscriptionRepository) {
+    public NotificationController(UserRepository userRepository, NotificationService notificationService, SubscriptionRepository subscriptionRepository, NotificationsRepository notificationsRepository, FriendsService friendsService) {
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.subscriptionRepository = subscriptionRepository;
+        this.notificationsRepository = notificationsRepository;
+        this.friendsService = friendsService;
     }
 
     @GetMapping("/notifications")
@@ -79,6 +85,38 @@ public class NotificationController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         notificationService.markAllRead(me);
+
+        return "redirect:/notifications";
+    }
+
+    @PostMapping("/notifications/{id}/follow-back")
+    public String followBack(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        Notification currentNotification = notificationsRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Notification not found: " + id));
+        User sender = currentNotification.getSender();
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        notificationService.followBack(sender, me);
+
+        return "redirect:/notifications";
+    }
+
+    @PostMapping("/notifications/{id}/accept-friend-request")
+    public String acceptFriendRequest(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        Notification currentNotification = notificationsRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Notification not found: " + id));
+        User sender = currentNotification.getSender();
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        friendsService.acceptFriendRequest(sender, me);
 
         return "redirect:/notifications";
     }

@@ -18,6 +18,14 @@ public class Subscription {
     @JoinColumn(name = "followed_id")
     private User followed;
 
+    public Subscription(User follower, User followed) {
+        this.follower = follower;
+        this.followed = followed;
+    }
+
+    public Subscription() {
+    }
+
     public Long getId() {
         return id;
     }
