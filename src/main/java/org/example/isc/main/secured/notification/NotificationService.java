@@ -3,7 +3,6 @@ package org.example.isc.main.secured.notification;
 import jakarta.transaction.Transactional;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.Notification;
-import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.springframework.data.domain.PageRequest;
@@ -25,12 +24,14 @@ public class NotificationService {
     public void create(
             NotificationEnum type,
             User receiver,
+            User sender,
             String title,
             String body,
             String data
                        ){
         Notification notification = new Notification(
                 receiver,
+                sender,
                 type,
                 title,
                 body,

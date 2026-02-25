@@ -124,11 +124,26 @@
         }
 
         .notify-item {
-            display: block;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
             padding: 10px 8px;
             border-radius: 8px;
             text-decoration: none;
             color: #0f172a;
+        }
+
+        .notify-item__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .notify-item__content {
+            flex: 1;
+            min-width: 0;
         }
 
         .notify-item:hover {
@@ -227,20 +242,41 @@
                 </a>
 
                 <div class="notify-menu__dropdown" role="menu" aria-label="Latest notifications">
-                    <div class="notify-menu__head">
-                        <p class="notify-menu__title">Latest notifications</p>
-                        <a class="notify-menu__view-all" th:href="@{/notifications}" href="/notifications">View all</a>
-                    </div>
 
                     <div th:if="${notificationsPreview != null and !#lists.isEmpty(notificationsPreview)}">
-                        <a class="notify-item"
+                        <div class="notify-item"
                            th:classappend="${n.readAt == null} ? ' is-unread' : ''"
-                           th:href="@{/notifications}"
                            th:each="n : ${#lists.size(notificationsPreview) > 5 ? notificationsPreview.subList(0,5) : notificationsPreview}">
-                            <p class="notify-item__title" th:text="${n.title} ?: 'Notification'">Notification</p>
-                            <p class="notify-item__body" th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</p>
-                            <p class="notify-item__date" th:text="${n.createdAt} ?: ''"></p>
-                        </a>
+                            <a th:if="${n.sender != null}"
+                               th:href="@{/profile/{id}(id=${n.sender.id})}">
+                                <img class="notify-item__avatar"
+                                     th:src="${n.sender.profile != null and n.sender.profile.avatarUrl != null} ? ${n.sender.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
+                                     alt="" />
+                            </a>
+                            <img th:if="${n.sender == null}"
+                                 class="notify-item__avatar"
+                                 src="/images/private/profile/common-profile.png"
+                                 alt="" />
+                            <div class="notify-item__content">
+                                <p class="notify-item__title">
+                                    <a th:if="${n.sender != null}"
+                                       th:href="@{/profile/{id}(id=${n.sender.id})}"
+                                       th:text="${n.sender.username}"
+                                       style="color: #1d4ed8; text-decoration: none; font-weight: 700;">User</a>
+                                    <span th:text="${n.title} ?: 'Notification'">Notification</span>
+                                </p>
+                                <p class="notify-item__body" th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</p>
+                                <p class="notify-item__date"
+                                   th:with="now=${T(java.time.LocalDateTime).now()},
+                                            diff=${T(java.time.Duration).between(n.createdAt, now)}"
+                                   th:text="${diff.toMinutes() < 1} ? 'just now' :
+                                             (${diff.toMinutes() < 60} ? ${diff.toMinutes()} + ' min ago' :
+                                             (${diff.toHours() < 24} ? ${diff.toHours()} + ' hours ago' :
+                                             (${diff.toDays() < 7} ? ${diff.toDays()} + ' days ago' :
+                                             ${#temporals.format(n.createdAt, 'dd MMM yyyy')})))">
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <p class="notify-empty" th:if="${notificationsPreview == null or #lists.isEmpty(notificationsPreview)}">

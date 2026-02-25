@@ -31,9 +31,10 @@ public class FriendsService {
         notificationService.create(
                 NotificationEnum.FRIEND_REQUEST,
                 receiver,
+                sender,
                 "New friend request",
                 body,
-                "New friend request"
+                null
         );
     }
 }

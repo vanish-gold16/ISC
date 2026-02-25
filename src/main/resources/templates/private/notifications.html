@@ -49,6 +49,22 @@
 
         .notification-item {
             padding: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-item__avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .notification-item__content {
+            flex: 1;
+            min-width: 0;
             display: grid;
             gap: 8px;
         }
@@ -134,25 +150,53 @@
             <article class="card notification-item"
                      th:classappend="${n.readAt == null} ? ' is-unread' : ''"
                      th:each="n : ${notifications}">
-                <div class="notification-top">
-                    <h2 class="notification-title" th:text="${n.title} ?: 'Notification'">Notification</h2>
-                    <time class="notification-date" th:text="${n.createdAt} ?: '-'">-</time>
-                </div>
 
-                <p class="notification-body muted"
-                   th:text="${n.body} ?: 'You have a new update.'">
-                    You have a new update.
-                </p>
+                <!-- Avatar -->
+                <a th:if="${n.sender != null}"
+                   th:href="@{/profile/{id}(id=${n.sender.id})}">
+                    <img class="notification-item__avatar"
+                         th:src="${n.sender.profile != null and n.sender.profile.avatarUrl != null} ? ${n.sender.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
+                         alt="" />
+                </a>
+                <img th:if="${n.sender == null}"
+                     class="notification-item__avatar"
+                     src="/images/private/profile/common-profile.png"
+                     alt="" />
 
-                <div class="notification-meta">
-                    <span class="notification-type" th:text="${n.type} ?: 'SYSTEM'">SYSTEM</span>
+                <div class="notification-item__content">
+                    <div class="notification-top">
+                        <h2 class="notification-title">
+                            <a th:if="${n.sender != null}"
+                               th:href="@{/profile/{id}(id=${n.sender.id})}"
+                               th:text="${n.sender.username}"
+                               style="color: #1d4ed8; text-decoration: none;">User</a>
+                            <span th:text="${n.title} ?: 'Notification'">Notification</span>
+                        </h2>
+                        <time class="notification-date"
+                              th:with="now=${T(java.time.LocalDateTime).now()},
+                                       diff=${T(java.time.Duration).between(n.createdAt, now)}"
+                              th:text="${diff.toMinutes() < 1} ? 'just now' :
+                                        (${diff.toMinutes() < 60} ? ${diff.toMinutes()} + ' min ago' :
+                                        (${diff.toHours() < 24} ? ${diff.toHours()} + ' hours ago' :
+                                        (${diff.toDays() < 7} ? ${diff.toDays()} + ' days ago' :
+                                        ${#temporals.format(n.createdAt, 'dd MMM yyyy')})))">-</time>
+                    </div>
 
-                    <form th:if="${n.readAt == null}"
-                          th:action="@{/notifications/{id}/read(id=${n.notificationId})}"
-                          method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button class="btn btn--ghost btn--sm" type="submit">Mark as read</button>
-                    </form>
+                    <p class="notification-body muted"
+                       th:text="${n.body} ?: 'You have a new update.'">
+                        You have a new update.
+                    </p>
+
+                    <div class="notification-meta">
+                        <span class="notification-type" th:text="${n.type} ?: 'SYSTEM'">SYSTEM</span>
+
+                        <form th:if="${n.readAt == null}"
+                              th:action="@{/notifications/{id}/read(id=${n.notificationId})}"
+                              method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button class="btn btn--ghost btn--sm" type="submit">Mark as read</button>
+                        </form>
+                    </div>
                 </div>
             </article>
         </div>

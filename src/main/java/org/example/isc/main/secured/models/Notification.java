@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 @Table(name = "notifications")
 public class Notification {
 
-    public Notification(User receiver, NotificationEnum type, String title, String body, LocalDateTime createdAt, LocalDateTime readAt, String data) {
+    public Notification(User receiver, User sender, NotificationEnum type, String title, String body, LocalDateTime createdAt, LocalDateTime readAt, String data) {
         this.receiver = receiver;
+        this.sender = sender;
         this.type = type;
         this.title = title;
         this.body = body;
@@ -29,6 +30,10 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
+
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -111,5 +116,13 @@ public class Notification {
 
     public void setType(NotificationEnum type) {
         this.type = type;
+    }
+
+    public User getSender() {
+        return sender;
+    }
+
+    public void setSender(User sender) {
+        this.sender = sender;
     }
 }

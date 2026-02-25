@@ -117,9 +117,10 @@ public class ProfileController {
                 notificationService.create(
                         NotificationEnum.FOLLOW,
                         target,
+                        me,
                         "New follower",
                         body,
-                        "New follower"
+                        null
                         );
             }
         }
