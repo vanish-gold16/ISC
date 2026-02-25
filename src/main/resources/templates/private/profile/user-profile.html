@@ -54,7 +54,31 @@
                                 <button class="btn btn--primary" type="submit">Follow</button>
                             </form>
 
-                            <form th:action="@{/profile/{id}/friend-request(id=${user.id})}" method="post">
+                            <!-- Already friends -->
+                            <span th:if="${isFriend}" class="badge-following">
+                                Friends
+                            </span>
+
+                            <!-- Request sent -->
+                            <form th:if="${isRequestSent}"
+                                  th:action="@{/profile/{id}/cancel-friend-request(id=${user.id})}"
+                                  method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="btn btn--ghost" type="submit">Cancel request</button>
+                            </form>
+
+                            <!-- Request received -->
+                            <form th:if="${isRequestReceived}"
+                                  th:action="@{/profile/{id}/accept-friend-request(id=${user.id})}"
+                                  method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="btn btn--primary" type="submit">Accept request</button>
+                            </form>
+
+                            <!-- Default state -->
+                            <form th:if="${!isFriend and !isRequestSent and !isRequestReceived}"
+                                  th:action="@{/profile/{id}/friend-request(id=${user.id})}"
+                                  method="post">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button class="btn btn--ghost" type="submit">Add friend</button>
                             </form>

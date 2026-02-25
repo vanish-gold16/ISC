@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.EditRequest;
 import org.example.isc.main.enums.CountryEnum;
+import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.friends.service.FriendsService;
@@ -12,6 +13,7 @@ import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.profile.service.ProfileService;
+import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -39,14 +41,16 @@ public class ProfileController {
     private final ProfileService profileService;
     private final FriendsService friendsService;
     private final NotificationService notificationService;
+    private final FriendsRepository friendsRepository;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.profileService = profileService;
         this.friendsService = friendsService;
         this.notificationService = notificationService;
+        this.friendsRepository = friendsRepository;
     }
 
     @GetMapping()
@@ -210,7 +214,8 @@ public class ProfileController {
     @PostMapping("/{id}/friend-request")
     private String friendRequest(
             @PathVariable Long id,
-            Authentication authentication
+            Authentication authentication,
+            Model model
     ){
         User target = userRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
@@ -220,6 +225,14 @@ public class ProfileController {
         if (!me.getId().equals(target.getId())) {
             friendsService.sendFriendsRequest(me, target);
         }
+
+        boolean isFriend = friendsRepository.existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(target, me, me, target);
+        boolean isRequestSent = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(me, target, FriendsStatusEnum.PENDING);
+        boolean isRequestReceived = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(target, me, FriendsStatusEnum.PENDING);
+
+        model.addAttribute("isFriend", isFriend);
+        model.addAttribute("isRequestSent", isRequestSent);
+        model.addAttribute("isRequestReceived", isRequestReceived);
 
         return "redirect:/profile/" + id;
     }

@@ -34,4 +34,8 @@ public interface FriendsRepository extends JpaRepository<Friends, Long> {
                 and f.recieverUser = :receiver        
         """)
     void updateFriendshipStatus(User sender, User receiver, FriendsStatusEnum status);
+
+    boolean existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(User senderUser, User recieverUser, User recieverUser1, User senderUser1);
+
+    boolean existsBySenderUserAndRecieverUserAndStatus(User senderUser, User recieverUser, FriendsStatusEnum status);
 }
