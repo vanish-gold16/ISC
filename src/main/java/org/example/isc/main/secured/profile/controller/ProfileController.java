@@ -89,6 +89,19 @@ public class ProfileController {
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((target.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((target.getId()))));
 
+        boolean isFriend = false;
+        boolean isRequestSent = false;
+        boolean isRequestReceived = false;
+        if (me != null) {
+            isFriend = friendsRepository.existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(target, me, me, target);
+            isRequestSent = friendsRepository.existsBySenderUserAndRecieverUser(me, target);
+            isRequestReceived = friendsRepository.existsBySenderUserAndRecieverUser(target, me);
+        }
+
+        model.addAttribute("isFriend", isFriend);
+        model.addAttribute("isRequestSent", isRequestSent);
+        model.addAttribute("isRequestReceived", isRequestReceived);
+
         boolean isFollowing = subscriptionRepository
                 .findByFollowedIdAndFollowerId(target.getId(), me.getId())
                 .isPresent();
@@ -225,14 +238,6 @@ public class ProfileController {
         if (!me.getId().equals(target.getId())) {
             friendsService.sendFriendsRequest(me, target);
         }
-
-        boolean isFriend = friendsRepository.existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(target, me, me, target);
-        boolean isRequestSent = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(me, target, FriendsStatusEnum.PENDING);
-        boolean isRequestReceived = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(target, me, FriendsStatusEnum.PENDING);
-
-        model.addAttribute("isFriend", isFriend);
-        model.addAttribute("isRequestSent", isRequestSent);
-        model.addAttribute("isRequestReceived", isRequestReceived);
 
         return "redirect:/profile/" + id;
     }
