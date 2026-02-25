@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.friends.service;
 
+import jakarta.transaction.Transactional;
 import org.example.isc.main.dto.FriendRequest;
 import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
@@ -24,6 +25,7 @@ public class FriendsService {
         this.subscriptionRepository = subscriptionRepository;
     }
 
+    @Transactional
     public void sendFriendsRequest(
             User sender, User receiver
     ) {
@@ -46,6 +48,7 @@ public class FriendsService {
         );
     }
 
+    @Transactional
     public void acceptFriendRequest(
             User sender,
             User receiver

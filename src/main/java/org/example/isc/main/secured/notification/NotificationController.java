@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +102,8 @@ public class NotificationController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         notificationService.followBack(sender, me);
+        notificationService.markRead(id, me);
+        currentNotification.setReadAt(LocalDateTime.now());
 
         return "redirect:/notifications";
     }
@@ -117,6 +120,8 @@ public class NotificationController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         friendsService.acceptFriendRequest(sender, me);
+        notificationService.markRead(id, me);
+        currentNotification.setReadAt(LocalDateTime.now());
 
         return "redirect:/notifications";
     }

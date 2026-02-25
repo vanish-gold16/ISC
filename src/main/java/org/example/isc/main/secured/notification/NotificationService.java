@@ -65,6 +65,7 @@ public class NotificationService {
         notificationsRepository.markAllReadByReceiver(receiver);
     }
 
+    @Transactional
     public void followBack(
             User sender,
             User receiver
