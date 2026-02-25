@@ -38,5 +38,4 @@ public class FriendsController {
         return "private/friends";
     }
 
-
 }

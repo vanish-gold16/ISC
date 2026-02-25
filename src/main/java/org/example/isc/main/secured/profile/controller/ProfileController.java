@@ -221,6 +221,16 @@ public class ProfileController {
         if (!me.getId().equals(target.getId()))
         friendsService.sendFriendsRequest(me, target);
 
+        String body = me.getUsername() + " is sending you a friend request";
+        notificationService.create(
+                NotificationEnum.FRIEND_REQUEST,
+                target,
+                me,
+                "New friend request",
+                body,
+                null
+        );
+
         return "redirect:/profile/{id}";
     }
 
