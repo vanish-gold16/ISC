@@ -23,17 +23,21 @@ public class FriendsService {
     public void sendFriendsRequest(
             User sender, User receiver
     ) {
+        // Проверяем, не существует ли уже запрос
+        if (friendsRepository.existsBySenderUserAndRecieverUser(sender, receiver)) {
+            return; // Запрос уже существует
+        }
+
         Friends friends = new Friends(
                 sender, receiver, FriendsStatusEnum.PENDING
         );
-        String body = sender.getUsername() + " has sent you a friend request";
         friendsRepository.save(friends);
         notificationService.create(
                 NotificationEnum.FRIEND_REQUEST,
                 receiver,
                 sender,
-                "New friend request",
-                body,
+                "Friend request",
+                "wants to be your friend",
                 null
         );
     }

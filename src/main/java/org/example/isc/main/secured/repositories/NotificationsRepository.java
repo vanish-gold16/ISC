@@ -7,12 +7,20 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NotificationsRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByReceiverOrderByCreatedAtDesc(User receiver, Pageable pageable);
+    @Query("""
+        SELECT n FROM Notification n
+        LEFT JOIN FETCH n.sender s
+        LEFT JOIN FETCH s.profile
+        WHERE n.receiver = :receiver
+        ORDER BY n.createdAt DESC
+        """)
+    List<Notification> findByReceiverWithSender(@Param("receiver") User receiver, Pageable pageable);
 
     long countByReceiverAndReadAtIsNull(User receiver);
 

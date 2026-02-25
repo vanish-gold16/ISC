@@ -2,7 +2,7 @@ package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.FriendsStatusEnum;
-import org.example.isc.main.enums.converter.RoleEnumConverter;
+import org.example.isc.main.enums.converter.FriendsStatusEnumConverter;
 
 @Entity
 @Table(name="friends")
@@ -21,7 +21,7 @@ public class Friends {
     private User recieverUser;
 
     @Column(name="status")
-    @Convert(converter = RoleEnumConverter.class)
+    @Convert(converter = FriendsStatusEnumConverter.class)
     private FriendsStatusEnum status;
 
     public Friends(User senderUser, User recieverUser, FriendsStatusEnum status) {

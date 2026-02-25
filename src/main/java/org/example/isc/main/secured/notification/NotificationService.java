@@ -44,7 +44,7 @@ public class NotificationService {
 
     public List<Notification> list(User receiver, int limit){
         Pageable pageable = PageRequest.of(0, limit);
-        return notificationsRepository.findByReceiverOrderByCreatedAtDesc(receiver, pageable);
+        return notificationsRepository.findByReceiverWithSender(receiver, pageable);
     }
 
     public long unreadCount(User receiver){

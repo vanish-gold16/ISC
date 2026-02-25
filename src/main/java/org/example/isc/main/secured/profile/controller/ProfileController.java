@@ -15,7 +15,6 @@ import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,10 +22,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/profile")
@@ -100,7 +95,9 @@ public class ProfileController {
 
     @PostMapping("/{id}/follow")
     private String follow(
-            @PathVariable Long id, Authentication authentication
+            @PathVariable Long id,
+            @RequestParam(value = "redirect", required = false) String redirectUrl,
+            Authentication authentication
     ){
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found + " + id));
@@ -113,18 +110,20 @@ public class ProfileController {
                 subscription.setFollower(me);
                 subscription.setFollowed(target);
                 subscriptionRepository.save(subscription);
-                String body = me.getUsername() + " is now following you!";
                 notificationService.create(
                         NotificationEnum.FOLLOW,
                         target,
                         me,
                         "New follower",
-                        body,
+                        "started following you",
                         null
                         );
             }
         }
 
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            return "redirect:" + redirectUrl;
+        }
         return "redirect:/profile/" + id;
     }
 
@@ -218,20 +217,11 @@ public class ProfileController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                         .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        if (!me.getId().equals(target.getId()))
-        friendsService.sendFriendsRequest(me, target);
+        if (!me.getId().equals(target.getId())) {
+            friendsService.sendFriendsRequest(me, target);
+        }
 
-        String body = me.getUsername() + " is sending you a friend request";
-        notificationService.create(
-                NotificationEnum.FRIEND_REQUEST,
-                target,
-                me,
-                "New friend request",
-                body,
-                null
-        );
-
-        return "redirect:/profile/{id}";
+        return "redirect:/profile/" + id;
     }
 
     private void addProfileViewAttributes(Model model, User user) {

@@ -13,6 +13,8 @@ public interface FriendsRepository extends JpaRepository<Friends, Long> {
 
     List<Friends> findAllByRecieverUser(User recieverUser);
 
+    boolean existsBySenderUserAndRecieverUser(User sender, User receiver);
+
     @Query("""
         select f from Friends f
         where f.status = :status
