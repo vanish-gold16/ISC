@@ -69,6 +69,7 @@ public class ProfileController {
         model.addAttribute("postsCount", postRepository.findPostsByUserId(me.getId()).size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((me.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((me.getId()))));
+        model.addAttribute("friends", friendsService.getAcceptedFriends(me));
 
         return "private/profile/profile";
     }

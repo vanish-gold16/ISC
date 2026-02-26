@@ -145,11 +145,11 @@
                     <div class="friends-grid" th:if="${friends != null and !#lists.isEmpty(friends)}">
                         <a class="friend card" th:each="f : ${friends}" th:href="@{/profile/{id}(id=${f.id})}">
                             <img class="friend__avatar"
-                                 th:src="${f.avatarUrl} ?: '/images/private/profile/common-profile.png'"
+                                 th:src="${f.profile != null and f.profile.avatarUrl != null} ? ${f.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
                                  alt="" />
                             <div class="friend__info">
-                                <div class="friend__name" th:text="${f.name} ?: 'ISC Member'">ISC Member</div>
-                                <div class="friend__sub muted" th:text="${f.username} ?: '@user'">@user</div>
+                                <div class="friend__name" th:text="${f.firstName + ' ' + f.lastName}">ISC Member</div>
+                                <div class="friend__sub muted" th:text="${'@' + f.username}">@user</div>
                             </div>
                         </a>
                     </div>
@@ -201,4 +201,3 @@
 </script>
 </body>
 </html>
-

@@ -172,16 +172,21 @@
                         <h2>Friends</h2>
                     </div>
 
-                    <div th:if="${friends == null or #lists.isEmpty(friends)}" class="card empty">
-                        <h3>No friends yet</h3>
+                    <div class="friends-grid" th:if="${friends != null and !#lists.isEmpty(friends)}">
+                        <a class="friend card" th:each="f : ${friends}" th:href="@{/profile/{id}(id=${f.id})}">
+                            <img class="friend__avatar"
+                                 th:src="${f.profile != null and f.profile.avatarUrl != null} ? ${f.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
+                                 alt="" />
+                            <div class="friend__info">
+                                <div class="friend__name" th:text="${f.firstName + ' ' + f.lastName}">ISC Member</div>
+                                <div class="friend__sub muted" th:text="${'@' + f.username}">@user</div>
+                            </div>
+                        </a>
                     </div>
 
-                    <div th:if="${friends != null and !#lists.isEmpty(friends)}">
-                        <div class="friend-card card" th:each="f : ${friends}">
-                            <h4 th:text="${f.firstName + ' ' + f.lastName}">Name</h4>
-                            <p class="muted" th:text="'@' + ${f.username}">@username</p>
-                            <a th:href="@{/profile/{id}(id=${f.id})}" class="btn btn--ghost">View</a>
-                        </div>
+                    <div class="card empty" th:if="${friends == null or #lists.isEmpty(friends)}">
+                        <h3>No friends yet</h3>
+                        <p class="muted">Either very selective, or just getting started.</p>
                     </div>
                 </section>
 
@@ -220,4 +225,3 @@
 </script>
 </body>
 </html>
-
