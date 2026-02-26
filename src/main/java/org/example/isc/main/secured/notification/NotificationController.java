@@ -126,4 +126,18 @@ public class NotificationController {
         return "redirect:/notifications";
     }
 
+    @PostMapping("/notification/{id}/open")
+    public String openNotification(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        Notification notification = notificationsRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Notification not found: " + id));
+        //TODO
+
+
+    }
+
 }
