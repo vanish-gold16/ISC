@@ -71,13 +71,13 @@ public class NotificationService {
             User receiver
     ) {
         if (!subscriptionRepository.existsByFollowedIdAndFollowerId(sender.getId(), receiver.getId())) {
-            Subscription subscription = new Subscription(sender, receiver);
+            Subscription subscription = new Subscription(receiver, sender);
             subscriptionRepository.save(subscription);
-            String body = sender.getUsername() + " is now following you";
+            String body = " started following you";
             create(
                     NotificationEnum.FOLLOW,
-                    receiver,
                     sender,
+                    receiver,
                     "New follower",
                     body,
                     null

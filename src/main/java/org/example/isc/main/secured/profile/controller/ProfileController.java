@@ -116,7 +116,7 @@ public class ProfileController {
 
         boolean isFollowing = subscriptionRepository
                 .findByFollowedIdAndFollowerId(target.getId(), me.getId())
-                .isPresent();
+                .stream().findFirst().isPresent();
         model.addAttribute("isFollowing", isFollowing);
 
         return "private/profile/user-profile";

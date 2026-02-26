@@ -34,7 +34,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     boolean findByFollowed(User followed);
 
-    Optional<Subscription> findByFollowedIdAndFollowerId(Long followedId, Long followerId);
+    @Query("select s from Subscription s where s.followed.id = :followedId and s.follower.id = :followerId order by s.id asc limit 1")
+    List<Subscription> findByFollowedIdAndFollowerId(Long followedId, Long followerId);
 
     boolean existsByFollowedIdAndFollowerId(Long followedId, Long followerId);
 
