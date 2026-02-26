@@ -2,6 +2,7 @@ package org.example.isc.main.secured.profile.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.dto.EditRequest;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.FriendsStatusEnum;
@@ -17,14 +18,17 @@ import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -44,8 +48,9 @@ public class ProfileController {
     private final FriendsService friendsService;
     private final NotificationService notificationService;
     private final FriendsRepository friendsRepository;
+    private final ImageService imageService;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
@@ -53,6 +58,7 @@ public class ProfileController {
         this.friendsService = friendsService;
         this.notificationService = notificationService;
         this.friendsRepository = friendsRepository;
+        this.imageService = imageService;
     }
 
     @GetMapping()
@@ -282,6 +288,36 @@ public class ProfileController {
         friendsService.cancelFriendRequest(me, target);
 
         return "redirect:/profile/" + id;
+    }
+
+    @PostMapping("/avatar")
+    public ResponseEntity<?> uploadAvatar(
+            @RequestParam("file")MultipartFile file,
+            Authentication authentication
+            ) throws IOException {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        String url = imageService.uploadAvatar(file, me.getId());
+
+        me.getProfile().setAvatarUrl(url);
+        userRepository.save(me);
+
+        return ResponseEntity.ok(url);
+    }
+
+    @PostMapping("/cover")
+    public ResponseEntity<?> uploadCover(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication
+    ) throws IOException {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        String url = imageService.uploadCover(file, me.getId());
+
+        me.getProfile().setCoverUrl(url);
+        userRepository.save(me);
+
+        return ResponseEntity.ok(url);
     }
 
     private void addProfileViewAttributes(Model model, User user) {
