@@ -290,7 +290,7 @@ public class ProfileController {
         return "redirect:/profile/" + id;
     }
 
-    @PostMapping("/avatar")
+    @PostMapping("/edit/avatar")
     public ResponseEntity<?> uploadAvatar(
             @RequestParam("file")MultipartFile file,
             Authentication authentication
@@ -305,7 +305,7 @@ public class ProfileController {
         return ResponseEntity.ok(url);
     }
 
-    @PostMapping("/cover")
+    @PostMapping("/edit/cover")
     public ResponseEntity<?> uploadCover(
             @RequestParam("file") MultipartFile file,
             Authentication authentication
