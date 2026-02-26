@@ -172,9 +172,16 @@
                         <h2>Friends</h2>
                     </div>
 
-                    <div class="card empty">
-                        <h3>Friends list</h3>
-                        <p class="muted">Not wired yet. Humans love unfinished features.</p>
+                    <div th:if="${friends == null or #lists.isEmpty(friends)}" class="card empty">
+                        <h3>No friends yet</h3>
+                    </div>
+
+                    <div th:if="${friends != null and !#lists.isEmpty(friends)}">
+                        <div class="friend-card card" th:each="f : ${friends}">
+                            <h4 th:text="${f.firstName + ' ' + f.lastName}">Name</h4>
+                            <p class="muted" th:text="'@' + ${f.username}">@username</p>
+                            <a th:href="@{/profile/{id}(id=${f.id})}" class="btn btn--ghost">View</a>
+                        </div>
                     </div>
                 </section>
 

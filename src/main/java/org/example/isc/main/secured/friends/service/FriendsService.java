@@ -12,6 +12,8 @@ import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FriendsService {
 
@@ -68,5 +70,23 @@ public class FriendsService {
                 null
             );
         }
+    }
+
+    @Transactional
+    public void cancelFriendRequest(User  sender, User receiver){
+        Friends friends = friendsRepository.findBySenderUserAndRecieverUserAndStatus(sender, receiver, FriendsStatusEnum.PENDING);
+        if(friends != null)
+            friends.setStatus(FriendsStatusEnum.DELETED);
+    }
+
+    public List<User> getAcceptedFriends(
+            User target
+    ){
+        List<Friends> relations = friendsRepository.findAllFriendsByUser(target, FriendsStatusEnum.ACCEPTED);
+        return relations.stream()
+                .map(f -> f.getSenderUser().equals(target)
+                                ? f.getRecieverUser()
+                                : f.getSenderUser())
+                .toList();
     }
 }

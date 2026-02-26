@@ -37,4 +37,7 @@ public interface FriendsRepository extends JpaRepository<Friends, Long> {
 
     boolean existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(User senderUser, User recieverUser, User recieverUser1, User senderUser1);
 
+    boolean existsBySenderUserAndRecieverUserAndStatus(User senderUser, User recieverUser, FriendsStatusEnum status);
+
+    Friends findBySenderUserAndRecieverUserAndStatus(User senderUser, User recieverUser, FriendsStatusEnum status);
 }

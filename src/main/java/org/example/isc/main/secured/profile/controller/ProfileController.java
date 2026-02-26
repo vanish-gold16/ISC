@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
@@ -79,6 +81,8 @@ public class ProfileController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        List<User> friends = friendsService.getAcceptedFriends(target);
+
         model.addAttribute("title", "Profile");
         model.addAttribute("user", target);
         model.addAttribute("isMyProfile", me.getId().equals(target.getId()));
@@ -88,14 +92,21 @@ public class ProfileController {
         model.addAttribute("postsCount", postRepository.findPostsByUserId(target.getId()).size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((target.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((target.getId()))));
+        model.addAttribute("friends", friends);
 
         boolean isFriend = false;
         boolean isRequestSent = false;
         boolean isRequestReceived = false;
         if (me != null) {
-            isFriend = friendsRepository.existsBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(target, me, me, target);
-            isRequestSent = friendsRepository.existsBySenderUserAndRecieverUser(me, target);
-            isRequestReceived = friendsRepository.existsBySenderUserAndRecieverUser(target, me);
+            if(
+                    friendsRepository.existsBySenderUserAndRecieverUserAndStatus(target, me, FriendsStatusEnum.ACCEPTED)
+                    || friendsRepository.existsBySenderUserAndRecieverUserAndStatus(me, target, FriendsStatusEnum.ACCEPTED)
+            ){
+                isFriend = true;
+            } else{
+                isRequestSent = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(me, target, FriendsStatusEnum.PENDING);
+                isRequestReceived = friendsRepository.existsBySenderUserAndRecieverUserAndStatus(target, me, FriendsStatusEnum.PENDING);
+            }
         }
 
         model.addAttribute("isFriend", isFriend);
@@ -238,6 +249,36 @@ public class ProfileController {
         if (!me.getId().equals(target.getId())) {
             friendsService.sendFriendsRequest(me, target);
         }
+
+        return "redirect:/profile/" + id;
+    }
+
+    @PostMapping("/{id}/accept-friend-request")
+    public String acceptFriendRequest(
+        @PathVariable Long id,
+        Authentication authentication
+    ){
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        friendsService.acceptFriendRequest(target, me);
+
+        return "redirect:/profile/" + id;
+    }
+
+    @PostMapping("/{id}/cancel-friend-request")
+    public String cancelFriendRequest(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        friendsService.cancelFriendRequest(me, target);
 
         return "redirect:/profile/" + id;
     }
