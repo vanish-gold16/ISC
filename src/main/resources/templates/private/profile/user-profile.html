@@ -38,8 +38,12 @@
                 <div class="profile-info">
                     <div class="profile-topline">
                         <div class="profile-namewrap">
-                            <h1 class="profile-name"
-                                th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</h1>
+                            <div class="profile-name-row">
+                                <h1 class="profile-name"
+                                    th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</h1>
+                                <span class="badge-friends" th:if="${isFriend}">✓ Friends</span>
+                            </div>
+
                             <div class="profile-username muted" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
                         </div>
 
@@ -54,11 +58,6 @@
                                 <button class="btn btn--primary" type="submit">Follow</button>
                             </form>
 
-
-                            <!-- Already friends -->
-                            <span th:if="${isFriend}" class="badge-following">
-                                Friends
-                            </span>
 
                             <!-- Request sent -->
                             <form th:if="${isRequestSent}"
