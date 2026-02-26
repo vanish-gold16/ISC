@@ -40,7 +40,7 @@ public class EditRequest {
     @Size(max = 120)
     private String currentStudy;
 
-    private OccupationEnum occupationEnum;
+    private OccupationEnum occupation;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate birthDate;
@@ -109,12 +109,12 @@ public class EditRequest {
         this.currentStudy = currentStudy;
     }
 
-    public OccupationEnum getOccupationEnum() {
-        return occupationEnum;
+    public OccupationEnum getOccupation() {
+        return occupation;
     }
 
-    public void setOccupationEnum(OccupationEnum occupationEnum) {
-        this.occupationEnum = occupationEnum;
+    public void setOccupation(OccupationEnum occupation) {
+        this.occupation = occupation;
     }
 
     public LocalDate getBirthDate() {

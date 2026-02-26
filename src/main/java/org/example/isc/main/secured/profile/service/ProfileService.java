@@ -43,7 +43,7 @@ public class ProfileService {
         newProfile.setCountry(request.getCountry());
         newProfile.setCity(request.getCity());
         newProfile.setCurrentStudy(request.getCurrentStudy());
-        newProfile.setOccupationEnum(request.getOccupationEnum());
+        newProfile.setOccupationEnum(request.getOccupation());
         newProfile.setBirthDate(request.getBirthDate());
 
         me.setFirstName(request.getFirstName());

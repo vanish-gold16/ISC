@@ -188,7 +188,7 @@ public class ProfileController {
             form.setCountry(profile.getCountry());
             form.setCity(profile.getCity());
             form.setCurrentStudy(profile.getCurrentStudy());
-            form.setOccupationEnum(profile.getOccupationEnum());
+            form.setOccupation(profile.getOccupationEnum());
             form.setBirthDate(profile.getBirthDate());
         }
 
@@ -355,8 +355,13 @@ public class ProfileController {
         if (value == null || value.isBlank()) {
             return fallback;
         }
-
-        String path = value.trim().replace('\\', '/');
+        String path = value.trim();
+        // Cloudinary URL — возвращаем как есть
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+        // Локальный путь — проверяем безопасность
+        path = path.replace('\\', '/');
         if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
             return fallback;
         }
