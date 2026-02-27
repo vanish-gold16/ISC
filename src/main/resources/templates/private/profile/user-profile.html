@@ -21,19 +21,19 @@
         <article class="card profile-card">
             <div class="profile-cover">
                 <img class="profile-cover__img"
-                     th:if="${userCoverUrl != null}"
-                     th:src="${userCoverUrl}"
+                     th:if="${profileCoverUrl != null}"
+                     th:src="${profileCoverUrl}"
                      alt="" />
             </div>
 
             <div class="profile-head">
-                <div class="profile-avatar">
-                    <img
-                            th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
-                            src="/images/private/profile/common-profile.png"
-                            alt=""
-                    />
-                </div>
+                    <div class="profile-avatar">
+                        <img
+                                th:src="${profileAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                                src="/images/private/profile/common-profile.png"
+                                alt=""
+                        />
+                    </div>
 
                 <div class="profile-info">
                     <div class="profile-topline">
@@ -87,19 +87,19 @@
                         </div>
                     </div>
 
-                    <p class="profile-bio" th:text="${userBio} ?: 'No bio yet. Humans are mysterious.'">
+                    <p class="profile-bio" th:text="${profileBio} ?: 'No bio yet. Humans are mysterious.'">
                         No bio yet. Humans are mysterious.
                     </p>
 
                     <div class="profile-meta">
-                        <div class="pill" th:if="${userLocation != null}">
+                        <div class="pill" th:if="${profileLocation != null}">
                             <span class="pill__icon">Location</span>
-                            <span th:text="${userLocation}">Prague</span>
+                            <span th:text="${profileLocation}">Prague</span>
                         </div>
 
-                        <div class="pill" th:if="${userJoined != null}">
+                        <div class="pill" th:if="${profileJoined != null}">
                             <span class="pill__icon">Joined</span>
-                            <span th:text="${userJoined}">2026</span>
+                            <span th:text="${profileJoined}">2026</span>
                         </div>
                     </div>
 

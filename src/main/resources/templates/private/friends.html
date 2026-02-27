@@ -39,21 +39,21 @@
         </header>
 
         <div class="friends-grid" th:if="${friends != null and !#lists.isEmpty(friends)}">
-            <article class="friend card"
-                     th:each="f : ${friends}"
-                     th:with="friend=${f.senderUser != null ? f.senderUser : f.recieverUser}">
+            <article class="friend card" th:each="friend : ${friends}">
                 <div class="friend__identity">
                     <img class="friend__avatar"
-                         th:src="${friend != null && friend.profile != null && friend.profile.avatarUrl != null ? friend.profile.avatarUrl : '/images/private/profile/common-profile.png'}"
+                         th:src="${friend.profile != null and friend.profile.avatarUrl != null}
+                                 ? ${friend.profile.avatarUrl}
+                                 : '/images/private/profile/common-profile.png'"
                          src="/images/private/profile/common-profile.png"
                          alt="" />
                     <div class="friend__info">
                         <div class="friend__name"
-                             th:text="${friend != null ? ((friend.firstName ?: 'ISC') + ' ' + (friend.lastName ?: 'Member')) : 'ISC Member'}">
+                             th:text="${(friend.firstName ?: 'ISC') + ' ' + (friend.lastName ?: 'Member')}">
                             ISC Member
                         </div>
                         <div class="friend__sub muted"
-                             th:text="${friend != null && friend.username != null ? '@' + friend.username : '@user'}">
+                             th:text="${'@' + (friend.username ?: 'user')}">
                             @user
                         </div>
                     </div>
@@ -82,4 +82,3 @@
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>
-

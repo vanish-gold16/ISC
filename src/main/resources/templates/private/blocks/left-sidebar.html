@@ -21,16 +21,16 @@
                         <div class="about-k muted">Email</div>
                         <div class="about-v" th:text="${user.email}">mail@example.com</div>
                     </div>
-                    <div class="about-row" th:if="${userLocation != null}">
+                    <div class="about-row" th:if="${profileLocation != null}">
                         <div class="about-k muted">Location</div>
-                        <div class="about-v" th:text="${userLocation}">Prague</div>
+                        <div class="about-v" th:text="${profileLocation}">Prague</div>
                     </div>
                 </div>
             </div>
 
             <div class="about-card">
                 <div class="about-card__title">Bio</div>
-                <p class="about-text" th:text="${userBio} ?: 'No bio yet.'">No bio yet.</p>
+                <p class="about-text" th:text="${profileBio} ?: 'No bio yet.'">No bio yet.</p>
             </div>
         </div>
     </div>

@@ -345,9 +345,10 @@ public class ProfileController {
         }
         model.addAttribute("profileAvatarUrl", avatarUrl);
         model.addAttribute("profileCoverUrl", coverUrl == null ? DEFAULT_COVER : coverUrl);
-        model.addAttribute("userBio", bio);
-        model.addAttribute("userLocation", location);
-        model.addAttribute("userJoined", user.getDate());
+        model.addAttribute("profileBio", bio);
+        model.addAttribute("profileLocation", location);
+        model.addAttribute("profileJoined", user.getDate());
+
     }
 
     private String normalizeImagePath(String value, String fallback) {
