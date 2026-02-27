@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+
+    <title th:text="${title} ?: 'ISC | Subscriptions'">ISC | Subscriptions</title>
+    <link rel="stylesheet" href="/css/private/subscriptions.css" />
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container page subscriptions-page">
+    <section class="subscriptions">
+        <header class="card subscriptions-head">
+            <div>
+                <h1 th:text="${title} ?: 'Subscriptions'">Subscriptions</h1>
+                <p class="muted">People you follow on ISC.</p>
+            </div>
+        </header>
+
+        <div class="subscriptions-list"
+             th:if="${subscriptions != null and !#lists.isEmpty(subscriptions)}">
+            <article class="subscription-card" th:each="user : ${subscriptions}">
+                <img class="subscription-avatar"
+                     th:src="${user.profile != null and user.profile.avatarUrl != null}
+                             ? ${user.profile.avatarUrl}
+                             : '/images/private/profile/common-profile.png'"
+                     alt="" />
+
+                <div class="subscription-info">
+                    <a class="subscription-name"
+                       th:href="@{/profile/{id}(id=${user.id})}"
+                       th:text="${user.firstName + ' ' + user.lastName}">ISC Member</a>
+                    <div class="subscription-username"
+                         th:text="${'@' + user.username}">@username</div>
+                    <div class="subscription-meta">
+                        <span th:if="${user.profile?.city != null}"
+                              th:text="${user.profile.city}">City</span>
+                        <span th:if="${user.profile?.country != null}"
+                              th:text="${user.profile.country.name().replace('_', ' ')}">Country</span>
+                        <span th:if="${user.date != null}">
+                            Joined <span th:text="${#temporals.format(user.date, 'MMM yyyy')}">Jan 2020</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="subscription-actions">
+                    <a class="btn btn--ghost btn--sm" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
+                    <a class="btn btn--primary btn--sm" th:href="@{/messages}">Message</a>
+                </div>
+            </article>
+        </div>
+
+        <div class="card empty"
+             th:if="${subscriptions == null or #lists.isEmpty(subscriptions)}">
+            <h3>No subscriptions yet</h3>
+            <p class="muted">Follow people to see them here and stay updated.</p>
+        </div>
+    </section>
+
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('profile')}"></aside>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>

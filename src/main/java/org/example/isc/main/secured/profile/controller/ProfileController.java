@@ -363,6 +363,7 @@ public class ProfileController {
 
         model.addAttribute("title",  attributeValue);
         model.addAttribute("subscriptions", subscriptions);
+        model.addAttribute("targetUser", target);
 
         return "/private/user-subscriptions";
     }
@@ -374,10 +375,11 @@ public class ProfileController {
     ){
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-        List<User> subscriptions = subscriptionRepository.findAllByFollowed(target);
+        List<User> subscribers = subscriptionRepository.findAllByFollowed(target);
 
         model.addAttribute("title",  "Subscribers");
-        model.addAttribute("subscriptions", subscriptions);
+        model.addAttribute("subscribers", subscribers);
+        model.addAttribute("targetUser", target);
 
         return "/private/user-subscribers";
     }
@@ -410,6 +412,8 @@ public class ProfileController {
         model.addAttribute("profileBio", bio);
         model.addAttribute("profileLocation", location);
         model.addAttribute("profileJoined", user.getDate());
+        model.addAttribute("profileSubscriptionsCount", subscriptionRepository.countByFollowerId(user.getId()));
+        model.addAttribute("profileSubscribersCount", subscriptionRepository.countByFollowedId(user.getId()));
 
     }
 

@@ -1,0 +1,127 @@
+:root {
+    --bg: #ffffff;
+    --panel: #f8faff;
+    --panel-hover: #f1f6ff;
+    --border: #d9e2f2;
+    --text: #0f172a;
+    --muted: #475569;
+}
+
+.subscriptions-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+    padding: 18px 0 24px;
+}
+
+.subscriptions {
+    display: grid;
+    gap: 16px;
+}
+
+.subscriptions-head {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.subscriptions-head h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+.subscriptions-head .muted {
+    margin: 4px 0 0;
+}
+
+.subscriptions-list {
+    display: grid;
+    gap: 12px;
+}
+
+.subscription-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.subscription-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.subscription-info {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.subscription-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.subscription-username {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.subscription-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.subscription-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subscription-actions .btn {
+    width: 140px;
+}
+
+.card.empty {
+    padding: 32px;
+    text-align: center;
+    border-radius: 18px;
+    border: 1px dashed var(--border);
+}
+
+.card.empty .btn {
+    margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+    .subscriptions-page {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .subscription-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .subscription-actions {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
