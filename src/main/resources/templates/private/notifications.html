@@ -199,8 +199,9 @@
 <body>
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
-<main class="container notifications-page">
-    <section class="notifications">
+<main class="container">
+    <div class="notifications-page">
+        <section class="notifications">
         <header class="card notifications-head">
             <div>
                 <h1>Notifications</h1>
@@ -229,8 +230,8 @@
             <!-- Unread panel -->
             <div id="panel-unread" class="notif-panel active">
                 <div class="notifications-list"
-                     th:if="${unreadNotifications != null and !#lists.isEmpty(unreadNotifications)}">
-                    <th:block th:each="n : ${unreadNotifications}">
+                     th:if="${unreadNotificationsList != null and !#lists.isEmpty(unreadNotificationsList)}">
+                    <th:block th:each="n : ${unreadNotificationsList}">
                         <article class="card notification-item is-unread">
                             <!-- Avatar — клик читает уведомление и идёт на профиль -->
                             <a th:if="${n.sender != null}"
@@ -310,7 +311,7 @@
                 </div>
 
                 <div class="card empty"
-                     th:if="${unreadNotifications == null or #lists.isEmpty(unreadNotifications)}"
+                     th:if="${unreadNotificationsList == null or #lists.isEmpty(unreadNotificationsList)}"
                      style="margin-top: 12px;">
                     <h3>No unread notifications</h3>
                     <p class="muted">You're all caught up!</p>
@@ -320,8 +321,8 @@
             <!-- Read panel -->
             <div id="panel-read" class="notif-panel">
                 <div class="notifications-list"
-                     th:if="${readNotifications != null and !#lists.isEmpty(readNotifications)}">
-                    <th:block th:each="n : ${readNotifications}">
+                     th:if="${readNotificationsList != null and !#lists.isEmpty(readNotificationsList)}">
+                    <th:block th:each="n : ${readNotificationsList}">
                         <article class="card notification-item is-read">
                             <a th:if="${n.sender != null}"
                                th:href="@{/profile/{id}(id=${n.sender.id})}">
@@ -384,16 +385,17 @@
                 </div>
 
                 <div class="card empty"
-                     th:if="${readNotifications == null or #lists.isEmpty(readNotifications)}"
+                     th:if="${readNotificationsList == null or #lists.isEmpty(readNotificationsList)}"
                      style="margin-top: 12px;">
                     <h3>No read notifications yet</h3>
                     <p class="muted">Read notifications will appear here.</p>
                 </div>
             </div>
         </div>
-    </section>
+        </section>
 
-    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('notifications')}"></aside>
+        <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('notifications')}"></aside>
+    </div>
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>

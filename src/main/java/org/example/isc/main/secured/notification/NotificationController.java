@@ -47,6 +47,13 @@ public class NotificationController {
 
         List<Notification> notifications = notificationService.list(me, 20);
 
+        List<Notification> unreadNotificationsList = notifications.stream()
+                .filter(n -> n.getReadAt() == null)
+                .collect(Collectors.toList());
+        List<Notification> readNotificationsList = notifications.stream()
+                .filter(n -> n.getReadAt() != null)
+                .collect(Collectors.toList());
+
         // Собираем ID отправителей уведомлений
         Set<Long> senderIds = notifications.stream()
                 .filter(n -> n.getSender() != null)
@@ -63,6 +70,8 @@ public class NotificationController {
         model.addAttribute("unreadCount", notificationService.unreadCount(me));
         model.addAttribute("followingIds", followingIds != null ? followingIds : Collections.emptySet());
         model.addAttribute("currentUserId", me.getId());
+        model.addAttribute("unreadNotificationsList", unreadNotificationsList);
+        model.addAttribute("readNotificationsList", readNotificationsList);
 
         return "/private/notifications";
     }
@@ -126,7 +135,7 @@ public class NotificationController {
         return "redirect:/notifications";
     }
 
-    @PostMapping("/notifications/{id}/open")
+    @GetMapping("/notifications/{id}/open")
     public String openNotification(
             @PathVariable Long id,
             Authentication authentication
