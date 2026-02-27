@@ -320,6 +320,68 @@ public class ProfileController {
         return ResponseEntity.ok(url);
     }
 
+    @GetMapping("/subscriptions")
+    public String mySubscriptions(
+            Authentication authentication,
+            Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        List<User> subscriptions= subscriptionRepository.findAllByFollower(me);
+
+        model.addAttribute("title",  "Subscriptions");
+        model.addAttribute("subscriptions", subscriptions);
+
+        return "/private/subscriptions";
+    }
+
+    @GetMapping("/subscribers")
+    public String mySubscribers(
+            Authentication authentication,
+            Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        List<User> subscribers = subscriptionRepository.findAllByFollowed(me);
+
+        model.addAttribute("title",  "Subscribers");
+        model.addAttribute("subscribers", subscribers);
+
+        return "/private/subscribers";
+    }
+
+    @GetMapping("/{id}/subscriptions")
+    public String userSubscriptions(
+            @PathVariable Long id,
+            Model model
+    ){
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        List<User> subscriptions = subscriptionRepository.findAllByFollower(target);
+
+        String attributeValue = target.getUsername() + " subscriptions";
+
+        model.addAttribute("title",  attributeValue);
+        model.addAttribute("subscriptions", subscriptions);
+
+        return "/private/user-subscriptions";
+    }
+
+    @GetMapping("/{id}/subscribers")
+    public String  userSubscribers(
+            @PathVariable Long id,
+            Model model
+    ){
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        List<User> subscriptions = subscriptionRepository.findAllByFollowed(target);
+
+        model.addAttribute("title",  "Subscribers");
+        model.addAttribute("subscriptions", subscriptions);
+
+        return "/private/user-subscribers";
+    }
+
     private void addProfileViewAttributes(Model model, User user) {
         UserProfile profile = user.getProfile();
 

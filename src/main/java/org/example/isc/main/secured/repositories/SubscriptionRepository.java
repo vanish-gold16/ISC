@@ -39,7 +39,13 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     boolean existsByFollowedIdAndFollowerId(Long followedId, Long followerId);
 
-    List<Subscription> findAllByFollowedIdAndFollowerId(Long followedId, Long followerId);
-
     List<Subscription> findAllByFollowedIdAndFollowerUsernameIgnoreCase(Long followedId, String followerUsername);
+
+    @Query("""
+        select s.followed from Subscription s
+                where s.follower = :follower
+                """)
+    List<User> findAllByFollower(User follower);
+
+    List<User> findAllByFollowed(User followed);
 }
