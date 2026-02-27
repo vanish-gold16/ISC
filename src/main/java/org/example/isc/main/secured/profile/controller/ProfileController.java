@@ -343,9 +343,8 @@ public class ProfileController {
                 location = country;
             }
         }
-
-        model.addAttribute("userAvatarUrl", avatarUrl);
-        model.addAttribute("userCoverUrl", coverUrl == null ? DEFAULT_COVER : coverUrl);
+        model.addAttribute("profileAvatarUrl", avatarUrl);
+        model.addAttribute("profileCoverUrl", coverUrl == null ? DEFAULT_COVER : coverUrl);
         model.addAttribute("userBio", bio);
         model.addAttribute("userLocation", location);
         model.addAttribute("userJoined", user.getDate());
