@@ -62,4 +62,25 @@ public class PostController {
         return "redirect:/profile";
     }
 
+    // // TODO Кнопки перенесены влево вниз для профилей: обновил .post__footer на flex-start и добавил отступ/разделитель, чтобы блок был внизу и аккуратно отбит. Файл: profile.css (C:
+    //          \Users\mitro\IdeaProjects\ISC\src\main\resources\static\css\private\profile.css).
+    //
+    //          Как сделать, чтобы лайк срабатывал (минимальный, понятный путь, делай сам):
+    //
+    //          1. Роут:
+    //              - POST /posts/{id}/like — тумблер (ставит/снимает).
+    //          2. Сервис:
+    //              - Если LikeRepository.existsByPostIdAndSenderId(postId, userId) — удалить лайк.
+    //              - Иначе — создать Like и сохранить.
+    //          3. Отображение:
+    //              - Лайки считаются LikeRepository.countByPostId(postId); ты это уже прокидываешь в likesCount.
+    //          4. Кнопка в шаблоне:
+    //              - <form method="post" th:action="@{/posts/{id}/like(id=${p.id})}">
+    //              - <button type="submit" class="action">…</button>
+    //              - Не забудь CSRF.
+    //          5. Иконка:
+    //              - Меняй src по p.liked (у тебя уже есть флаг). Если liked=true, показывай liked.png, иначе like.png.
+    //
+    //          Если хочешь, покажи текущие контроллер/сервис для лайков — помогу сделать тумблер без лишнего кода.
+
 }
