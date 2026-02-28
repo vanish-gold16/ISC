@@ -10,10 +10,7 @@
     <link rel="stylesheet" href="/css/private/home.css" />
     <style>
         .notifications-page {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 320px;
-            gap: 18px;
-            padding: 18px 0 24px;
+            padding: 18px calc(320px + 18px) 24px 0;
         }
 
         .notifications {
@@ -191,7 +188,7 @@
         }
 
         @media (max-width: 960px) {
-            .notifications-page { grid-template-columns: 1fr; }
+            .notifications-page { padding-right: 0; }
         }
     </style>
 </head>
@@ -200,7 +197,7 @@
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container">
-    <div class="notifications-page">
+    <div class="page notifications-page">
         <section class="notifications">
         <header class="card notifications-head">
             <div>
