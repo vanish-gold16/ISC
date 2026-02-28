@@ -19,17 +19,25 @@ public class Post {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "full_text")
-    private String fullText;
+    @Column(name = "body")
+    private String body;
 
     @Column(name = "date")
     private LocalDateTime date;
 
     @Column(name = "likes")
     private Long likes;
+
+    public Post() {
+    }
+
+    public Post(User user, String title, String body, LocalDateTime date) {
+        this.user = user;
+        this.title = title;
+        this.body = body;
+        this.date = date;
+        likes = 0L;
+    }
 
     public Long getLikes() {
         return likes;
@@ -68,20 +76,12 @@ public class Post {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
+    public String getBody() {
+        return body;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getFullText() {
-        return fullText;
-    }
-
-    public void setFullText(String fullText) {
-        this.fullText = fullText;
+    public void setBody(String body) {
+        this.body = body;
     }
 
     public LocalDateTime getDate() {
