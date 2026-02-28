@@ -5,18 +5,224 @@
     --border: #d9e2f2;
     --text: #0f172a;
     --muted: #475569;
+    --shadow: 0 14px 34px rgba(15, 23, 42, 0.10);
+    --r: 16px;
+    --accent-soft: #dbeafe;
+    --focus: rgba(37, 99, 235, 0.25);
 }
 
-.subscriptions-page {
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    color: var(--text);
+    background:
+            radial-gradient(1000px 500px at 18% 0%, rgba(110, 168, 254, 0.22), transparent 60%),
+            radial-gradient(900px 450px at 85% 15%, rgba(126, 224, 194, 0.16), transparent 55%),
+            var(--bg);
+    font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font: inherit;
+}
+
+.container {
+    width: min(1560px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: transparent;
+    border-bottom: 1px solid rgba(217, 226, 242, 0.8);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.topbar__inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand__logo-stack {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 20px;
-    padding: 18px 0 24px;
+    gap: 4px;
+    place-items: center;
+}
+
+.brand__logo-img {
+    width: 36px;
+    height: 12px;
+    object-fit: contain;
+    display: block;
+}
+
+.brand__text {
+    font-weight: 700;
+}
+
+.topbar__search {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 180px;
+    max-width: 560px;
+}
+
+.search__icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.search {
+    width: 100%;
+    height: 40px;
+    padding: 0 14px 0 36px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+}
+
+.search::placeholder {
+    color: var(--muted);
+}
+
+.search:focus {
+    outline: 3px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.profile:hover {
+    background: var(--panel-hover);
+}
+
+.profile__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.topbar__actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+}
+
+.page {
+    position: relative;
+    padding: 18px calc(320px + 18px) 24px 0;
+}
+
+.sidebar-right {
+    position: absolute;
+    top: 18px;
+    right: 0;
+    width: 320px;
 }
 
 .subscriptions {
+    min-width: 0;
     display: grid;
     gap: 16px;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+}
+
+.card--sticky {
+    position: sticky;
+    top: 76px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    cursor: pointer;
+    transition: transform 120ms ease, background 120ms ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.btn:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.btn--primary {
+    border-color: rgba(110, 168, 254, 0.55);
+    background: linear-gradient(135deg, rgba(110, 168, 254, 0.90), rgba(126, 224, 194, 0.75));
+    color: rgba(0, 0, 0, 0.86);
+    font-weight: 800;
+}
+
+.btn--ghost {
+    background: #fff;
+}
+
+.btn--sm {
+    padding: 8px 12px;
+    font-size: 13px;
 }
 
 .subscriptions-head {
@@ -110,8 +316,14 @@
 }
 
 @media (max-width: 960px) {
-    .subscriptions-page {
-        grid-template-columns: minmax(0, 1fr);
+    .page {
+        padding-right: 0;
+    }
+
+    .sidebar-right {
+        position: static;
+        width: auto;
+        display: none;
     }
 
     .subscription-card {
@@ -123,5 +335,17 @@
         width: 100%;
         flex-direction: row;
         flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 760px) {
+    .topbar__inner {
+        flex-wrap: wrap;
+    }
+
+    .topbar__search {
+        order: 3;
+        min-width: 100%;
+        max-width: none;
     }
 }
