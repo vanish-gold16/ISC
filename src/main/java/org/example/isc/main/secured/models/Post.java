@@ -25,6 +25,9 @@ public class Post {
     @Column(name = "date")
     private LocalDateTime date;
 
+    @Column(name="photo_url")
+    private String photoUrl;
+
     @Column(name = "likes")
     private Long likes;
 
@@ -37,6 +40,14 @@ public class Post {
         this.body = body;
         this.date = date;
         likes = 0L;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 
     public Long getLikes() {

@@ -9,7 +9,6 @@ import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.time.LocalDateTime;
 
 @Service
@@ -35,7 +34,7 @@ public class PostService {
                 me,
                 form.getTitle(),
                 form.getBody(),
-                form.getPostTime()
+                LocalDateTime.now()
         );
 
         postRepository.save(post);

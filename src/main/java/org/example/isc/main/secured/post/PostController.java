@@ -11,10 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -33,6 +30,13 @@ public class PostController {
     }
 
     @GetMapping
+    public String newPost(){
+
+
+        return "private/new-post";
+    }
+
+    @PostMapping
     public String newPost(
             @Valid @ModelAttribute("form") NewPostForm form,
             BindingResult bindingResult,
@@ -45,7 +49,7 @@ public class PostController {
                     .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
             model.addAttribute("title", "New post");
             model.addAttribute("user", me);
-            model.addAttribute("title", form.getTitle());
+            model.addAttribute("post-title", form.getTitle());
             model.addAttribute("body", form.getBody());
             model.addAttribute("postTime", LocalDateTime.now());
             // photo
@@ -64,7 +68,7 @@ public class PostController {
 
         session.setAttribute("POST_NEW_POST", true);
 
-        return "private/profile";
+        return "redirect:private/profile";
     }
 
 }

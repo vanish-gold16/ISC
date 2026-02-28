@@ -1,16 +1,13 @@
 package org.example.isc.main.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.example.isc.main.secured.models.User;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.time.LocalDateTime;
 
 public class NewPostForm {
-
-    @NotBlank
-    private User user;
 
     @Size(max = 50)
     private String title;
@@ -18,28 +15,15 @@ public class NewPostForm {
     @Size(max = 200)
     private String body;
 
-    @NotBlank
-    private LocalDateTime postTime;
-
-    private Image photo;
+    private MultipartFile photo;
 
     public NewPostForm() {
     }
 
-    public NewPostForm(User user, String title, String body, LocalDateTime postTime, Image photo) {
-        this.user = user;
+    public NewPostForm(String title, String body, MultipartFile photo) {
         this.title = title;
         this.body = body;
-        this.postTime = postTime;
         this.photo = photo;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getTitle() {
@@ -58,19 +42,11 @@ public class NewPostForm {
         this.body = body;
     }
 
-    public LocalDateTime getPostTime() {
-        return postTime;
-    }
-
-    public void setPostTime(LocalDateTime postTime) {
-        this.postTime = postTime;
-    }
-
-    public Image getPhoto() {
+    public MultipartFile getPhoto() {
         return photo;
     }
 
-    public void setPhoto(Image photo) {
+    public void setPhoto(MultipartFile photo) {
         this.photo = photo;
     }
 }
