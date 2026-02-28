@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+    <title th:text="'ISC | Search: ' + ${q}">ISC | Search</title>
+    <link rel="stylesheet" href="/css/private/friends.css" />
+    <style>
+        .search-page { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+        .search-header { margin-bottom: 24px; }
+        .search-header h1 { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+        .search-header p { color: #64748b; font-size: 14px; margin: 0; }
+
+        .search-tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+        .search-tab {
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .search-tab:hover { color: #1d4ed8; }
+        .search-tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+        .search-tab .badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; border-radius: 999px;
+            background: #e2e8f0; color: #475569;
+            font-size: 11px; font-weight: 700;
+            padding: 0 6px; margin-left: 6px;
+        }
+        .search-tab.active .badge { background: #dbeafe; color: #1d4ed8; }
+
+        .user-card {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px; background: #fff;
+            border: 1px solid #e2e8f0; border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .user-card__avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .user-card__info { flex: 1; min-width: 0; }
+        .user-card__name { font-weight: 700; font-size: 15px; color: #0f172a; margin: 0; }
+        .user-card__username { font-size: 13px; color: #64748b; margin: 2px 0 0; }
+        .user-card__friend-badge {
+            font-size: 11px; font-weight: 600; color: #16a34a;
+            background: #dcfce7; border-radius: 999px;
+            padding: 2px 8px; margin-left: 8px;
+        }
+        .user-card__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center;
+            padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+        .btn--primary { background: #1d4ed8; color: #fff; }
+        .btn--primary:hover { background: #1e40af; }
+        .btn--ghost { background: #fff; color: #0f172a; border-color: #d1d5db; }
+        .btn--ghost:hover { background: #f8fafc; }
+
+        .empty-state { text-align: center; padding: 48px 16px; color: #64748b; }
+        .empty-state h2 { font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 8px; }
+        .empty-state p { font-size: 14px; margin: 0; }
+    </style>
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container search-page">
+    <div class="search-header">
+        <h1 th:if="${!#strings.isEmpty(q)}" th:text="'Results for &quot;' + ${q} + '&quot;'">Results for "..."</h1>
+        <h1 th:if="${#strings.isEmpty(q)}">Search</h1>
+        <p th:if="${!#strings.isEmpty(q) and filter == 'all'}"
+           th:text="${#lists.size(allResults)} + ' user(s) found'">0 users found</p>
+        <p th:if="${!#strings.isEmpty(q) and filter == 'friends'}"
+           th:text="${#lists.size(friendResults)} + ' friend(s) found'">0 friends found</p>
+    </div>
+
+    <!-- Tabs -->
+    <div th:if="${!#strings.isEmpty(q)}" class="search-tabs">
+        <a class="search-tab"
+           th:classappend="${filter == 'all'} ? ' active' : ''"
+           th:href="@{/search(q=${q},filter='all')}">
+            People
+            <span class="badge" th:text="${#lists.size(allResults)}">0</span>
+        </a>
+        <a class="search-tab"
+           th:classappend="${filter == 'friends'} ? ' active' : ''"
+           th:href="@{/search(q=${q},filter='friends')}">
+            Friends
+            <span class="badge" th:text="${#lists.size(friendResults)}">0</span>
+        </a>
+    </div>
+
+    <!-- All users results -->
+    <div th:if="${filter == 'all'}">
+        <div th:if="${!#strings.isEmpty(q) and !#lists.isEmpty(allResults)}">
+            <div class="user-card" th:each="user : ${allResults}">
+                <img class="user-card__avatar"
+                     th:src="${user.profile != null and user.profile.avatarUrl != null}
+                             ? ${user.profile.avatarUrl}
+                             : '/images/private/profile/common-profile.png'"
+                     alt="" />
+                <div class="user-card__info">
+                    <p class="user-card__name">
+                        <span th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</span>
+                        <span class="user-card__friend-badge"
+                              th:if="${friendIds.contains(user.id)}">Friend</span>
+                    </p>
+                    <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
+                </div>
+                <div class="user-card__actions">
+                    <a class="btn btn--ghost" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${#strings.isEmpty(q)}">
+            <h2>Search for people</h2>
+            <p>Enter a name or username in the search bar above</p>
+        </div>
+        <div class="empty-state" th:if="${!#strings.isEmpty(q) and #lists.isEmpty(allResults)}">
+            <h2>No results found</h2>
+            <p th:text="'No users match &quot;' + ${q} + '&quot;'">No users match your query</p>
+        </div>
+    </div>
+
+    <!-- Friends results -->
+    <div th:if="${filter == 'friends'}">
+        <div th:if="${!#strings.isEmpty(q) and !#lists.isEmpty(friendResults)}">
+            <div class="user-card" th:each="user : ${friendResults}">
+                <img class="user-card__avatar"
+                     th:src="${user.profile != null and user.profile.avatarUrl != null}
+                             ? ${user.profile.avatarUrl}
+                             : '/images/private/profile/common-profile.png'"
+                     alt="" />
+                <div class="user-card__info">
+                    <p class="user-card__name"
+                       th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</p>
+                    <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
+                </div>
+                <div class="user-card__actions">
+                    <a class="btn btn--ghost" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${#strings.isEmpty(q)}">
+            <h2>Search your friends</h2>
+            <p>Enter a name or username to find friends</p>
+        </div>
+        <div class="empty-state" th:if="${!#strings.isEmpty(q) and #lists.isEmpty(friendResults)}">
+            <h2>No friends found</h2>
+            <p th:text="'None of your friends match &quot;' + ${q} + '&quot;'">No friends match</p>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>
