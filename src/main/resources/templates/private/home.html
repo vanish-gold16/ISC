@@ -48,9 +48,21 @@
             </div>
 
             <div class="post__footer">
-                <button class="action" type="button">Like</button>
-                <button class="action" type="button">Comment</button>
-                <button class="action" type="button">Share</button>
+                <button class="action" type="button">
+                    <img class="action__icon" src="/images/private/icons/like.png" alt="" />
+                    <span>Like</span>
+                    <span class="action__count" th:text="${p.likesCount} ?: 0">0</span>
+                </button>
+                <button class="action" type="button">
+                    <img class="action__icon" src="/images/private/icons/comment.png" alt="" />
+                    <span>Comment</span>
+                    <span class="action__count" th:text="${p.commentsCount} ?: 0">0</span>
+                </button>
+                <button class="action" type="button">
+                    <img class="action__icon" src="/images/private/icons/share.png" alt="" />
+                    <span>Share</span>
+                    <span class="action__count" th:text="${p.sharesCount} ?: 0">0</span>
+                </button>
             </div>
         </article>
 

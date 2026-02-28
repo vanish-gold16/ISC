@@ -31,6 +31,15 @@ public class Post {
     @Column(name = "likes", nullable = false)
     private Long likes;
 
+    @Transient
+    private Long likesCount;
+
+    @Transient
+    private Long commentsCount;
+
+    @Transient
+    private Long sharesCount;
+
     public Post() {
     }
 
@@ -106,5 +115,29 @@ public class Post {
 
     public void setLikes(Long likes) {
         this.likes = likes;
+    }
+
+    public Long getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(Long likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public Long getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(Long commentsCount) {
+        this.commentsCount = commentsCount;
+    }
+
+    public Long getSharesCount() {
+        return sharesCount;
+    }
+
+    public void setSharesCount(Long sharesCount) {
+        this.sharesCount = sharesCount;
     }
 }

@@ -294,6 +294,7 @@ button { font: inherit; }
 .action {
     flex: 1;
     display: inline-flex;
+    align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 10px 12px;
@@ -303,6 +304,19 @@ button { font: inherit; }
     cursor: pointer;
 }
 .action:hover { background: rgba(255,255,255,0.06); }
+
+.action__icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.action__count {
+    min-width: 20px;
+    text-align: right;
+    font-weight: 700;
+}
 
 .empty { padding: 18px; }
 .feed__end { text-align: center; padding: 10px 0 2px; }

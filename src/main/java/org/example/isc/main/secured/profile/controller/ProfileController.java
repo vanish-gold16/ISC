@@ -9,12 +9,14 @@ import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.secured.friends.service.FriendsService;
+import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.FriendsRepository;
+import org.example.isc.main.secured.repositories.LikeRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -49,8 +51,9 @@ public class ProfileController {
     private final NotificationService notificationService;
     private final FriendsRepository friendsRepository;
     private final ImageService imageService;
+    private final LikeRepository likeRepository;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService, LikeRepository likeRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
@@ -59,6 +62,7 @@ public class ProfileController {
         this.notificationService = notificationService;
         this.friendsRepository = friendsRepository;
         this.imageService = imageService;
+        this.likeRepository = likeRepository;
     }
 
     @GetMapping()
@@ -71,8 +75,10 @@ public class ProfileController {
         model.addAttribute("isMyProfile", true);
         addProfileViewAttributes(model, me);
 
-        model.addAttribute("posts", postRepository.findPostsByUserId(me.getId()));
-        model.addAttribute("postsCount", postRepository.findPostsByUserId(me.getId()).size());
+        List<Post> posts = postRepository.findPostsByUserId(me.getId());
+        attachCounts(posts);
+        model.addAttribute("posts", posts);
+        model.addAttribute("postsCount", posts.size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((me.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((me.getId()))));
         model.addAttribute("friends", friendsService.getAcceptedFriends(me));
@@ -95,8 +101,10 @@ public class ProfileController {
         model.addAttribute("isMyProfile", me.getId().equals(target.getId()));
         addProfileViewAttributes(model, target);
 
-        model.addAttribute("posts", postRepository.findPostsByUserId(target.getId()));
-        model.addAttribute("postsCount", postRepository.findPostsByUserId(target.getId()).size());
+        List<Post> posts = postRepository.findPostsByUserId(target.getId());
+        attachCounts(posts);
+        model.addAttribute("posts", posts);
+        model.addAttribute("postsCount", posts.size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((target.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((target.getId()))));
         model.addAttribute("friends", friends);
@@ -417,16 +425,25 @@ public class ProfileController {
 
     }
 
+    private void attachCounts(List<Post> posts) {
+        for (Post post : posts) {
+            Long postId = post.getId();
+            post.setLikesCount(postId == null ? 0L : likeRepository.countByPostId(postId));
+            post.setCommentsCount(0L);
+            post.setSharesCount(0L);
+        }
+    }
+
     private String normalizeImagePath(String value, String fallback) {
         if (value == null || value.isBlank()) {
             return fallback;
         }
         String path = value.trim();
-        // Cloudinary URL вЂ” РІРѕР·РІСЂР°С‰Р°РµРј РєР°Рє РµСЃС‚СЊ
+        // Cloudinary URL — возвращаем как есть
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path;
         }
-        // Р›РѕРєР°Р»СЊРЅС‹Р№ РїСѓС‚СЊ вЂ” РїСЂРѕРІРµСЂСЏРµРј Р±РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ
+        // Локальный путь — проверяем безопасность
         path = path.replace('\\', '/');
         if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
             return fallback;
