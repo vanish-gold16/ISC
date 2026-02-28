@@ -79,6 +79,19 @@ public class FriendsService {
             friends.setStatus(FriendsStatusEnum.DELETED);
     }
 
+    @Transactional
+    public void removeFriend(User userA, User userB) {
+        Friends relationAB = friendsRepository.findBySenderUserAndRecieverUserAndStatus(userA, userB, FriendsStatusEnum.ACCEPTED);
+        if (relationAB != null) {
+            relationAB.setStatus(FriendsStatusEnum.DELETED);
+        }
+
+        Friends relationBA = friendsRepository.findBySenderUserAndRecieverUserAndStatus(userB, userA, FriendsStatusEnum.ACCEPTED);
+        if (relationBA != null) {
+            relationBA.setStatus(FriendsStatusEnum.DELETED);
+        }
+    }
+
     public List<User> getAcceptedFriends(
             User target
     ){

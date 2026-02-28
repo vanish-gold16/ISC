@@ -65,6 +65,17 @@
                         View profile
                     </a>
                     <button class="btn btn--primary btn--sm" type="button">Message</button>
+                    <details class="friend__menu">
+                        <summary class="menu-btn" aria-label="More actions">...</summary>
+                        <div class="menu-dropdown">
+                            <form th:action="@{/friends/{id}/remove(id=${friend.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="menu-item menu-item--danger" type="submit">Remove from friends</button>
+                            </form>
+                            <button class="menu-item menu-item--danger" type="button">Block user</button>
+                            <button class="menu-item menu-item--danger" type="button">Report user</button>
+                        </div>
+                    </details>
                 </div>
             </article>
         </div>

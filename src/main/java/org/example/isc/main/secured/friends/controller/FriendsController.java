@@ -8,7 +8,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -43,6 +45,27 @@ public class FriendsController {
         model.addAttribute("friends", friends);
 
         return "private/friends";
+    }
+
+    @PostMapping("/{id}/remove")
+    public String removeFriend(
+            @PathVariable Long id,
+            @RequestParam(value = "redirect", required = false) String redirectUrl,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() ->
+                        new IllegalStateException("Logged-in user not found: " + authentication.getName())
+                );
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+
+        friendsService.removeFriend(me, target);
+
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            return "redirect:" + redirectUrl;
+        }
+        return "redirect:/friends";
     }
 
 }

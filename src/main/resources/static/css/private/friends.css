@@ -303,7 +303,9 @@ button { font: inherit; }
 }
 .friend {
     padding: 16px;
-    display: grid;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 16px;
     transition: transform 120ms ease, background 120ms ease;
 }
@@ -341,6 +343,80 @@ button { font: inherit; }
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.friend__menu {
+    position: relative;
+}
+
+.friend__menu > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.friend__menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.menu-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.menu-btn:hover {
+    background: var(--panel-hover);
+}
+
+.friend__menu[open] .menu-btn {
+    background: var(--panel-hover);
+}
+
+.menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    min-width: 190px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+    padding: 6px;
+    display: grid;
+    gap: 4px;
+    z-index: 5;
+}
+
+.menu-item {
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text);
+    font: inherit;
+}
+
+.menu-item:hover {
+    background: var(--panel-hover);
+}
+
+.menu-item--danger {
+    color: #b91c1c;
+}
+
+.menu-item--danger:hover {
+    background: #fee2e2;
 }
 
 /* empty state */
@@ -360,4 +436,13 @@ button { font: inherit; }
     .friends-head__top { flex-direction: column; }
     .friends-head__bottom { align-items: stretch; }
     .filters { justify-content: center; }
+
+    .friend {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .friend__actions {
+        justify-content: space-between;
+    }
 }
