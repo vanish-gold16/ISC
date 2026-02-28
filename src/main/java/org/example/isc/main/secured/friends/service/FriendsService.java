@@ -32,14 +32,35 @@ public class FriendsService {
             User sender, User receiver
     ) {
 
-        if (friendsRepository.existsBySenderUserAndRecieverUser(sender, receiver)) {
-            return;
+        List<Friends> existing = friendsRepository.findAllBySenderUserAndRecieverUserOrRecieverUserAndSenderUser(
+                sender, receiver, sender, receiver
+        );
+        if (!existing.isEmpty()) {
+            boolean hasActive = existing.stream()
+                    .anyMatch(f -> f.getStatus() == FriendsStatusEnum.PENDING || f.getStatus() == FriendsStatusEnum.ACCEPTED);
+            if (hasActive) {
+                return;
+            }
+
+            Friends reuse = existing.get(0);
+            reuse.setSenderUser(sender);
+            reuse.setRecieverUser(receiver);
+            reuse.setStatus(FriendsStatusEnum.PENDING);
+            friendsRepository.save(reuse);
+
+            for (int i = 1; i < existing.size(); i++) {
+                Friends extra = existing.get(i);
+                if (extra.getStatus() != FriendsStatusEnum.DECLINED) {
+                    extra.setStatus(FriendsStatusEnum.DECLINED);
+                }
+            }
+        } else {
+            Friends friends = new Friends(
+                    sender, receiver, FriendsStatusEnum.PENDING
+            );
+            friendsRepository.save(friends);
         }
 
-        Friends friends = new Friends(
-                sender, receiver, FriendsStatusEnum.PENDING
-        );
-        friendsRepository.save(friends);
         notificationService.create(
                 NotificationEnum.FRIEND_REQUEST,
                 receiver,
@@ -76,19 +97,19 @@ public class FriendsService {
     public void cancelFriendRequest(User  sender, User receiver){
         Friends friends = friendsRepository.findBySenderUserAndRecieverUserAndStatus(sender, receiver, FriendsStatusEnum.PENDING);
         if(friends != null)
-            friends.setStatus(FriendsStatusEnum.DELETED);
+            friends.setStatus(FriendsStatusEnum.DECLINED);
     }
 
     @Transactional
     public void removeFriend(User userA, User userB) {
         Friends relationAB = friendsRepository.findBySenderUserAndRecieverUserAndStatus(userA, userB, FriendsStatusEnum.ACCEPTED);
         if (relationAB != null) {
-            relationAB.setStatus(FriendsStatusEnum.DELETED);
+            relationAB.setStatus(FriendsStatusEnum.DECLINED);
         }
 
         Friends relationBA = friendsRepository.findBySenderUserAndRecieverUserAndStatus(userB, userA, FriendsStatusEnum.ACCEPTED);
         if (relationBA != null) {
-            relationBA.setStatus(FriendsStatusEnum.DELETED);
+            relationBA.setStatus(FriendsStatusEnum.DECLINED);
         }
     }
 
