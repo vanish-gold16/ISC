@@ -543,3 +543,11 @@ button { font: inherit; }
     .profile-avatar{ margin-top: -46px; }
     .friends-grid{ grid-template-columns: 1fr; }
 }
+/* post image */
+.post__image {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    display: block;
+}

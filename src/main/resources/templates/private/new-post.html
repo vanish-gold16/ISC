@@ -33,7 +33,7 @@
 
             <div class="field">
                 <label for="body">Body</label>
-                <textarea id="body" class="input input--textarea" rows="6" th:field="*{body}" placeholder="What’s happening?" maxlength="200"></textarea>
+                <textarea id="body" class="input input--textarea" rows="6" th:field="*{body}" placeholder="What's happening?" maxlength="200"></textarea>
                 <p class="field__hint muted">Max 200 characters.</p>
                 <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
             </div>

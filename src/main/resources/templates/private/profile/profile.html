@@ -21,7 +21,7 @@
         <!-- Profile header -->
         <article class="card profile-card">
             <div class="profile-cover">
-                <!-- РµСЃР»Рё РєРѕРіРґР°-С‚Рѕ РґРѕР±Р°РІРёС€СЊ coverUrl -->
+                <!-- если когда-то добавишь coverUrl -->
                 <img class="profile-cover__img"
                      th:if="${profileCoverUrl != null}"
                      th:src="${profileCoverUrl}"
@@ -46,7 +46,7 @@
                         </div>
 
                         <div class="profile-actions">
-                            <!-- РµСЃР»Рё Сѓ С‚РµР±СЏ РµСЃС‚СЊ Р»РѕРіРёРєР° "СЌС‚Рѕ РјРѕР№ РїСЂРѕС„РёР»СЊ" -->
+                            <!-- если у тебя есть логика "это мой профиль" -->
                             <a class="btn btn--ghost" th:if="${isMyProfile}" th:href="@{/profile/edit}">Edit</a>
                             <button class="btn btn--primary" th:if="${!isMyProfile}" type="button">Follow</button>
                             <a class="btn btn--ghost" th:if="${isMyProfile == false}" th:href="@{/messages}">Message</a>
@@ -59,12 +59,12 @@
 
                     <div class="profile-meta">
                         <div class="pill" th:if="${profileLocation != null}">
-                            <span class="pill__icon">рџ“Ќ</span>
+                            <span class="pill__icon">??</span>
                             <span th:text="${profileLocation}">Prague</span>
                         </div>
 
                         <div class="pill" th:if="${profileJoined != null}">
-                            <span class="pill__icon">рџ—“</span>
+                            <span class="pill__icon">??</span>
                             <span>Joined:</span>
                             <span th:text="${profileJoined}">2026</span>
                         </div>
@@ -117,27 +117,32 @@
 
                     <article class="post card" th:each="p : ${posts}">
                         <div class="post__header">
-                            <div class="avatar" th:text="${p.authorInitials} ?: 'IS'">IS</div>
+                            <div class="avatar"
+                                 th:text="${p.user != null and p.user.firstName != null and p.user.lastName != null}
+                                           ? ${#strings.substring(p.user.firstName,0,1) + #strings.substring(p.user.lastName,0,1)}
+                                           : 'IS'">IS</div>
                             <div class="post__meta">
-                                <div class="post__name" th:text="${p.authorName} ?: 'ISC Member'">ISC Member</div>
+                                <div class="post__name"
+                                     th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                                 <div class="post__sub muted">
-                                    <span th:text="${p.location} ?: 'Somewhere'">Somewhere</span>
-                                    <span>В·</span>
-                                    <span th:text="${p.relativeTime} ?: 'just now'">just now</span>
+                                    <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
+                                    <span>·</span>
+                                    <span th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</span>
                                 </div>
                             </div>
-                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">в‹Ї</span></button>
+                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">?</span></button>
                         </div>
 
                         <div class="post__content">
                             <h3 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h3>
-                            <p th:text="${p.description}">Post content</p>
+                            <p th:text="${p.body}">Post content</p>
+                            <img class="post__image" th:if="${p.photoUrl != null}" th:src="${p.photoUrl}" alt="" />
                         </div>
 
                         <div class="post__footer">
-                            <button class="action" type="button"><span class="icon">в™Ў</span> Like</button>
-                            <button class="action" type="button"><span class="icon">рџ’¬</span> Comment</button>
-                            <button class="action" type="button"><span class="icon">в†—</span> Share</button>
+                            <button class="action" type="button"><span class="icon">?</span> Like</button>
+                            <button class="action" type="button"><span class="icon">??</span> Comment</button>
+                            <button class="action" type="button"><span class="icon">?</span> Share</button>
                         </div>
                     </article>
                 </section>
@@ -162,7 +167,7 @@
 
                     <div class="card empty" th:if="${friends == null or #lists.isEmpty(friends)}">
                         <h3>No friends listed</h3>
-                        <p class="muted">Either youвЂ™re selective, or the backend isnвЂ™t ready. Both believable.</p>
+                        <p class="muted">Either you’re selective, or the backend isn’t ready. Both believable.</p>
                     </div>
                 </section>
 
@@ -179,7 +184,7 @@
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 
 <script>
-    // Р”РµР»Р°РµРј С‚Р°Р±С‹ РЅР°СЃС‚РѕСЏС‰РёРјРё, Р° РЅРµ В«С‚СЂРё СЃРµРєС†РёРё РїРѕРґСЂСЏРґВ».
+    // Делаем табы настоящими, а не «три секции подряд».
     (function () {
         const root = document.querySelector('[data-tabs]');
         if (!root) return;

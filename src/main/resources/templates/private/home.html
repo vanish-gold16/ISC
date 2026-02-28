@@ -7,7 +7,6 @@
 
     <title th:text="${title} ?: 'ISC | Home'">ISC | Home</title>
 
-    <!-- static css: src/main/resources/static/css/home.css -->
     <link rel="stylesheet" href="/css/private/home.css" />
 </head>
 
@@ -15,50 +14,52 @@
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container page">
-    <!-- Feed -->
     <section class="feed">
-
-        <!-- Empty state -->
-        <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
-            <h3>No posts yet</h3>
-            <p class="muted">Follow people or join communities to see content here.</p>
+        <div class="feed__title">
+            <h1>Home</h1>
+            <p class="muted">Latest posts from people you follow.</p>
         </div>
 
-        <!-- Posts -->
         <article class="post card" th:each="p : ${posts}">
             <div class="post__header">
-                <div class="avatar" th:text="${p.authorInitials} ?: 'IS'">IS</div>
+                <div class="avatar"
+                     th:text="${p.user != null and p.user.firstName != null and p.user.lastName != null}
+                               ? ${#strings.substring(p.user.firstName,0,1) + #strings.substring(p.user.lastName,0,1)}
+                               : 'IS'">IS</div>
                 <div class="post__meta">
-                    <div class="post__name" th:text="${p.authorName} ?: 'ISC Member'">ISC Member</div>
+                    <div class="post__name"
+                         th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                     <div class="post__sub muted">
-                        <span th:text="${p.location} ?: 'Somewhere'">Somewhere</span>
-                        <span>·</span>
-                        <span th:text="${p.relativeTime} ?: 'just now'">just now</span>
+                        <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
+                        <span>�</span>
+                        <span th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</span>
                     </div>
                 </div>
-                <button class="icon-btn" aria-label="More" type="button"><span class="icon">⋯</span></button>
+                <button class="icon-btn" aria-label="More" type="button"><span class="icon">...</span></button>
             </div>
 
             <div class="post__content">
-                <h2 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h2>
-                <p th:text="${p.description}">Post content</p>
+                <h3 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h3>
+                <p th:text="${p.body}">Post content</p>
+                <img class="post__image" th:if="${p.photoUrl != null}" th:src="${p.photoUrl}" alt="" />
             </div>
 
             <div class="post__footer">
-                <button class="action" type="button"><span class="icon">♡</span> Like</button>
-                <button class="action" type="button"><span class="icon">💬</span> Comment</button>
-                <button class="action" type="button"><span class="icon">↗</span> Share</button>
+                <button class="action" type="button"><span class="icon">Like</span></button>
+                <button class="action" type="button"><span class="icon">Comment</span></button>
+                <button class="action" type="button"><span class="icon">Share</span></button>
             </div>
         </article>
 
-        <div class="feed__end muted" th:if="${posts != null and !#lists.isEmpty(posts)}">You’re all caught up.</div>
+        <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
+            <h3>No posts yet</h3>
+            <p class="muted">Follow people to see their updates here.</p>
+        </div>
     </section>
 
-    <!-- Right sidebar: tabs placeholder -->
     <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('home')}"></aside>
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>
-

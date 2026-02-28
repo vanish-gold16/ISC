@@ -352,3 +352,11 @@ button { font: inherit; }
 .nav__label{
     flex: 1;
 }
+/* post image */
+.post__image {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    display: block;
+}
