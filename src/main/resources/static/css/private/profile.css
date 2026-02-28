@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #ffffff;
     --panel: #f8faff;
     --panel-hover: #f1f6ff;
@@ -40,7 +40,7 @@ button { font: inherit; }
 
 .muted { color: var(--muted); }
 
-/* topbar (скопировано по смыслу из home.css, чтобы профиль выглядел одинаково) */
+/* topbar (СЃРєРѕРїРёСЂРѕРІР°РЅРѕ РїРѕ СЃРјС‹СЃР»Сѓ РёР· home.css, С‡С‚РѕР±С‹ РїСЂРѕС„РёР»СЊ РІС‹РіР»СЏРґРµР» РѕРґРёРЅР°РєРѕРІРѕ) */
 .topbar{
     position: sticky;
     top: 0;
@@ -404,7 +404,7 @@ button { font: inherit; }
 }
 .empty h3{ margin:0 0 6px 0; font-size:16px; }
 
-/* posts (взято по сути из home.css, чтобы было одинаково) */
+/* posts (РІР·СЏС‚Рѕ РїРѕ СЃСѓС‚Рё РёР· home.css, С‡С‚РѕР±С‹ Р±С‹Р»Рѕ РѕРґРёРЅР°РєРѕРІРѕ) */
 .avatar{
     width: 42px;
     height: 42px;
@@ -434,17 +434,28 @@ button { font: inherit; }
 .post__sub{ font-size: 13px; display:flex; gap:8px; flex-wrap:wrap; }
 .post__content{ padding: 8px 0 10px 0; }
 .post__title{ margin:0 0 6px 0; font-size: 16px; }
-.post__footer{ display:flex; gap: 10px; flex-wrap: wrap; }
+.post__title{ font-style: italic; }
+.post__footer{
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
 .action{
     border: 1px solid var(--border);
     background: #ffffff;
-    border-radius: 12px;
-    padding: 10px 12px;
+    border-radius: 999px;
+    padding: 6px 8px;
     cursor:pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
+
 .action:hover{ background: var(--panel-hover); }
 
 .action__icon{
@@ -576,3 +587,5 @@ button { font: inherit; }
     margin-top: 10px;
     display: block;
 }
+
+

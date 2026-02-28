@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -124,7 +124,7 @@
             background: #eef5ff;
         }
 
-        /* Read items — серые */
+        /* Read items вЂ” СЃРµСЂС‹Рµ */
         .notification-item.is-read {
             opacity: 0.6;
             background: #f8fafc;
@@ -230,7 +230,7 @@
                      th:if="${unreadNotificationsList != null and !#lists.isEmpty(unreadNotificationsList)}">
                     <th:block th:each="n : ${unreadNotificationsList}">
                         <article class="card notification-item is-unread">
-                            <!-- Avatar — клик читает уведомление и идёт на профиль -->
+                            <!-- Avatar вЂ” РєР»РёРє С‡РёС‚Р°РµС‚ СѓРІРµРґРѕРјР»РµРЅРёРµ Рё РёРґС‘С‚ РЅР° РїСЂРѕС„РёР»СЊ -->
                             <a th:if="${n.sender != null}"
                                th:href="@{/notifications/{id}/open(id=${n.notificationId})}">
                                 <img class="notification-item__avatar"
@@ -357,7 +357,7 @@
                                 <div class="notification-meta">
                                     <span class="notification-type" th:text="${n.type} ?: 'SYSTEM'">SYSTEM</span>
 
-                                    <!-- Показываем кнопки действий даже для прочитанных -->
+                                    <!-- РџРѕРєР°Р·С‹РІР°РµРј РєРЅРѕРїРєРё РґРµР№СЃС‚РІРёР№ РґР°Р¶Рµ РґР»СЏ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… -->
                                     <div class="notification-actions">
                                         <span th:if="${n.type != null
                                               and n.type.name() == 'FOLLOW'
@@ -407,3 +407,4 @@
 </script>
 </body>
 </html>
+

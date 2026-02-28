@@ -1,25 +1,3 @@
-﻿<!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-
-    <title th:text="${title} ?: 'ISC | Home'">ISC | Home</title>
-
-    <link rel="stylesheet" href="/css/private/home.css" />
-</head>
-
-<body>
-<header th:replace="~{private/blocks/private-header :: header}"></header>
-
-<main class="container page">
-    <section class="feed">
-        <div class="feed__title">
-            <h1>Home</h1>
-            <p class="muted">Latest posts from people you follow.</p>
-        </div>
-
         <article class="post card" th:each="p : ${posts}">
             <div class="post__header">
                 <div class="avatar">
@@ -65,17 +43,3 @@
                 </button>
             </div>
         </article>
-
-        <div class="card empty" th:if="${posts == null or #lists.isEmpty(posts)}">
-            <h3>No posts yet</h3>
-            <p class="muted">Follow people to see their updates here.</p>
-        </div>
-    </section>
-
-    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('home')}"></aside>
-</main>
-
-<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
-</body>
-</html>
-

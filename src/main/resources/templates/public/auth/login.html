@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -17,7 +17,7 @@
         <p class="muted">Welcome back. Try not to forget your password this time.</p>
         <p class="muted small" th:if="${param.registered}">Your account is ready. Next step is optional onboarding.</p>
         <p class="error" th:if="${param.error}">Invalid username or password.</p>
-        <!-- Если Spring Security: action обычно /login POST -->
+        <!-- Р•СЃР»Рё Spring Security: action РѕР±С‹С‡РЅРѕ /login POST -->
         <form class="form" method="post" th:action="@{/login}">
             <label class="field">
                 <span>Username</span>
@@ -26,7 +26,7 @@
 
             <label class="field">
                 <span>Password</span>
-                <input class="input" type="password" name="password" placeholder="••••••••" required />
+                <input class="input" type="password" name="password" placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў" required />
             </label>
 
             <button class="btn btn--primary btn--block" type="submit">Sign in</button>
@@ -43,6 +43,7 @@
 
 </body>
 </html>
+
 
 
 

@@ -1,0 +1,23 @@
+        <div class="post__content">
+            <img class="post__image" th:if="${p.photoUrl != null}" th:src="${p.photoUrl}" alt="" />
+            <h3 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h3>
+            <p th:text="${p.body}">Post content</p>
+        </div>
+
+        <div class="post__footer">
+            <button class="action" type="button" aria-label="Like">
+                <img class="action__icon"
+                     th:src="${p.liked} ? '/images/private/icons/liked.png' : '/images/private/icons/like.png'"
+                     src="/images/private/icons/like.png"
+                     alt="" />
+                <span class="action__count" th:text="${p.likesCount} ?: 0">0</span>
+            </button>
+            <button class="action" type="button" aria-label="Comment">
+                <img class="action__icon" src="/images/private/icons/comment.png" alt="" />
+                <span class="action__count" th:text="${p.commentsCount} ?: 0">0</span>
+            </button>
+            <button class="action" type="button" aria-label="Share">
+                <img class="action__icon" src="/images/private/icons/share.png" alt="" />
+                <span class="action__count" th:text="${p.sharesCount} ?: 0">0</span>
+            </button>
+        </div>

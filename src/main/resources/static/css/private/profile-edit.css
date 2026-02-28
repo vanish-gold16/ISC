@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #ffffff;
     --panel: #f8faff;
     --panel-hover: #f1f6ff;
@@ -247,3 +247,4 @@ button { font: inherit; }
         width: 100%;
     }
 }
+

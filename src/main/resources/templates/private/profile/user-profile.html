@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -66,7 +66,6 @@
                                 <button class="btn btn--danger" type="submit">Remove friend</button>
                             </form>
 
-                            <!-- Request sent -->
                             <form th:if="${isRequestSent}"
                                   th:action="@{/profile/{id}/cancel-friend-request(id=${user.id})}"
                                   method="post">
@@ -74,7 +73,6 @@
                                 <button class="btn btn--ghost" type="submit">Cancel request</button>
                             </form>
 
-                            <!-- Request received -->
                             <form th:if="${isRequestReceived}"
                                   th:action="@{/profile/{id}/accept-friend-request(id=${user.id})}"
                                   method="post">
@@ -82,7 +80,6 @@
                                 <button class="btn btn--primary" type="submit">Accept request</button>
                             </form>
 
-                            <!-- Default state -->
                             <form th:if="${!isFriend and !isRequestSent and !isRequestReceived}"
                                   th:action="@{/profile/{id}/friend-request(id=${user.id})}"
                                   method="post">
@@ -174,28 +171,25 @@
                         </div>
 
                         <div class="post__content">
+                            <img class="post__image" th:if="${p.photoUrl != null}" th:src="${p.photoUrl}" alt="" />
                             <h3 class="post__title" th:if="${p.title != null}" th:text="${p.title}">Title</h3>
                             <p th:text="${p.body}">Post content</p>
-                            <img class="post__image" th:if="${p.photoUrl != null}" th:src="${p.photoUrl}" alt="" />
                         </div>
 
                         <div class="post__footer">
-                            <button class="action" type="button">
+                            <button class="action" type="button" aria-label="Like">
                                 <img class="action__icon"
                                      th:src="${p.liked} ? '/images/private/icons/liked.png' : '/images/private/icons/like.png'"
                                      src="/images/private/icons/like.png"
                                      alt="" />
-                                <span>Like</span>
                                 <span class="action__count" th:text="${p.likesCount} ?: 0">0</span>
                             </button>
-                            <button class="action" type="button">
+                            <button class="action" type="button" aria-label="Comment">
                                 <img class="action__icon" src="/images/private/icons/comment.png" alt="" />
-                                <span>Comment</span>
                                 <span class="action__count" th:text="${p.commentsCount} ?: 0">0</span>
                             </button>
-                            <button class="action" type="button">
+                            <button class="action" type="button" aria-label="Share">
                                 <img class="action__icon" src="/images/private/icons/share.png" alt="" />
-                                <span>Share</span>
                                 <span class="action__count" th:text="${p.sharesCount} ?: 0">0</span>
                             </button>
                         </div>
@@ -260,3 +254,4 @@
 </script>
 </body>
 </html>
+

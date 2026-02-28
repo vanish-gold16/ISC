@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #ffffff;
     --panel: #f8faff;
     --panel-hover: #f1f6ff;
@@ -183,15 +183,15 @@ html, body {
 }
 
 body {
-    overflow: hidden; /* чтобы скролл был у .snap, а не у body */
+    overflow: hidden; /* С‡С‚РѕР±С‹ СЃРєСЂРѕР»Р» Р±С‹Р» Сѓ .snap, Р° РЅРµ Сѓ body */
 }
 
 .snap {
-    height: calc(100vh - 70px); /* если хедер липкий и ~70px. Если другой — поправишь */
+    height: calc(100vh - 70px); /* РµСЃР»Рё С…РµРґРµСЂ Р»РёРїРєРёР№ Рё ~70px. Р•СЃР»Рё РґСЂСѓРіРѕР№ вЂ” РїРѕРїСЂР°РІРёС€СЊ */
     overflow-y: auto;
     scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;          /* плавно долистывает */
-    overscroll-behavior-y: contain;   /* приятнее на тачпаде */
+    scroll-behavior: smooth;          /* РїР»Р°РІРЅРѕ РґРѕР»РёСЃС‚С‹РІР°РµС‚ */
+    overscroll-behavior-y: contain;   /* РїСЂРёСЏС‚РЅРµРµ РЅР° С‚Р°С‡РїР°РґРµ */
 }
 
 .snap__page {
@@ -223,3 +223,4 @@ body {
 @media (pointer: coarse) {
     .snap { scroll-snap-type: y proximity; }
 }
+

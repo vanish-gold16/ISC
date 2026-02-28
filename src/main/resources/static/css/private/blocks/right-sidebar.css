@@ -1,4 +1,4 @@
-/* reusable right sidebar */
+﻿/* reusable right sidebar */
 .sidebar-right { min-width: 0; }
 
 .nav-card { padding: 12px; }
@@ -49,3 +49,4 @@
 
 /* sticky behavior */
 .card--sticky{ position: sticky; top: 76px; }
+
