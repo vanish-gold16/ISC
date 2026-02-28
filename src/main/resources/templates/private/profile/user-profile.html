@@ -41,7 +41,7 @@
                             <div class="profile-name-row">
                                 <h1 class="profile-name"
                                     th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</h1>
-                                <span class="badge-friends" th:if="${isFriend}">? Friends</span>
+                                <span class="badge-friends" th:if="${isFriend}">Friends</span>
                             </div>
 
                             <div class="profile-username muted" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
@@ -154,16 +154,19 @@
 
                     <article class="post card" th:each="p : ${posts}">
                         <div class="post__header">
-                            <div class="avatar"
-                                 th:text="${p.user != null and p.user.firstName != null and p.user.lastName != null}
-                                           ? ${#strings.substring(p.user.firstName,0,1) + #strings.substring(p.user.lastName,0,1)}
-                                           : 'IS'">IS</div>
+                            <div class="avatar">
+                                <img class="avatar__img"
+                                     th:src="${p.user != null and p.user.profile != null and p.user.profile.avatarUrl != null}
+                                             ? ${p.user.profile.avatarUrl}
+                                             : '/images/private/profile/common-profile.png'"
+                                     alt="" />
+                            </div>
                             <div class="post__meta">
                                 <div class="post__name"
                                      th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                                 <div class="post__sub muted">
                                     <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
-                                    <span>·</span>
+                                    <span>.</span>
                                     <span th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</span>
                                 </div>
                             </div>
@@ -177,9 +180,9 @@
                         </div>
 
                         <div class="post__footer">
-                            <button class="action" type="button"><span class="icon">Like</span></button>
-                            <button class="action" type="button"><span class="icon">Comment</span></button>
-                            <button class="action" type="button"><span class="icon">Share</span></button>
+                            <button class="action" type="button">Like</button>
+                            <button class="action" type="button">Comment</button>
+                            <button class="action" type="button">Share</button>
                         </div>
                     </article>
                 </section>

@@ -59,13 +59,12 @@
 
                     <div class="profile-meta">
                         <div class="pill" th:if="${profileLocation != null}">
-                            <span class="pill__icon">??</span>
+                            <span class="pill__icon">Location</span>
                             <span th:text="${profileLocation}">Prague</span>
                         </div>
 
                         <div class="pill" th:if="${profileJoined != null}">
-                            <span class="pill__icon">??</span>
-                            <span>Joined:</span>
+                            <span class="pill__icon">Joined</span>
                             <span th:text="${profileJoined}">2026</span>
                         </div>
                     </div>
@@ -117,20 +116,23 @@
 
                     <article class="post card" th:each="p : ${posts}">
                         <div class="post__header">
-                            <div class="avatar"
-                                 th:text="${p.user != null and p.user.firstName != null and p.user.lastName != null}
-                                           ? ${#strings.substring(p.user.firstName,0,1) + #strings.substring(p.user.lastName,0,1)}
-                                           : 'IS'">IS</div>
+                            <div class="avatar">
+                                <img class="avatar__img"
+                                     th:src="${p.user != null and p.user.profile != null and p.user.profile.avatarUrl != null}
+                                             ? ${p.user.profile.avatarUrl}
+                                             : '/images/private/profile/common-profile.png'"
+                                     alt="" />
+                            </div>
                             <div class="post__meta">
                                 <div class="post__name"
                                      th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                                 <div class="post__sub muted">
                                     <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
-                                    <span>·</span>
+                                    <span>.</span>
                                     <span th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</span>
                                 </div>
                             </div>
-                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">?</span></button>
+                            <button class="icon-btn" aria-label="More" type="button"><span class="icon">...</span></button>
                         </div>
 
                         <div class="post__content">
@@ -140,9 +142,9 @@
                         </div>
 
                         <div class="post__footer">
-                            <button class="action" type="button"><span class="icon">?</span> Like</button>
-                            <button class="action" type="button"><span class="icon">??</span> Comment</button>
-                            <button class="action" type="button"><span class="icon">?</span> Share</button>
+                            <button class="action" type="button">Like</button>
+                            <button class="action" type="button">Comment</button>
+                            <button class="action" type="button">Share</button>
                         </div>
                     </article>
                 </section>
