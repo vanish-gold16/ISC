@@ -30,13 +30,14 @@ public class PostService {
     public void newPost(
             Authentication authentication,
             NewPostForm form
-            ) throws IOException {
+    ) throws IOException {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
 
         String photoUrl = null;
-        if(form.getPhoto() != null && !form.getBody().isEmpty())
+        if (form.getPhoto() != null && !form.getPhoto().isEmpty()) {
             photoUrl = imageService.uploadPostImage(form.getPhoto(), me.getId());
+        }
 
         Post post = new Post(
                 me,
@@ -44,7 +45,6 @@ public class PostService {
                 form.getBody(),
                 LocalDateTime.now()
         );
-
         post.setPhotoUrl(photoUrl);
 
         postRepository.save(post);

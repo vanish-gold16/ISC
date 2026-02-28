@@ -25,10 +25,10 @@ public class Post {
     @Column(name = "date")
     private LocalDateTime date;
 
-    @Column(name="photo_url")
+    @Column(name = "photo_url")
     private String photoUrl;
 
-    @Column(name = "likes")
+    @Column(name = "likes", nullable = false)
     private Long likes;
 
     public Post() {
@@ -39,28 +39,17 @@ public class Post {
         this.title = title;
         this.body = body;
         this.date = date;
-        likes = 0L;
-    }
-
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
-    public Long getLikes() {
-        return likes;
-    }
-
-    public void setLikes(Long likes) {
-        this.likes = likes;
+        this.likes = 0L;
     }
 
     @PrePersist
     public void prePersist() {
-        this.date = LocalDateTime.now();
+        if (this.date == null) {
+            this.date = LocalDateTime.now();
+        }
+        if (this.likes == null) {
+            this.likes = 0L;
+        }
     }
 
     public Long getId() {
@@ -101,5 +90,21 @@ public class Post {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public Long getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Long likes) {
+        this.likes = likes;
     }
 }
