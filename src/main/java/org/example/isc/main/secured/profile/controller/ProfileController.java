@@ -76,7 +76,7 @@ public class ProfileController {
         addProfileViewAttributes(model, me);
 
         List<Post> posts = postRepository.findPostsByUserId(me.getId());
-        attachCounts(posts);
+        attachCounts(posts, me.getId());
         model.addAttribute("posts", posts);
         model.addAttribute("postsCount", posts.size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((me.getId())));
@@ -102,7 +102,7 @@ public class ProfileController {
         addProfileViewAttributes(model, target);
 
         List<Post> posts = postRepository.findPostsByUserId(target.getId());
-        attachCounts(posts);
+        attachCounts(posts, me.getId());
         model.addAttribute("posts", posts);
         model.addAttribute("postsCount", posts.size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((target.getId())));
@@ -425,12 +425,13 @@ public class ProfileController {
 
     }
 
-    private void attachCounts(List<Post> posts) {
+    private void attachCounts(List<Post> posts, Long viewerId) {
         for (Post post : posts) {
             Long postId = post.getId();
             post.setLikesCount(postId == null ? 0L : likeRepository.countByPostId(postId));
             post.setCommentsCount(0L);
             post.setSharesCount(0L);
+            post.setLiked(postId != null && viewerId != null && likeRepository.existsByPostIdAndSenderId(postId, viewerId));
         }
     }
 

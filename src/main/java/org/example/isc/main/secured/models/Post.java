@@ -40,6 +40,9 @@ public class Post {
     @Transient
     private Long sharesCount;
 
+    @Transient
+    private boolean liked;
+
     public Post() {
     }
 
@@ -139,5 +142,13 @@ public class Post {
 
     public void setSharesCount(Long sharesCount) {
         this.sharesCount = sharesCount;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
     }
 }

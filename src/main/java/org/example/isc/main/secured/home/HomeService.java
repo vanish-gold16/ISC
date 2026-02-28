@@ -23,16 +23,17 @@ public class HomeService {
 
     public List<Post> getFeed(Long userId){
         List<Post> posts = postRepository.findFeed(userId);
-        attachCounts(posts);
+        attachCounts(posts, userId);
         return posts;
     }
 
-    private void attachCounts(List<Post> posts) {
+    private void attachCounts(List<Post> posts, Long viewerId) {
         for (Post post : posts) {
             Long postId = post.getId();
             post.setLikesCount(postId == null ? 0L : likeRepository.countByPostId(postId));
             post.setCommentsCount(0L);
             post.setSharesCount(0L);
+            post.setLiked(postId != null && viewerId != null && likeRepository.existsByPostIdAndSenderId(postId, viewerId));
         }
     }
 }
