@@ -70,4 +70,28 @@ public class ImageService {
         return uploadResult.get("secure_url").toString();
     }
 
+    public String uploadPostImage(MultipartFile photo, Long userId) throws IOException {
+        if (!Objects.requireNonNull(photo.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("Only images allowed");
+        }
+
+        if (photo.getSize() > 5_000_000) {
+            throw new IllegalArgumentException("File too large");
+        }
+
+        Map uploadResult = cloudinary.uploader().upload(
+                photo.getBytes(),
+                Map.of("folder", "posts",
+                       "public_id", "post_" + userId,
+                       "overwrite", true,
+                       "resource_type", "image",
+                       "transformation",
+                        new Transformation<>()
+                                .width(1080)
+                                .height(1080)
+                                .crop("fill")
+                                .gravity("auto"))
+                );
+        return (String) uploadResult.get("secure_url");
+    }
 }
