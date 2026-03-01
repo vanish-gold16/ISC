@@ -18,8 +18,7 @@ public class Like {
     @JoinColumn(name="post")
     private Post post;
 
-    public Like(Long id, User sender, Post post) {
-        this.id = id;
+    public Like(User sender, Post post) {
         this.sender = sender;
         this.post = post;
     }

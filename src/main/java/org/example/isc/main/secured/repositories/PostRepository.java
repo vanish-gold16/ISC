@@ -28,4 +28,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("userId") Long userId
     );
 
+    List<Post> getPostById(Long id);
+
+    Post findPostById(Long id);
 }

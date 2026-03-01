@@ -3,16 +3,17 @@ package org.example.isc.main.secured.post;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.NewPostForm;
+import org.example.isc.main.secured.models.Like;
+import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.repositories.LikeRepository;
+import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -22,10 +23,14 @@ public class PostController {
 
     private final PostService postService;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
 
-    public PostController(PostService postService, UserRepository userRepository) {
+    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository) {
         this.postService = postService;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
+        this.postRepository = postRepository;
     }
 
     @GetMapping
@@ -60,6 +65,28 @@ public class PostController {
 
         session.setAttribute("POST_NEW_POST", true);
         return "redirect:/profile";
+    }
+
+    @PostMapping("/{id}/like")
+    public String likePost(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Post currentPost = postRepository.findPostById(id);
+
+        if(likeRepository.existsByPostIdAndSenderId(id, me.getId())){
+            Like like = likeRepository.findByPostAndSenderId(currentPost, me.getId());
+            likeRepository.delete(like);
+        } else{
+            Like like = new Like(me, currentPost);
+            likeRepository.save(like);
+        }
+
+        return "redirect:"; // codex, допиши здесь, я не знаю что тут писать
     }
 
     // // TODO
