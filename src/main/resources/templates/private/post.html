@@ -15,18 +15,39 @@
             gap: 14px;
         }
         .comment-form {
-            display: grid;
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
         .comment-input {
             width: 100%;
-            min-height: 90px;
+            min-height: 54px;
+            height: 54px;
             padding: 10px 12px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            resize: vertical;
+            resize: none;
             background: #ffffff;
             color: var(--text);
+        }
+        .comment-upload {
+            display: inline-flex;
+            align-items: center;
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+        .comment-upload img {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            display: block;
+        }
+        .comment-media-slot {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
         }
         .comment {
             padding: 12px;
@@ -103,8 +124,11 @@
             <form class="comment-form" method="post" th:action="@{/posts/{id}/comment(id=${post.id})}" th:object="${commentForm}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <textarea class="comment-input" th:field="*{text}" maxlength="100" placeholder="Write a comment..."></textarea>
-                <button class="btn btn--primary" type="submit">Send</button>
+                <button class="comment-upload" type="submit" aria-label="Send comment">
+                    <img src="/images/private/comments/comment-upload.png" alt="" />
+                </button>
             </form>
+            <div class="comment-media-slot">Image placeholder: /images/private/comments/comment-upload.png</div>
         </article>
 
         <div class="card comment" th:each="c : ${comments}">
