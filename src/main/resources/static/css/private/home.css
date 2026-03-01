@@ -295,6 +295,10 @@ button { font: inherit; }
     flex-wrap: wrap;
 }
 
+.action-form {
+    display: inline-flex;
+}
+
 .action {
     display: inline-flex;
     align-items: center;

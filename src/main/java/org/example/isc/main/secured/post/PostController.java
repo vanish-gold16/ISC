@@ -9,16 +9,17 @@ import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.LikeRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
 @Controller
-@RequestMapping("/post")
 public class PostController {
 
     private final PostService postService;
@@ -33,7 +34,7 @@ public class PostController {
         this.postRepository = postRepository;
     }
 
-    @GetMapping
+    @GetMapping("/post")
     public String newPost(Model model, Authentication authentication) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
@@ -45,7 +46,7 @@ public class PostController {
         return "private/new-post";
     }
 
-    @PostMapping
+    @PostMapping("/post")
     public String newPost(
             @Valid @ModelAttribute("form") NewPostForm form,
             BindingResult bindingResult,
@@ -67,26 +68,30 @@ public class PostController {
         return "redirect:/profile";
     }
 
-    @PostMapping("/{id}/like")
+    @PostMapping("/posts/{id}/like")
     public String likePost(
             @PathVariable Long id,
             Authentication authentication,
-            Model model
-    ){
+            @RequestHeader(value = "Referer", required = false) String referer
+    ) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        Post currentPost = postRepository.findPostById(id);
+        Post currentPost = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
 
-        if(likeRepository.existsByPostIdAndSenderId(id, me.getId())){
+        if (likeRepository.existsByPostIdAndSenderId(id, me.getId())) {
             Like like = likeRepository.findByPostAndSenderId(currentPost, me.getId());
-            likeRepository.delete(like);
-        } else{
+            if (like != null) {
+                likeRepository.delete(like);
+            }
+        } else {
             Like like = new Like(me, currentPost);
             likeRepository.save(like);
         }
 
-        return "redirect:"; // codex, допиши здесь, я не знаю что тут писать
+        String target = (referer != null && !referer.isBlank()) ? referer : "/profile";
+        return "redirect:" + target;
     }
 
     // // TODO
