@@ -133,7 +133,7 @@
                             <img th:src="${user.profile?.coverUrl}" class="preview-cover"/>
                         </div>
                         <input type="file" name="cover" accept="image/png, image/jpeg, image/webp"
-                               onchange="uploadImage(event, 'coverPreview', '/profile/edit/cover')" />
+                               onchange="openCropper(event, 'cover')" />
                         <img id="coverPreview" class="preview-cover hidden"/>
                     </div>
 
@@ -144,57 +144,263 @@
                         <img th:src="${user.profile?.avatarUrl}" class="preview-avatar"/>
                     </div>
                     <input type="file" name="avatar" accept="image/png, image/jpeg, image/webp"
-                           onchange="uploadImage(event, 'avatarPreview', '/profile/edit/avatar')" />
+                           onchange="openCropper(event, 'avatar')" />
                     <img id="avatarPreview" class="preview-avatar hidden"/>
                 </div>
+                <div class="cropper-modal hidden" id="cropper-modal" aria-hidden="true">
+                    <div class="cropper-dialog" role="dialog" aria-modal="true" aria-labelledby="cropper-title">
+                        <div class="cropper-head">
+                            <h3 id="cropper-title">Adjust image</h3>
+                            <button class="btn btn--ghost btn--sm" type="button" id="cropper-cancel">Cancel</button>
+                        </div>
+                        <div class="cropper-body">
+                            <canvas id="cropper-canvas" width="600" height="400"></canvas>
+                        </div>
+                        <div class="cropper-controls">
+                            <label class="cropper-zoom">
+                                <span>Scale</span>
+                                <input id="cropper-zoom" type="range" min="1" max="3" step="0.01" value="1" />
+                            </label>
+                            <button class="btn btn--primary" type="button" id="cropper-apply">Apply</button>
+                        </div>
+                    </div>
+                </div>
                 <script>
-                    function uploadImage(event, previewId, url) {
-                        const file = event.target.files[0];
+                    const cropperModal = document.getElementById('cropper-modal');
+                    const cropperCanvas = document.getElementById('cropper-canvas');
+                    const cropperCtx = cropperCanvas.getContext('2d');
+                    const cropperZoom = document.getElementById('cropper-zoom');
+                    const cropperApply = document.getElementById('cropper-apply');
+                    const cropperCancel = document.getElementById('cropper-cancel');
+
+                    let cropperState = null;
+                    let cropperImg = null;
+                    let isDragging = false;
+                    let dragStart = { x: 0, y: 0 };
+
+                    function openCropper(event, kind) {
+                        const file = event.target.files && event.target.files[0];
                         if (!file) return;
+                        const inputEl = event.target;
 
-                        const formData = new FormData();
-                        formData.append('file', file);
+                        const config = kind === 'avatar'
+                            ? { aspect: 1, width: 400, height: 400, url: '/profile/edit/avatar', previewId: 'avatarPreview' }
+                            : { aspect: 4, width: 1600, height: 400, url: '/profile/edit/cover', previewId: 'coverPreview' };
 
-                        fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
-                            }
-                        })
-                            .then(res => res.text())
-                            .then(src => {
-                                const preview = document.getElementById(previewId);
-                                preview.src = src;
-                                preview.classList.remove('hidden');
-                            })
-                            .catch(err => console.error('Upload failed', err));
+                        cropperImg = new Image();
+                        cropperImg.onload = () => {
+                            cropperCanvas.width = config.width;
+                            cropperCanvas.height = config.height;
+
+                            const baseScale = Math.max(
+                                cropperCanvas.width / cropperImg.width,
+                                cropperCanvas.height / cropperImg.height
+                            );
+
+                            cropperState = {
+                                inputEl,
+                                config,
+                                baseScale,
+                                zoom: 1,
+                                offsetX: 0,
+                                offsetY: 0
+                            };
+
+                            cropperZoom.value = '1';
+                            drawCropper();
+                            showCropper();
+                        };
+                        cropperImg.src = URL.createObjectURL(file);
                     }
-                    </script>
-                    <style>
-                        .preview-avatar {
-                            width: 150px;
-                            height: 150px;
-                            border-radius: 50%;
-                            object-fit: cover;
-                            margin: 10px 0;
-                        }
 
-                        .preview-cover {
-                            width: 100%;
-                            max-height: 200px;
-                            object-fit: cover;
-                            margin: 10px 0;
-                        }
+                    function showCropper() {
+                        cropperModal.classList.remove('hidden');
+                        cropperModal.setAttribute('aria-hidden', 'false');
+                    }
 
-                        .hidden {
-                            display: none;
-                        }
+                    function hideCropper() {
+                        cropperModal.classList.add('hidden');
+                        cropperModal.setAttribute('aria-hidden', 'true');
+                        cropperImg = null;
+                        cropperState = null;
+                    }
 
-                        .image-section {
-                            margin-bottom: 25px;
+                    function clampOffsets(scale) {
+                        const imgW = cropperImg.width * scale;
+                        const imgH = cropperImg.height * scale;
+                        const minX = (cropperCanvas.width - imgW) / 2;
+                        const minY = (cropperCanvas.height - imgH) / 2;
+                        const maxX = -minX;
+                        const maxY = -minY;
+
+                        cropperState.offsetX = Math.min(Math.max(cropperState.offsetX, minX), maxX);
+                        cropperState.offsetY = Math.min(Math.max(cropperState.offsetY, minY), maxY);
+                    }
+
+                    function drawCropper() {
+                        if (!cropperState || !cropperImg) return;
+                        const scale = cropperState.baseScale * cropperState.zoom;
+                        clampOffsets(scale);
+
+                        const imgW = cropperImg.width * scale;
+                        const imgH = cropperImg.height * scale;
+                        const drawX = (cropperCanvas.width - imgW) / 2 + cropperState.offsetX;
+                        const drawY = (cropperCanvas.height - imgH) / 2 + cropperState.offsetY;
+
+                        cropperCtx.clearRect(0, 0, cropperCanvas.width, cropperCanvas.height);
+                        cropperCtx.drawImage(cropperImg, drawX, drawY, imgW, imgH);
+                    }
+
+                    cropperZoom.addEventListener('input', () => {
+                        if (!cropperState) return;
+                        cropperState.zoom = Number(cropperZoom.value);
+                        drawCropper();
+                    });
+
+                    cropperCanvas.addEventListener('mousedown', (e) => {
+                        if (!cropperState) return;
+                        isDragging = true;
+                        dragStart = { x: e.clientX, y: e.clientY };
+                    });
+
+                    window.addEventListener('mousemove', (e) => {
+                        if (!isDragging || !cropperState) return;
+                        const dx = e.clientX - dragStart.x;
+                        const dy = e.clientY - dragStart.y;
+                        dragStart = { x: e.clientX, y: e.clientY };
+                        cropperState.offsetX += dx;
+                        cropperState.offsetY += dy;
+                        drawCropper();
+                    });
+
+                    window.addEventListener('mouseup', () => {
+                        isDragging = false;
+                    });
+
+                    cropperCancel.addEventListener('click', () => {
+                        if (cropperState && cropperState.inputEl) {
+                            cropperState.inputEl.value = '';
                         }
-                    </style>
+                        hideCropper();
+                    });
+
+                    cropperApply.addEventListener('click', () => {
+                        if (!cropperState) return;
+                        cropperCanvas.toBlob((blob) => {
+                            if (!blob) return;
+                            const formData = new FormData();
+                            formData.append('file', blob, 'crop.webp');
+
+                            fetch(cropperState.config.url, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                                }
+                            })
+                                .then(res => res.text())
+                                .then(src => {
+                                    const preview = document.getElementById(cropperState.config.previewId);
+                                    preview.src = src;
+                                    preview.classList.remove('hidden');
+                                    if (cropperState.inputEl) cropperState.inputEl.value = '';
+                                    hideCropper();
+                                })
+                                .catch(err => console.error('Upload failed', err));
+                        }, 'image/webp', 0.92);
+                    });
+                </script>
+                <style>
+                    .preview-avatar {
+                        width: 150px;
+                        height: 150px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        margin: 10px 0;
+                    }
+
+                    .preview-cover {
+                        width: 100%;
+                        max-height: 200px;
+                        object-fit: cover;
+                        margin: 10px 0;
+                    }
+
+                    .image-section {
+                        margin-bottom: 25px;
+                    }
+
+                    .cropper-modal {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(15, 23, 42, 0.55);
+                        display: grid;
+                        place-items: center;
+                        z-index: 2000;
+                        padding: 20px;
+                    }
+
+                    .cropper-modal.hidden {
+                        display: none;
+                    }
+
+                    .cropper-dialog {
+                        width: min(760px, 100%);
+                        background: #ffffff;
+                        border-radius: 16px;
+                        border: 1px solid var(--border);
+                        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+                        padding: 16px;
+                        display: grid;
+                        gap: 12px;
+                    }
+
+                    .cropper-head {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 12px;
+                    }
+
+                    .cropper-body {
+                        display: grid;
+                        place-items: center;
+                        background: #f8fafc;
+                        border-radius: 12px;
+                        padding: 12px;
+                        border: 1px solid var(--border);
+                    }
+
+                    #cropper-canvas {
+                        max-width: 100%;
+                        border-radius: 12px;
+                        background: #ffffff;
+                        cursor: grab;
+                    }
+
+                    #cropper-canvas:active {
+                        cursor: grabbing;
+                    }
+
+                    .cropper-controls {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                    }
+
+                    .cropper-zoom {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        font-size: 14px;
+                    }
+
+                    .hidden {
+                        display: none;
+                    }
+                </style>
                 <div class="actions">
                     <button class="btn btn--primary" type="submit">Save changes</button>
                     <a class="btn btn--ghost" th:href="@{/profile}">Cancel</a>
