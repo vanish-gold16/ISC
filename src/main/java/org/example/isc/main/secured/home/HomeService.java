@@ -6,6 +6,7 @@ import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
+import org.example.isc.main.secured.repositories.CommentRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +21,13 @@ public class HomeService {
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
     private final FriendsRepository friendsRepository;
+    private final CommentRepository commentRepository;
 
-    public HomeService(PostRepository postRepository, LikeRepository likeRepository, FriendsRepository friendsRepository) {
+    public HomeService(PostRepository postRepository, LikeRepository likeRepository, FriendsRepository friendsRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.friendsRepository = friendsRepository;
+        this.commentRepository = commentRepository;
     }
 
     public List<Post> getFeed(User me){
@@ -45,7 +48,7 @@ public class HomeService {
             Long postId = post.getId();
             Long authorId = post.getUser() == null ? null : post.getUser().getId();
             post.setLikesCount(postId == null ? 0L : likeRepository.countByPostId(postId));
-            post.setCommentsCount(0L);
+            post.setCommentsCount(postId == null ? 0L : commentRepository.countByPostId(postId));
             post.setSharesCount(0L);
             post.setLiked(postId != null && viewerId != null && likeRepository.existsByPostIdAndSenderId(postId, viewerId));
             post.setFriendPost(authorId != null && viewerId != null && friendIds.contains(authorId));

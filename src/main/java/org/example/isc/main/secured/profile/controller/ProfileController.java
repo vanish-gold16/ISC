@@ -17,6 +17,7 @@ import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
+import org.example.isc.main.secured.repositories.CommentRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -52,8 +53,9 @@ public class ProfileController {
     private final FriendsRepository friendsRepository;
     private final ImageService imageService;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService, LikeRepository likeRepository) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
@@ -63,6 +65,7 @@ public class ProfileController {
         this.friendsRepository = friendsRepository;
         this.imageService = imageService;
         this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
     }
 
     @GetMapping()
@@ -429,7 +432,7 @@ public class ProfileController {
         for (Post post : posts) {
             Long postId = post.getId();
             post.setLikesCount(postId == null ? 0L : likeRepository.countByPostId(postId));
-            post.setCommentsCount(0L);
+            post.setCommentsCount(postId == null ? 0L : commentRepository.countByPostId(postId));
             post.setSharesCount(0L);
             post.setLiked(postId != null && viewerId != null && likeRepository.existsByPostIdAndSenderId(postId, viewerId));
         }
@@ -440,11 +443,11 @@ public class ProfileController {
             return fallback;
         }
         String path = value.trim();
-        // Cloudinary URL — возвращаем как есть
+        // Cloudinary URL пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path;
         }
-        // Локальный путь — проверяем безопасность
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         path = path.replace('\\', '/');
         if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
             return fallback;
