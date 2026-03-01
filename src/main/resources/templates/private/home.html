@@ -49,7 +49,8 @@
             <div class="post__footer">
                 <form class="action-form" method="post" th:action="@{/posts/{id}/like(id=${p.id})}">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button class="action action--like" type="submit" aria-label="Like">
+                    <button class="action action--like" type="submit" aria-label="Like"
+                            th:attr="data-liked=${p.liked},data-like-icon=@{/images/private/icons/like.png},data-liked-icon=@{/images/private/icons/liked.png}">
                         <img class="action__icon"
                              th:src="${p.liked} ? '/images/private/icons/liked.png' : '/images/private/icons/like.png'"
                              src="/images/private/icons/like.png"
@@ -95,6 +96,50 @@
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     window.location.href = url;
+                }
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        const forms = Array.from(document.querySelectorAll('.action-form'));
+        if (!forms.length || !window.fetch) return;
+        forms.forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const url = form.getAttribute('action');
+                const csrf = form.querySelector('input[name="_csrf"]');
+                const btn = form.querySelector('button.action');
+                const img = btn ? btn.querySelector('.action__icon') : null;
+                const count = btn ? btn.querySelector('.action__count') : null;
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf ? csrf.value : '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!res.ok) {
+                        form.submit();
+                        return;
+                    }
+                    const data = await res.json();
+                    if (btn) {
+                        btn.setAttribute('data-liked', data.liked ? 'true' : 'false');
+                        if (img) {
+                            const likeIcon = btn.getAttribute('data-like-icon');
+                            const likedIcon = btn.getAttribute('data-liked-icon');
+                            img.src = data.liked ? likedIcon : likeIcon;
+                        }
+                    }
+                    if (count && typeof data.likesCount !== 'undefined') {
+                        count.textContent = data.likesCount;
+                    }
+                } catch (err) {
+                    form.submit();
                 }
             });
         });

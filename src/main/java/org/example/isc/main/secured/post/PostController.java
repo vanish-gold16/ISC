@@ -13,6 +13,7 @@ import org.example.isc.main.secured.repositories.LikeRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Controller
 public class PostController {
@@ -121,6 +123,38 @@ public class PostController {
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/profile";
         return "redirect:" + target;
+    }
+
+    @PostMapping(value = "/posts/{id}/like", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> likePostAjax(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Post currentPost = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
+
+        boolean liked;
+        if (likeRepository.existsByPostIdAndSenderId(id, me.getId())) {
+            Like like = likeRepository.findByPostAndSenderId(currentPost, me.getId());
+            if (like != null) {
+                likeRepository.delete(like);
+            }
+            liked = false;
+        } else {
+            Like like = new Like(me, currentPost);
+            likeRepository.save(like);
+            liked = true;
+        }
+
+        long likesCount = likeRepository.countByPostId(id);
+        return ResponseEntity.ok(Map.of(
+                "liked", liked,
+                "likesCount", likesCount
+        ));
     }
 
     @PostMapping("/posts/{id}/comment")
