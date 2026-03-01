@@ -2,10 +2,13 @@ package org.example.isc.main.secured.post;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.example.isc.main.dto.NewCommentForm;
 import org.example.isc.main.dto.NewPostForm;
+import org.example.isc.main.secured.models.Comment;
 import org.example.isc.main.secured.models.Like;
 import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.repositories.CommentRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -26,12 +29,14 @@ public class PostController {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
-    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository) {
+    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository) {
         this.postService = postService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
+        this.commentRepository = commentRepository;
     }
 
     @GetMapping("/post")
@@ -68,6 +73,25 @@ public class PostController {
         return "redirect:/profile";
     }
 
+    @GetMapping("/posts/{id}")
+    public String fullPost(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Post currentPost = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
+
+
+        model.addAttribute("title", currentPost.getUser().getUsername());
+        model.addAttribute("post", currentPost);
+
+        return "/private/post";
+    }
+
     @PostMapping("/posts/{id}/like")
     public String likePost(
             @PathVariable Long id,
@@ -92,6 +116,28 @@ public class PostController {
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/profile";
         return "redirect:" + target;
+    }
+
+    @PostMapping("/posts/{id}/comment")
+    public String comment(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model,
+            NewCommentForm form
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Post currentPost = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
+
+        Comment comment = new Comment(
+                currentPost, me, form.getText()
+        );
+
+        model.addAttribute("comment", comment);
+
+        return "redirect:";
     }
 
     // // TODO
