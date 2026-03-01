@@ -280,6 +280,14 @@ button { font: inherit; }
 }
 .post__name { font-weight: 800; }
 .post__sub { font-size: 13px; }
+.post__friend-badge{
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    display: inline-block;
+    margin-left: 6px;
+    opacity: 0.7;
+}
 
 .post__title { margin: 4px 0 0; font-size: 16px; }
 .post__content p { margin: 10px 0 0; }

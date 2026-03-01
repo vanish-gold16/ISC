@@ -17,10 +17,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findPostsByUserId(@Param("userId") Long userId);
 
     @Query("""
-            select  p from Post p 
+            select distinct p from Post p
             where p.user.id in (
                         select s.followed.id from Subscription s
-                        where s.follower.id = :userId           
+                        where s.follower.id = :userId
+                        )
+               or p.user.id in (
+                        select case
+                                   when f.senderUser.id = :userId then f.recieverUser.id
+                                   else f.senderUser.id
+                               end
+                        from Friends f
+                        where f.status = org.example.isc.main.enums.FriendsStatusEnum.ACCEPTED
+                          and (f.senderUser.id = :userId or f.recieverUser.id = :userId)
                         )
             order by p.date desc, p.id desc
                         """)

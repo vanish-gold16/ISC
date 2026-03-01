@@ -34,6 +34,7 @@
                          th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                     <div class="post__sub muted">
                         <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
+                        <img class="post__friend-badge" src="/images/private/icons/friend-badge.png" alt="" />
                     </div>
                 </div>
                 <button class="icon-btn" aria-label="More" type="button"><span class="icon">...</span></button>
