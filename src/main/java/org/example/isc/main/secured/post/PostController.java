@@ -4,14 +4,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.NewCommentForm;
 import org.example.isc.main.dto.NewPostForm;
-import org.example.isc.main.secured.models.Comment;
-import org.example.isc.main.secured.models.Like;
-import org.example.isc.main.secured.models.Post;
-import org.example.isc.main.secured.models.User;
-import org.example.isc.main.secured.repositories.CommentRepository;
-import org.example.isc.main.secured.repositories.LikeRepository;
-import org.example.isc.main.secured.repositories.PostRepository;
-import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.enums.NotificationEnum;
+import org.example.isc.main.secured.models.*;
+import org.example.isc.main.secured.notification.NotificationService;
+import org.example.isc.main.secured.repositories.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Controller
@@ -32,13 +29,17 @@ public class PostController {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final NotificationsRepository notificationsRepository;
+    private final NotificationService notificationService;
 
-    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository) {
+    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationsRepository notificationsRepository, NotificationService notificationService) {
         this.postService = postService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.notificationsRepository = notificationsRepository;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/post")
@@ -119,6 +120,8 @@ public class PostController {
         } else {
             Like like = new Like(me, currentPost);
             likeRepository.save(like);
+            notificationService.create(NotificationEnum.LIKE, currentPost.getUser(), me, "New like",
+                    " has liked your post", null);
         }
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/profile";
@@ -178,6 +181,14 @@ public class PostController {
 
         Comment comment = new Comment(currentPost, me, form.getText().trim());
         commentRepository.save(comment);
+        notificationService.create(
+                NotificationEnum.COMMENT,
+                currentPost.getUser(),
+                me,
+                "New comment",
+                comment.getText(),
+                null
+        );
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + id;
         return "redirect:" + target;

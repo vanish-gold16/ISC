@@ -84,7 +84,9 @@ public class ProfileController {
         model.addAttribute("postsCount", posts.size());
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((me.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((me.getId()))));
-        model.addAttribute("friends", friendsService.getAcceptedFriends(me));
+        List<User> myFriends = friendsService.getAcceptedFriends(me);
+        model.addAttribute("friends", myFriends);
+        model.addAttribute("friendsCount", myFriends.size());
 
         return "private/profile/profile";
     }
@@ -111,6 +113,7 @@ public class ProfileController {
         model.addAttribute("followersCount", subscriptionRepository.countByFollowedId((target.getId())));
         model.addAttribute("followingCount", subscriptionRepository.countByFollowerId(((target.getId()))));
         model.addAttribute("friends", friends);
+        model.addAttribute("friendsCount", friends.size());
 
         boolean isFriend = false;
         boolean isRequestSent = false;
