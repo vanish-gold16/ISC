@@ -123,8 +123,6 @@
                                      th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
                                 <div class="post__sub muted">
                                     <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
-                                    <span>.</span>
-                                    <span th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</span>
                                 </div>
                             </div>
                             <button class="icon-btn" aria-label="More" type="button"><span class="icon">...</span></button>
@@ -156,6 +154,7 @@
                                 <span class="action__count" th:text="${p.sharesCount} ?: 0">0</span>
                             </button>
                         </div>
+                        <div class="post__date muted" th:text="${p.date != null ? #temporals.format(p.date, 'dd MMM yyyy') : 'just now'}">just now</div>
                     </article>
                 </section>
 

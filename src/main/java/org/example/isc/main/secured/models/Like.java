@@ -3,15 +3,21 @@ package org.example.isc.main.secured.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "likes")
+@Table(
+        name = "likes",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_like_post_sender",
+                columnNames = {"post", "sender"}
+        )
+)
 public class Like {
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name="sender")
+    @ManyToOne
+    @JoinColumn(name = "sender")
     private User sender;
 
     @ManyToOne

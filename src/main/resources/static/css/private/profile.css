@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #ffffff;
     --panel: #f8faff;
     --panel-hover: #f1f6ff;
@@ -40,7 +40,7 @@ button { font: inherit; }
 
 .muted { color: var(--muted); }
 
-/* topbar (СЃРєРѕРїРёСЂРѕРІР°РЅРѕ РїРѕ СЃРјС‹СЃР»Сѓ РёР· home.css, С‡С‚РѕР±С‹ РїСЂРѕС„РёР»СЊ РІС‹РіР»СЏРґРµР» РѕРґРёРЅР°РєРѕРІРѕ) */
+/* topbar (скопировано по смыслу из home.css, чтобы профиль выглядел одинаково) */
 .topbar{
     position: sticky;
     top: 0;
@@ -404,7 +404,7 @@ button { font: inherit; }
 }
 .empty h3{ margin:0 0 6px 0; font-size:16px; }
 
-/* posts (РІР·СЏС‚Рѕ РїРѕ СЃСѓС‚Рё РёР· home.css, С‡С‚РѕР±С‹ Р±С‹Р»Рѕ РѕРґРёРЅР°РєРѕРІРѕ) */
+/* posts (взято по сути из home.css, чтобы было одинаково) */
 .avatar{
     width: 42px;
     height: 42px;
@@ -441,8 +441,6 @@ button { font: inherit; }
     gap: 10px;
     flex-wrap: wrap;
     margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
 }
 
 .action-form{
@@ -450,17 +448,19 @@ button { font: inherit; }
 }
 
 .action{
-    border: 1px solid var(--border);
-    background: #ffffff;
-    border-radius: 999px;
-    padding: 6px 8px;
-    cursor:pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 4px 2px;
+    border: none;
+    background: transparent;
+    cursor:pointer;
+    transition: transform 120ms ease;
 }
 
-.action:hover{ background: var(--panel-hover); }
+.action:hover{
+    transform: translateY(-2px);
+}
 
 .action__icon{
     width: 18px;
@@ -471,8 +471,15 @@ button { font: inherit; }
 
 .action__count{
     min-width: 20px;
-    text-align: right;
+    text-align: left;
+    color: var(--muted);
+    font-size: 13px;
     font-weight: 700;
+}
+
+.post__date{
+    margin-top: 6px;
+    font-size: 12px;
 }
 
 /* about */
@@ -591,5 +598,6 @@ button { font: inherit; }
     margin-top: 10px;
     display: block;
 }
+
 
 
