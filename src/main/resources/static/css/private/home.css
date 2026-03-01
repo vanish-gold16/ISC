@@ -229,6 +229,12 @@ button { font: inherit; }
     color: rgba(0,0,0,0.86);
     font-weight: 800;
 }
+.btn--friend {
+    border-color: rgba(251, 191, 36, 0.7);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.95), rgba(249, 115, 22, 0.88));
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 800;
+}
 .btn--ghost {
     background: #ffffff;
 }
