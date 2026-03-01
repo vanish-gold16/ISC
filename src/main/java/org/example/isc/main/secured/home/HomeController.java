@@ -26,7 +26,7 @@ public class HomeController {
         User me = userRepository.findByUsernameIgnoreCase(username).orElseThrow(() ->
                 new IllegalStateException("Logged-in user not found: " + username));
         model.addAttribute("title", "Home");
-        model.addAttribute("posts", homeService.getFeed(me.getId()));
+        model.addAttribute("posts", homeService.getFeed(me));
 
         return "private/home";
     }

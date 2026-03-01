@@ -43,6 +43,9 @@ public class Post {
     @Transient
     private boolean liked;
 
+    @Transient
+    private boolean friendPost;
+
     public Post() {
     }
 
@@ -150,5 +153,13 @@ public class Post {
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+    }
+
+    public boolean isFriendPost() {
+        return friendPost;
+    }
+
+    public void setFriendPost(boolean friendPost) {
+        this.friendPost = friendPost;
     }
 }
