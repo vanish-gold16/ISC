@@ -85,11 +85,16 @@ public class PostController {
         Post currentPost = postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
 
+        currentPost.setLikesCount(likeRepository.countByPostId(id));
+        currentPost.setCommentsCount(commentRepository.countByPostId(id));
+        currentPost.setLiked(likeRepository.existsByPostIdAndSenderId(id, me.getId()));
 
+        model.addAttribute("commentForm", new NewCommentForm());
+        model.addAttribute("comments", commentRepository.findAllByPostIdOrderByIdAsc(id));
         model.addAttribute("title", currentPost.getUser().getUsername());
         model.addAttribute("post", currentPost);
 
-        return "/private/post";
+        return "private/post";
     }
 
     @PostMapping("/posts/{id}/like")
@@ -122,8 +127,9 @@ public class PostController {
     public String comment(
             @PathVariable Long id,
             Authentication authentication,
-            Model model,
-            NewCommentForm form
+            @Valid @ModelAttribute("commentForm") NewCommentForm form,
+            BindingResult bindingResult,
+            @RequestHeader(value = "Referer", required = false) String referer
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
@@ -131,33 +137,16 @@ public class PostController {
         Post currentPost = postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
 
-        Comment comment = new Comment(
-                currentPost, me, form.getText()
-        );
+        if (bindingResult.hasErrors() || form.getText() == null || form.getText().isBlank()) {
+            String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + id;
+            return "redirect:" + target;
+        }
 
-        model.addAttribute("comment", comment);
+        Comment comment = new Comment(currentPost, me, form.getText().trim());
+        commentRepository.save(comment);
 
-        return "redirect:";
+        String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + id;
+        return "redirect:" + target;
     }
-
-    // // TODO
-    //
-    //          Как сделать, чтобы лайк срабатывал (минимальный, понятный путь, делай сам):
-    //
-    //          1. Роут:
-    //              - POST /posts/{id}/like — тумблер (ставит/снимает).
-    //          2. Сервис:
-    //              - Если LikeRepository.existsByPostIdAndSenderId(postId, userId) — удалить лайк.
-    //              - Иначе — создать Like и сохранить.
-    //          3. Отображение:
-    //              - Лайки считаются LikeRepository.countByPostId(postId); ты это уже прокидываешь в likesCount.
-    //          4. Кнопка в шаблоне:
-    //              - <form method="post" th:action="@{/posts/{id}/like(id=${p.id})}">
-    //              - <button type="submit" class="action">…</button>
-    //              - Не забудь CSRF.
-    //          5. Иконка:
-    //              - Меняй src по p.liked (у тебя уже есть флаг). Если liked=true, показывай liked.png, иначе like.png.
-    //
-    //          Если хочешь, покажи текущие контроллер/сервис для лайков — помогу сделать тумблер без лишнего кода.
 
 }

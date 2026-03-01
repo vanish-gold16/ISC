@@ -149,7 +149,7 @@
                         <p class="muted">Time to leave a trace in the universe.</p>
                     </div>
 
-                    <article class="post card" th:each="p : ${posts}">
+                    <article class="post card" th:each="p : ${posts}" th:attr="data-post-url=@{/posts/{id}(id=${p.id})}" role="link" tabindex="0">
                         <div class="post__header">
                             <div class="avatar">
                                 <img class="avatar__img"
@@ -252,6 +252,27 @@
         }
         panels.forEach(p => p.hidden = !p.classList.contains('is-active'));
         btns.forEach(b => b.addEventListener('click', () => activate(b.getAttribute('data-tab-btn'))));
+    })();
+</script>
+<script>
+    (function () {
+        const posts = Array.from(document.querySelectorAll('.post[data-post-url]'));
+        if (!posts.length) return;
+        const ignoreSelector = '.action, .action-form, .icon-btn, a, button, form, input, textarea';
+        posts.forEach(post => {
+            const url = post.getAttribute('data-post-url');
+            if (!url) return;
+            post.addEventListener('click', (e) => {
+                if (e.target.closest(ignoreSelector)) return;
+                window.location.href = url;
+            });
+            post.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window.location.href = url;
+                }
+            });
+        });
     })();
 </script>
 </body>
