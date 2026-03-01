@@ -289,6 +289,21 @@ public class ProfileController {
         return "redirect:/profile/" + id;
     }
 
+    @PostMapping("/{id}/decline-friend-request")
+    public String declineFriendRequest(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        friendsService.cancelFriendRequest(target, me);
+
+        return "redirect:/profile/" + id;
+    }
+
     @PostMapping("/{id}/cancel-friend-request")
     public String cancelFriendRequest(
             @PathVariable Long id,

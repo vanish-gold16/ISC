@@ -1,0 +1,2 @@
+ALTER TABLE comments
+    DROP CONSTRAINT IF EXISTS uk2ocgo3lfadb3wq0tx8wyt7sj2;

@@ -135,6 +135,24 @@ public class NotificationController {
         return "redirect:/notifications";
     }
 
+    @PostMapping("/notifications/{id}/cancel-friend-request")
+    public String cancelFriendRequest(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        Notification currentNotification = notificationsRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Notification not found: " + id));
+        User sender = currentNotification.getSender();
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        friendsService.cancelFriendRequest(sender, me);
+        notificationService.markRead(id, me);
+        currentNotification.setReadAt(LocalDateTime.now());
+
+        return "redirect:/notifications";
+    }
+
     @GetMapping("/notifications/{id}/open")
     public String openNotification(
             @PathVariable Long id,
