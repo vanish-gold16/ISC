@@ -275,7 +275,7 @@
                                               th:action="@{/notifications/{id}/accept-friend-request(id=${n.notificationId})}"
                                               method="post" style="display:inline;">
                                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                            <button class="btn btn--primary btn--sm" type="submit">Accept friend request</button>
+                                            <button class="btn btn--friend btn--sm" type="submit">Accept friend request</button>
                                         </form>
 
                                         <!-- Follow back -->

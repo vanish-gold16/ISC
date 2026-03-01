@@ -340,7 +340,7 @@ public class ProfileController {
         model.addAttribute("title",  "Subscriptions");
         model.addAttribute("subscriptions", subscriptions);
 
-        return "/private/subscriptions";
+        return "private/profile/subscriptions";
     }
 
     @GetMapping("/subscribers")
@@ -355,7 +355,7 @@ public class ProfileController {
         model.addAttribute("title",  "Subscribers");
         model.addAttribute("subscribers", subscribers);
 
-        return "/private/subscribers";
+        return "private/profile/subscribers";
     }
 
     @GetMapping("/{id}/subscriptions")
@@ -373,7 +373,7 @@ public class ProfileController {
         model.addAttribute("subscriptions", subscriptions);
         model.addAttribute("targetUser", target);
 
-        return "/private/user-subscriptions";
+        return "private/profile/user-subscriptions";
     }
 
     @GetMapping("/{id}/subscribers")
@@ -389,7 +389,7 @@ public class ProfileController {
         model.addAttribute("subscribers", subscribers);
         model.addAttribute("targetUser", target);
 
-        return "/private/user-subscribers";
+        return "private/profile/user-subscribers";
     }
 
     private void addProfileViewAttributes(Model model, User user) {

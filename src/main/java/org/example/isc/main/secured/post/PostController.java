@@ -62,8 +62,7 @@ public class PostController {
         return "redirect:/profile";
     }
 
-    // // TODO Кнопки перенесены влево вниз для профилей: обновил .post__footer на flex-start и добавил отступ/разделитель, чтобы блок был внизу и аккуратно отбит. Файл: profile.css (C:
-    //          \Users\mitro\IdeaProjects\ISC\src\main\resources\static\css\private\profile.css).
+    // // TODO
     //
     //          Как сделать, чтобы лайк срабатывал (минимальный, понятный путь, делай сам):
     //

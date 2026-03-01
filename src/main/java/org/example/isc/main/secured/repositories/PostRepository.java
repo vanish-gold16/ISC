@@ -12,6 +12,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("""
         select p from Post p
                 where p.user.id = :userId
+                order by p.date desc, p.id desc
         """)
     List<Post> findPostsByUserId(@Param("userId") Long userId);
 
@@ -20,7 +21,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             where p.user.id in (
                         select s.followed.id from Subscription s
                         where s.follower.id = :userId           
-                        )            
+                        )
+            order by p.date desc, p.id desc
                         """)
     List<Post> findFeed(
             @Param("userId") Long userId
