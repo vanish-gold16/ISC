@@ -105,6 +105,13 @@
             outline: 2px solid #1d4ed8;
             outline-offset: 2px;
         }
+        html, body {
+            height: auto;
+        }
+        body {
+            min-height: 100vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
@@ -191,7 +198,8 @@
         </div>
 
         <th:block th:fragment="commentCard(commentView, post)" th:remove="tag">
-            <article class="card comment" th:classappend="${commentView != null and !#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
+            <th:block th:if="${commentView != null}">
+            <article class="card comment" th:classappend="${!#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
                 <div class="comment__head">
                     <div class="comment__name"
                          th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</div>
@@ -232,6 +240,7 @@
                     </div>
                 </div>
             </article>
+            </th:block>
         </th:block>
     </section>
 
@@ -308,22 +317,22 @@
 </script>
 <script>
     (function () {
-        const toggles = Array.from(document.querySelectorAll('[data-comment-reply-toggle]'));
-        if (!toggles.length) return;
-        toggles.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const card = btn.closest('.card.comment');
-                if (!card) return;
-                const form = card.querySelector('.comment__reply-form');
-                if (!form) return;
-                form.classList.toggle('comment__reply-form--visible');
-                if (form.classList.contains('comment__reply-form--visible')) {
-                    const textarea = form.querySelector('textarea');
-                    if (textarea) {
-                        textarea.focus();
-                    }
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-comment-reply-toggle]');
+            if (!btn) return;
+            const card = btn.closest('.card.comment');
+            if (!card) return;
+            const form = card.querySelector('.comment__reply-form');
+            if (!form) return;
+            form.classList.toggle('comment__reply-form--visible');
+            const isOpen = form.classList.contains('comment__reply-form--visible');
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (isOpen) {
+                const textarea = form.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
                 }
-            });
+            }
         });
     })();
 </script>
