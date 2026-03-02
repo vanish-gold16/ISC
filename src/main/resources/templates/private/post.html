@@ -176,16 +176,28 @@
             <div class="comment-media-slot">Image placeholder: /images/private/comments/comment-upload.png</div>
         </article>
 
-        <div class="comment-list" th:if="${commentViews == null or #lists.isEmpty(commentViews)}">
-            <div class="card empty">
-                <h3>No comments yet</h3>
-                <p class="muted">Be the first to reply.</p>
-            </div>
-        </div>
-
         <div class="comment-list" th:if="${commentViews != null and !#lists.isEmpty(commentViews)}">
             <div th:each="commentView : ${commentViews}">
                 <div th:replace="~{this :: commentCard(commentView=${commentView}, post=${post})}"></div>
+            </div>
+        </div>
+
+        <div class="comment-list"
+             th:if="${(commentViews == null or #lists.isEmpty(commentViews)) and comments != null and !#lists.isEmpty(comments)}">
+            <div class="card comment" th:each="c : ${comments}">
+                <div class="comment__head">
+                    <div class="comment__name" th:text="${c.user != null ? (c.user.firstName + ' ' + c.user.lastName) : 'ISC Member'}">ISC Member</div>
+                    <div class="comment__meta muted" th:text="${c.user != null && c.user.username != null ? '@' + c.user.username : '@user'}">@user</div>
+                </div>
+                <p th:text="${c.text}">Comment text</p>
+            </div>
+        </div>
+
+        <div class="comment-list"
+             th:if="${(commentViews == null or #lists.isEmpty(commentViews)) and (comments == null or #lists.isEmpty(comments))}">
+            <div class="card empty">
+                <h3>No comments yet</h3>
+                <p class="muted">Be the first to reply.</p>
             </div>
         </div>
 

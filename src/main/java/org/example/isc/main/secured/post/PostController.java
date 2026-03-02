@@ -12,6 +12,8 @@ import org.example.isc.main.secured.repositories.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -28,6 +30,7 @@ import java.util.Map;
 @Controller
 public class PostController {
 
+    private static final Logger log = LoggerFactory.getLogger(PostController.class);
     private final PostService postService;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
@@ -118,6 +121,8 @@ public class PostController {
 
         model.addAttribute("commentForm", new NewCommentForm());
         model.addAttribute("commentViews", commentViews);
+        model.addAttribute("comments", flatComments);
+        log.debug("Post {}: {} raw comments, {} comment views", id, flatComments.size(), commentViews.size());
         model.addAttribute("title", currentPost.getUser().getUsername());
         model.addAttribute("post", currentPost);
 
