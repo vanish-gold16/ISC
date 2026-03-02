@@ -118,6 +118,25 @@
             gap: 8px;
         }
 
+        .notification-item__media {
+            margin-left: auto;
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #fff;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .notification-item__media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .notification-item.is-unread {
             border-color: rgba(37, 99, 235, 0.45);
             box-shadow: 0 14px 34px rgba(37, 99, 235, 0.12);
@@ -229,10 +248,11 @@
                 <div class="notifications-list"
                      th:if="${unreadNotificationsList != null and !#lists.isEmpty(unreadNotificationsList)}">
                     <th:block th:each="n : ${unreadNotificationsList}">
-                        <article class="card notification-item is-unread">
+                        <article class="card notification-item is-unread"
+                                 th:with="postPreview=${commentPostPreviews != null ? commentPostPreviews[n.notificationId] : null}">
                             <!-- Avatar вЂ” РєР»РёРє С‡РёС‚Р°РµС‚ СѓРІРµРґРѕРјР»РµРЅРёРµ Рё РёРґС‘С‚ РЅР° РїСЂРѕС„РёР»СЊ -->
                             <a th:if="${n.sender != null}"
-                               th:href="@{/notifications/{id}/open(id=${n.notificationId})}">
+                               th:href="@{/profile/{id}(id=${n.sender.id})}">
                                 <img class="notification-item__avatar"
                                      th:src="${n.sender.profile != null and n.sender.profile.avatarUrl != null}
                                              ? ${n.sender.profile.avatarUrl}
@@ -245,7 +265,14 @@
 
                             <div class="notification-item__content">
                                 <div class="notification-top">
-                                    <h2 class="notification-title" th:text="${n.title} ?: 'Notification'">Notification</h2>
+                                    <h2 class="notification-title">
+                                        <a th:if="${postPreview != null}"
+                                           th:href="@{/notifications/{id}/open(id=${n.notificationId})}"
+                                           th:text="${n.title} ?: 'Notification'"
+                                           style="color: inherit; text-decoration: none;">Notification</a>
+                                        <span th:if="${postPreview == null}"
+                                              th:text="${n.title} ?: 'Notification'">Notification</span>
+                                    </h2>
                                     <time class="notification-date"
                                           th:with="now=${T(java.time.LocalDateTime).now()},
                                                    diff=${T(java.time.Duration).between(n.createdAt, now)}"
@@ -258,7 +285,7 @@
 
                                 <p class="notification-body muted">
                                     <a th:if="${n.sender != null}"
-                                       th:href="@{/notifications/{id}/open(id=${n.notificationId})}"
+                                       th:href="@{/profile/{id}(id=${n.sender.id})}"
                                        th:text="${n.sender.username}"
                                        style="color: #1d4ed8; text-decoration: none; font-weight: 600;">User</a>
                                     <span th:text="${n.body} ?: 'You have a new update.'">body</span>
@@ -303,6 +330,10 @@
                                               and #sets.contains(followingIds, n.sender.id)}"
                                               class="badge-following">Following</span>
 
+                                        <a class="btn btn--ghost btn--sm"
+                                           th:if="${postPreview != null}"
+                                           th:href="@{/notifications/{id}/open(id=${n.notificationId})}">Open post</a>
+
                                         <form th:action="@{/notifications/{id}/read(id=${n.notificationId})}"
                                               method="post" style="display: inline;">
                                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -311,6 +342,11 @@
                                     </div>
                                 </div>
                             </div>
+                            <a class="notification-item__media"
+                               th:if="${postPreview != null and postPreview.photoUrl != null}"
+                               th:href="@{/notifications/{id}/open(id=${n.notificationId})}">
+                                <img th:src="${postPreview.photoUrl}" alt="" />
+                            </a>
                         </article>
                     </th:block>
                 </div>
@@ -328,7 +364,8 @@
                 <div class="notifications-list"
                      th:if="${readNotificationsList != null and !#lists.isEmpty(readNotificationsList)}">
                     <th:block th:each="n : ${readNotificationsList}">
-                        <article class="card notification-item is-read">
+                        <article class="card notification-item is-read"
+                                 th:with="postPreview=${commentPostPreviews != null ? commentPostPreviews[n.notificationId] : null}">
                             <a th:if="${n.sender != null}"
                                th:href="@{/profile/{id}(id=${n.sender.id})}">
                                 <img class="notification-item__avatar"
@@ -343,7 +380,14 @@
 
                             <div class="notification-item__content">
                                 <div class="notification-top">
-                                    <h2 class="notification-title" th:text="${n.title} ?: 'Notification'">Notification</h2>
+                                    <h2 class="notification-title">
+                                        <a th:if="${postPreview != null}"
+                                           th:href="@{/notifications/{id}/open(id=${n.notificationId})}"
+                                           th:text="${n.title} ?: 'Notification'"
+                                           style="color: inherit; text-decoration: none;">Notification</a>
+                                        <span th:if="${postPreview == null}"
+                                              th:text="${n.title} ?: 'Notification'">Notification</span>
+                                    </h2>
                                     <time class="notification-date"
                                           th:with="now=${T(java.time.LocalDateTime).now()},
                                                    diff=${T(java.time.Duration).between(n.createdAt, now)}"
@@ -390,9 +434,15 @@
                                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                             <button class="btn btn--primary btn--sm" type="submit">Follow back</button>
                                         </form>
-                                    </div>
+
+                                        </div>
                                 </div>
                             </div>
+                            <a class="notification-item__media"
+                               th:if="${postPreview != null and postPreview.photoUrl != null}"
+                               th:href="@{/notifications/{id}/open(id=${n.notificationId})}">
+                                <img th:src="${postPreview.photoUrl}" alt="" />
+                            </a>
                         </article>
                     </th:block>
                 </div>
