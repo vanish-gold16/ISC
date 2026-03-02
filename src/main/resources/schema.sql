@@ -23,6 +23,7 @@ BEGIN
     END IF;
 END;
 $$;
+@@
 
 DO $$
 BEGIN
@@ -36,3 +37,4 @@ BEGIN
     END IF;
 END;
 $$;
+@@
