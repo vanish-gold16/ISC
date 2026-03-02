@@ -136,7 +136,7 @@ public class CommentController {
                 me,
                 "New comment reply",
                 " has replied to your comment",
-                null
+                currentPost.getId() != null ? currentPost.getId().toString() : null
         );
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + postId;

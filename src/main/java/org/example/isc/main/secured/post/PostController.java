@@ -250,7 +250,7 @@ public class PostController {
                 me,
                 "New comment",
                 comment.getText(),
-                null
+                currentPost.getId() != null ? currentPost.getId().toString() : null
         );
 
         String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + id;
