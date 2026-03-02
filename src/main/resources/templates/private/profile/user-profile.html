@@ -8,6 +8,15 @@
     <title th:text="${title} ?: 'ISC | Profile'">ISC | Profile</title>
 
     <link rel="stylesheet" href="/css/private/profile.css" />
+    <style>
+        .post__header {
+            cursor: pointer;
+        }
+        .post__header:focus-visible {
+            outline: 2px solid #1d4ed8;
+            outline-offset: 2px;
+        }
+    </style>
 </head>
 
 <body>
@@ -160,7 +169,10 @@
                     </div>
 
                     <article class="post card" th:each="p : ${posts}" th:attr="data-post-url=@{/posts/{id}(id=${p.id})}" role="link" tabindex="0">
-                        <div class="post__header">
+                        <div class="post__header"
+                             role="link"
+                             tabindex="0"
+                             th:attr="data-user-profile-url=@{/posts/{id}/to-profile(id=${p.id})}">
                             <div class="avatar">
                                 <img class="avatar__img"
                                      th:src="${p.user != null and p.user.profile != null and p.user.profile.avatarUrl != null}
@@ -288,6 +300,29 @@
 </script>
 <script>
     (function () {
+        const headers = Array.from(document.querySelectorAll('.post__header[data-user-profile-url]'));
+        if (!headers.length) return;
+        const ignoreSelector = '.icon-btn, .action, .action-form, button, form, input, textarea';
+        headers.forEach(header => {
+            const url = header.getAttribute('data-user-profile-url');
+            if (!url) return;
+            header.addEventListener('click', (e) => {
+                if (e.target.closest(ignoreSelector)) return;
+                e.stopPropagation();
+                window.location.href = url;
+            });
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (e.target.closest(ignoreSelector)) return;
+                    window.location.href = url;
+                }
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
         const forms = Array.from(document.querySelectorAll('.action-form'));
         if (!forms.length || !window.fetch) return;
         forms.forEach(form => {
@@ -332,4 +367,3 @@
 </script>
 </body>
 </html>
-

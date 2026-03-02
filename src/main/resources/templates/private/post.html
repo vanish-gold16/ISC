@@ -64,6 +64,13 @@
         .comment__meta {
             font-size: 12px;
         }
+        .post__header {
+            cursor: pointer;
+        }
+        .post__header:focus-visible {
+            outline: 2px solid #1d4ed8;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 
@@ -73,7 +80,10 @@
 <main class="container page">
     <section class="post-page">
         <article class="post card">
-            <div class="post__header">
+            <div class="post__header"
+                 role="link"
+                 tabindex="0"
+                 th:attr="data-user-profile-url=@{/posts/{id}/to-profile(id=${post.id})}">
                 <div class="avatar">
                     <img class="avatar__img"
                          th:src="${post.user != null and post.user.profile != null and post.user.profile.avatarUrl != null}
@@ -150,6 +160,29 @@
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+<script>
+    (function () {
+        const headers = Array.from(document.querySelectorAll('.post__header[data-user-profile-url]'));
+        if (!headers.length) return;
+        const ignoreSelector = '.icon-btn, .action, .action-form, button, form, input, textarea';
+        headers.forEach(header => {
+            const url = header.getAttribute('data-user-profile-url');
+            if (!url) return;
+            header.addEventListener('click', (e) => {
+                if (e.target.closest(ignoreSelector)) return;
+                e.stopPropagation();
+                window.location.href = url;
+            });
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (e.target.closest(ignoreSelector)) return;
+                    window.location.href = url;
+                }
+            });
+        });
+    })();
+</script>
 <script>
     (function () {
         const forms = Array.from(document.querySelectorAll('.action-form'));

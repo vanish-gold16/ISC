@@ -100,6 +100,18 @@ public class PostController {
         return "private/post";
     }
 
+    @GetMapping("/posts/{id}/to-profile")
+    public String toProfile(
+            @PathVariable Long id
+    ){
+        Post currentPost = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
+        if (currentPost.getUser() == null || currentPost.getUser().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post owner not found: " + id);
+        }
+        return "redirect:/profile/" + currentPost.getUser().getId();
+    }
+
     @PostMapping("/posts/{id}/like")
     public String likePost(
             @PathVariable Long id,

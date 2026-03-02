@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
     <title th:text="'ISC | Search: ' + ${q}">ISC | Search</title>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <link rel="stylesheet" href="/css/private/friends.css" />
     <style>
         .search-page { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
@@ -39,6 +41,16 @@
             padding: 14px 16px; background: #fff;
             border: 1px solid #e2e8f0; border-radius: 12px;
             margin-bottom: 10px;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .user-card:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+        }
+        .user-card:focus-visible {
+            outline: 2px solid #1d4ed8;
+            outline-offset: 2px;
         }
         .user-card__avatar {
             width: 48px; height: 48px; border-radius: 50%;
@@ -50,9 +62,34 @@
         .user-card__friend-badge {
             font-size: 11px; font-weight: 600; color: #16a34a;
             background: #dcfce7; border-radius: 999px;
-            padding: 2px 8px; margin-left: 8px;
+            padding: 2px 8px;
         }
-        .user-card__actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .user-card__actions {
+            display: flex; gap: 8px; flex-shrink: 0; align-items: center;
+        }
+        .user-card__follow {
+            border-radius: 8px;
+            padding: 7px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #1d4ed8;
+            color: #fff;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .user-card__follow:hover:not(:disabled) {
+            background: #1e40af;
+        }
+        .user-card__follow.is-following {
+            background: #e2e8f0;
+            color: #0f172a;
+            border-color: #cbd5f5;
+            cursor: default;
+        }
+        .user-card__follow:disabled {
+            cursor: default;
+        }
 
         .btn { display: inline-flex; align-items: center; justify-content: center;
             padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -100,7 +137,10 @@
     <!-- All users results -->
     <div th:if="${filter == 'all'}">
         <div th:if="${!#strings.isEmpty(q) and !#lists.isEmpty(allResults)}">
-            <div class="user-card" th:each="user : ${allResults}">
+            <article class="user-card" th:each="user : ${allResults}"
+                     th:attr="data-profile-url=@{/profile/{id}(id=${user.id})}"
+                     role="link"
+                     tabindex="0">
                 <img class="user-card__avatar"
                      th:src="${user.profile != null and user.profile.avatarUrl != null}
                              ? ${user.profile.avatarUrl}
@@ -109,15 +149,20 @@
                 <div class="user-card__info">
                     <p class="user-card__name">
                         <span th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</span>
-                        <span class="user-card__friend-badge"
-                              th:if="${friendIds.contains(user.id)}">Friend</span>
                     </p>
                     <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
                 </div>
                 <div class="user-card__actions">
-                    <a class="btn btn--ghost" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
+                    <span class="user-card__friend-badge" th:if="${friendIds.contains(user.id)}">Friend</span>
+                    <button type="button"
+                            class="btn btn--primary user-card__follow"
+                            th:if="${!friendIds.contains(user.id)}"
+                            th:attr="data-user-id=${user.id}"
+                            th:disabled="${followingIds.contains(user.id)}"
+                            th:classappend="${followingIds.contains(user.id)} ? ' is-following' : ''"
+                            th:text="${followingIds.contains(user.id)} ? 'Following' : 'Follow'">Follow</button>
                 </div>
-            </div>
+            </article>
         </div>
 
         <div class="empty-state" th:if="${#strings.isEmpty(q)}">
@@ -133,7 +178,10 @@
     <!-- Friends results -->
     <div th:if="${filter == 'friends'}">
         <div th:if="${!#strings.isEmpty(q) and !#lists.isEmpty(friendResults)}">
-            <div class="user-card" th:each="user : ${friendResults}">
+            <article class="user-card" th:each="user : ${friendResults}"
+                     th:attr="data-profile-url=@{/profile/{id}(id=${user.id})}"
+                     role="link"
+                     tabindex="0">
                 <img class="user-card__avatar"
                      th:src="${user.profile != null and user.profile.avatarUrl != null}
                              ? ${user.profile.avatarUrl}
@@ -145,9 +193,9 @@
                     <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
                 </div>
                 <div class="user-card__actions">
-                    <a class="btn btn--ghost" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
+                    <span class="user-card__friend-badge">Friend</span>
                 </div>
-            </div>
+            </article>
         </div>
 
         <div class="empty-state" th:if="${#strings.isEmpty(q)}">
@@ -162,5 +210,66 @@
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+<script>
+    (function () {
+        const cards = Array.from(document.querySelectorAll('.user-card[data-profile-url]'));
+        if (!cards.length) return;
+        const ignoreSelector = '.user-card__actions, button, a, input, textarea';
+        cards.forEach(card => {
+            const url = card.getAttribute('data-profile-url');
+            if (!url) return;
+            card.addEventListener('click', (e) => {
+                if (e.target.closest(ignoreSelector)) return;
+                window.location.href = url;
+            });
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (e.target.closest(ignoreSelector)) return;
+                    window.location.href = url;
+                }
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        const csrfToken = document.querySelector('meta[name="_csrf"]');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+        if (!csrfToken || !csrfHeader) return;
+        const followButtons = Array.from(document.querySelectorAll('.user-card__follow'));
+        if (!followButtons.length) return;
+        followButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (btn.disabled) return;
+                const userId = btn.getAttribute('data-user-id');
+                if (!userId) return;
+                const url = `/search/${userId}/subscribe`;
+                btn.disabled = true;
+                const token = csrfToken.getAttribute('content');
+                const header = csrfHeader.getAttribute('content');
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            [header]: token,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!response.ok) {
+                        btn.disabled = false;
+                        return;
+                    }
+                    btn.textContent = 'Following';
+                    btn.classList.add('is-following');
+                } catch (error) {
+                    btn.disabled = false;
+                }
+            });
+        });
+    })();
+</script>
 </body>
 </html>
