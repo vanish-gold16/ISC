@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+
+    <title th:text="${title} ?: 'ISC | Messenger'">ISC | Messenger</title>
+
+    <link rel="stylesheet" href="/css/private/home.css" />
+    <link rel="stylesheet" href="/css/private/messenger.css" />
+</head>
+
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container">
+    <div class="messenger-page">
+        <section class="messenger-panel messenger-sidebar">
+            <div class="sidebar-head">
+                <h2 class="sidebar-title">Messenger</h2>
+                <span class="sidebar-pill"
+                      th:text="${conversations != null ? #lists.size(conversations) + ' chats' : '0 chats'}">0 chats</span>
+            </div>
+            <div class="sidebar-search">
+                <input type="search" placeholder="Search messages..." aria-label="Search messages" />
+            </div>
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab is-active" type="button">All</button>
+                <button class="sidebar-tab" type="button">Unread</button>
+                <button class="sidebar-tab" type="button">Groups</button>
+            </div>
+            <div class="conversation-list">
+                <div class="conversation-item"
+                     th:each="c : ${conversations}"
+                     th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
+                     data-conversation-item>
+                    <img class="conversation-avatar" th:src="${c.avatar}" alt="" />
+                    <div class="conversation-body">
+                        <div class="conversation-name">
+                            <span th:text="${c.name}">Name</span>
+                            <span class="friend-badge" th:if="${c.friend}">Friend</span>
+                            <span class="status-dot" th:classappend="${c.online} ? ' is-online' : ''"></span>
+                        </div>
+                        <p class="conversation-preview" th:text="${c.lastMessage}">Preview</p>
+                    </div>
+                    <div class="conversation-meta">
+                        <span th:text="${c.time}">Now</span>
+                        <span class="conversation-unread" th:if="${c.unread > 0}"
+                              th:text="${c.unread}">1</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="messenger-panel messenger-chat">
+            <div class="chat-head">
+                <div class="chat-head-left">
+                    <img class="chat-avatar" th:src="${activeConversation.avatar}" alt="" />
+                    <div>
+                        <h2 class="chat-title" th:text="${activeConversation.name}">Active chat</h2>
+                        <p class="chat-subtitle" th:text="${activeConversation.subtitle}">Subtitle</p>
+                        <div class="chat-status">
+                            <span class="status-dot" th:classappend="${activeConversation.online} ? ' is-online' : ''"></span>
+                            <span th:text="${activeConversation.online} ? 'Online now' : 'Offline'">Online now</span>
+                            <span class="friend-badge" th:if="${activeConversation.friend}">Friend</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="ghost-btn" type="button">Profile</button>
+                    <button class="ghost-btn" type="button">Search</button>
+                    <button class="ghost-btn" type="button">More</button>
+                </div>
+            </div>
+
+            <div class="chat-quick">
+                <span class="chip" th:each="a : ${quickActions}" th:text="${a.label}">Action</span>
+            </div>
+
+            <div class="chat-thread">
+                <div class="message" th:each="m : ${messages}" th:classappend="${m.fromMe} ? ' message--me' : ' message--them'">
+                    <div class="message__bubble" th:text="${m.text}">Message</div>
+                    <div class="message__meta">
+                        <span th:text="${m.time}">18:21</span>
+                        <span class="message__status"
+                              th:if="${m.fromMe and m.status != null}"
+                              th:text="${m.status}">seen</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-composer">
+                <div class="composer-row">
+                    <textarea placeholder="Write a message..." rows="2"></textarea>
+                    <button class="send-btn" type="button">Send</button>
+                </div>
+                <div class="composer-hint">Tip: drop files or photos here to share quickly.</div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+
+<script>
+    (function () {
+        const items = Array.from(document.querySelectorAll('[data-conversation-item]'));
+        if (!items.length) return;
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                items.forEach(el => el.classList.remove('is-active'));
+                item.classList.add('is-active');
+            });
+        });
+    })();
+</script>
+</body>
+</html>
