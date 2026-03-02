@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.NewCommentForm;
 import org.example.isc.main.dto.NewPostForm;
+import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.*;
 import org.example.isc.main.secured.notification.NotificationService;
@@ -36,15 +37,17 @@ public class PostController {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final FriendsRepository friendsRepository;
     private final NotificationService notificationService;
 
-    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationService notificationService) {
+    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationService notificationService, FriendsRepository friendsRepository) {
         this.postService = postService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.notificationService = notificationService;
+        this.friendsRepository = friendsRepository;
     }
 
     @GetMapping("/post")
@@ -98,6 +101,20 @@ public class PostController {
         currentPost.setLiked(likeRepository.existsByPostIdAndSenderId(id, me.getId()));
 
         List<Comment> flatComments = commentRepository.findAllByPostIdOrderByIdAsc(id);
+        List<Friends> relations = friendsRepository.findAllFriendsByUser(me, FriendsStatusEnum.ACCEPTED);
+        Long meId = me.getId();
+        java.util.Set<Long> friendIds = relations.stream()
+                .map(rel -> {
+                    if (rel.getSenderUser() != null && rel.getSenderUser().getId() != null && !rel.getSenderUser().getId().equals(meId)) {
+                        return rel.getSenderUser().getId();
+                    }
+                    if (rel.getRecieverUser() != null && rel.getRecieverUser().getId() != null && !rel.getRecieverUser().getId().equals(meId)) {
+                        return rel.getRecieverUser().getId();
+                    }
+                    return null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
         Map<Long, CommentView> viewById = new LinkedHashMap<>();
         for (Comment comment : flatComments) {
             long likes = postService.getCommentLikeCounts(comment);
@@ -105,6 +122,7 @@ public class PostController {
             long repliesCount = postService.getCommentRepliesCount(comment);
             String authorName = "ISC Member";
             String authorUsername = null;
+            boolean friendAuthor = false;
             if (comment.getUser() != null) {
                 String first = comment.getUser().getFirstName();
                 String last = comment.getUser().getLastName();
@@ -113,6 +131,9 @@ public class PostController {
                     authorName = "ISC Member";
                 }
                 authorUsername = comment.getUser().getUsername();
+                if (comment.getUser().getId() != null) {
+                    friendAuthor = friendIds.contains(comment.getUser().getId());
+                }
             }
             Long parentId = null;
             if (comment.getParentComment() != null) {
@@ -123,6 +144,7 @@ public class PostController {
                     comment.getText(),
                     authorName,
                     authorUsername,
+                    friendAuthor,
                     likes,
                     liked,
                     repliesCount,

@@ -12,6 +12,7 @@ public class CommentView {
     private final String text;
     private final String authorName;
     private final String authorUsername;
+    private final boolean friendAuthor;
     private final long likes;
     private final boolean liked;
     private final long repliesCount;
@@ -22,6 +23,7 @@ public class CommentView {
                        String text,
                        String authorName,
                        String authorUsername,
+                       boolean friendAuthor,
                        long likes,
                        boolean liked,
                        long repliesCount,
@@ -30,6 +32,7 @@ public class CommentView {
         this.text = text;
         this.authorName = authorName;
         this.authorUsername = authorUsername;
+        this.friendAuthor = friendAuthor;
         this.likes = likes;
         this.liked = liked;
         this.repliesCount = repliesCount;
@@ -50,6 +53,10 @@ public class CommentView {
 
     public String getAuthorUsername() {
         return authorUsername;
+    }
+
+    public boolean isFriendAuthor() {
+        return friendAuthor;
     }
 
     public long getLikes() {

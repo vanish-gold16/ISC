@@ -95,8 +95,20 @@
         .comment__name {
             font-weight: 700;
         }
+        .comment__friend-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid rgba(22, 101, 52, 0.2);
+            font-weight: 600;
+        }
         .comment__meta {
             font-size: 12px;
+        }
+        .comment__text {
+            margin: 10px 0 6px;
         }
         .post__header {
             cursor: pointer;
@@ -203,10 +215,11 @@
                 <div class="comment__head">
                     <div class="comment__name"
                          th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</div>
+                    <span class="comment__friend-badge" th:if="${commentView.friendAuthor}">Friend</span>
                     <div class="comment__meta muted"
                          th:text="${commentView.authorUsername != null ? '@' + commentView.authorUsername : '@user'}">@user</div>
                 </div>
-                <p th:text="${commentView.text}">Comment text</p>
+                <p class="comment__text" th:text="${commentView.text}">Comment text</p>
                 <div class="comment__actions">
                     <form class="action-form" method="post"
                           th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id}, commentId=${commentView.id})}">
