@@ -8,21 +8,48 @@ import java.util.List;
 
 public class CommentView {
 
-    private final Comment comment;
+    private final Long id;
+    private final String text;
+    private final String authorName;
+    private final String authorUsername;
     private final long likes;
     private final boolean liked;
     private final long repliesCount;
+    private final Long parentId;
     private final List<CommentView> replies = new ArrayList<>();
 
-    public CommentView(Comment comment, long likes, boolean liked, long repliesCount) {
-        this.comment = comment;
+    public CommentView(Long id,
+                       String text,
+                       String authorName,
+                       String authorUsername,
+                       long likes,
+                       boolean liked,
+                       long repliesCount,
+                       Long parentId) {
+        this.id = id;
+        this.text = text;
+        this.authorName = authorName;
+        this.authorUsername = authorUsername;
         this.likes = likes;
         this.liked = liked;
         this.repliesCount = repliesCount;
+        this.parentId = parentId;
     }
 
-    public Comment getComment() {
-        return comment;
+    public Long getId() {
+        return id;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public String getAuthorUsername() {
+        return authorUsername;
     }
 
     public long getLikes() {
@@ -35,6 +62,10 @@ public class CommentView {
 
     public long getRepliesCount() {
         return repliesCount;
+    }
+
+    public Long getParentId() {
+        return parentId;
     }
 
     public List<CommentView> getReplies() {

@@ -183,43 +183,32 @@
         </div>
 
         <div class="comment-list"
-             th:if="${(commentViews == null or #lists.isEmpty(commentViews)) and comments != null and !#lists.isEmpty(comments)}">
-            <div class="card comment" th:each="c : ${comments}">
-                <div class="comment__head">
-                    <div class="comment__name" th:text="${c.user != null ? (c.user.firstName + ' ' + c.user.lastName) : 'ISC Member'}">ISC Member</div>
-                    <div class="comment__meta muted" th:text="${c.user != null && c.user.username != null ? '@' + c.user.username : '@user'}">@user</div>
-                </div>
-                <p th:text="${c.text}">Comment text</p>
-            </div>
-        </div>
-
-        <div class="comment-list"
-             th:if="${(commentViews == null or #lists.isEmpty(commentViews)) and (comments == null or #lists.isEmpty(comments))}">
+             th:if="${commentViews == null or #lists.isEmpty(commentViews)}">
             <div class="card empty">
                 <h3>No comments yet</h3>
                 <p class="muted">Be the first to reply.</p>
             </div>
         </div>
 
-        <th:block th:fragment="commentCard(commentView, post)" th:remove="all">
-            <article class="card comment" th:classappend="${!#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
+        <th:block th:fragment="commentCard(commentView, post)" th:remove="tag">
+            <article class="card comment" th:classappend="${commentView != null and !#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
                 <div class="comment__head">
                     <div class="comment__name"
-                         th:text="${commentView.comment.user != null ? (commentView.comment.user.firstName + ' ' + commentView.comment.user.lastName) : 'ISC Member'}">ISC Member</div>
+                         th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</div>
                     <div class="comment__meta muted"
-                         th:text="${commentView.comment.user != null && commentView.comment.user.username != null ? '@' + commentView.comment.user.username : '@user'}">@user</div>
+                         th:text="${commentView.authorUsername != null ? '@' + commentView.authorUsername : '@user'}">@user</div>
                 </div>
-                <p th:text="${commentView.comment.text}">Comment text</p>
+                <p th:text="${commentView.text}">Comment text</p>
                 <div class="comment__actions">
                     <form class="action-form" method="post"
-                          th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id}, commentId=${commentView.comment.id})}">
+                          th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id}, commentId=${commentView.id})}">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <button class="action action--like" type="submit" aria-label="Like"
                                 th:attr="data-liked=${commentView.liked},data-like-icon=@{/images/private/icons/like.png},data-liked-icon=@{/images/private/icons/liked.png}">
                             <img class="action__icon"
                                  th:src="${commentView.liked} ? '/images/private/icons/liked.png' : '/images/private/icons/like.png'"
                                  alt="" />
-                            <span class="action__count" th:text="${commentView.likes} ?: 0">0</span>
+                            <span class="action__count" th:text="${commentView.likes ?: 0}">0</span>
                         </button>
                     </form>
                     <button class="action action--reply" type="button" data-comment-reply-toggle>
@@ -230,14 +219,14 @@
                           th:text="${commentView.repliesCount} + ' replies'">0 replies</span>
                 </div>
                 <form class="comment__reply-form" method="post"
-                      th:action="@{/posts/{postId}/comment/{commentId}/reply(postId=${post.id}, commentId=${commentView.comment.id})}">
+                      th:action="@{/posts/{postId}/comment/{commentId}/reply(postId=${post.id}, commentId=${commentView.id})}">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <textarea class="comment-input" name="text" maxlength="100" placeholder="Reply..." rows="2"></textarea>
                     <button class="comment-upload" type="submit" aria-label="Send reply">
                         <img src="/images/private/comments/comment-upload.png" alt="" />
                     </button>
                 </form>
-                <div class="comment__replies" th:if="${!#lists.isEmpty(commentView.replies)}">
+                <div class="comment__replies" th:if="${commentView != null and !#lists.isEmpty(commentView.replies)}">
                     <div th:each="reply : ${commentView.replies}">
                         <div th:replace="~{this :: commentCard(commentView=${reply}, post=${post})}"></div>
                     </div>

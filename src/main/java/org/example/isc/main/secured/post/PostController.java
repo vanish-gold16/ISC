@@ -103,14 +103,37 @@ public class PostController {
             long likes = postService.getCommentLikeCounts(comment);
             boolean liked = postService.likedByUser(comment, me);
             long repliesCount = postService.getCommentRepliesCount(comment);
-            viewById.put(comment.getId(), new CommentView(comment, likes, liked, repliesCount));
+            String authorName = "ISC Member";
+            String authorUsername = null;
+            if (comment.getUser() != null) {
+                String first = comment.getUser().getFirstName();
+                String last = comment.getUser().getLastName();
+                authorName = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
+                if (authorName.isBlank()) {
+                    authorName = "ISC Member";
+                }
+                authorUsername = comment.getUser().getUsername();
+            }
+            Long parentId = null;
+            if (comment.getParentComment() != null) {
+                parentId = comment.getParentComment().getId();
+            }
+            viewById.put(comment.getId(), new CommentView(
+                    comment.getId(),
+                    comment.getText(),
+                    authorName,
+                    authorUsername,
+                    likes,
+                    liked,
+                    repliesCount,
+                    parentId
+            ));
         }
 
         List<CommentView> commentViews = new ArrayList<>();
         for (CommentView view : viewById.values()) {
-            Comment parent = view.getComment().getParentComment();
-            if (parent != null && parent.getId() != null) {
-                CommentView parentView = viewById.get(parent.getId());
+            if (view.getParentId() != null) {
+                CommentView parentView = viewById.get(view.getParentId());
                 if (parentView != null) {
                     parentView.addReply(view);
                     continue;
@@ -121,8 +144,7 @@ public class PostController {
 
         model.addAttribute("commentForm", new NewCommentForm());
         model.addAttribute("commentViews", commentViews);
-        model.addAttribute("comments", flatComments);
-        log.debug("Post {}: {} raw comments, {} comment views", id, flatComments.size(), commentViews.size());
+        log.info("Post {}: {} comments, {} view roots", id, flatComments.size(), commentViews.size());
         model.addAttribute("title", currentPost.getUser().getUsername());
         model.addAttribute("post", currentPost);
 
