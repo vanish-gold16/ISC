@@ -64,7 +64,7 @@
                        th:href="@{/profile/{id}(id=${friend.id})}">
                         View profile
                     </a>
-                    <button class="btn btn--primary btn--sm" type="button">Message</button>
+                    <a class="btn btn--primary btn--sm" th:href="@{/messages/{id}(id=${friend.id})}">Message</a>
                     <details class="friend__menu">
                         <summary class="menu-btn" aria-label="More actions">...</summary>
                         <div class="menu-dropdown">

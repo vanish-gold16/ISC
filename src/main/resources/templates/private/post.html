@@ -107,6 +107,13 @@
         .comment__meta {
             font-size: 12px;
         }
+        .comment__head a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .comment__head a:hover {
+            text-decoration: underline;
+        }
         .comment__text {
             margin: 10px 0 6px;
         }
@@ -213,10 +220,20 @@
             <th:block th:if="${commentView != null}">
             <article class="card comment" th:classappend="${!#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
                 <div class="comment__head">
+                    <a class="comment__name"
+                       th:if="${commentView.authorId != null}"
+                       th:href="@{/profile/{id}(id=${commentView.authorId})}"
+                       th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</a>
                     <div class="comment__name"
+                         th:if="${commentView.authorId == null}"
                          th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</div>
                     <span class="comment__friend-badge" th:if="${commentView.friendAuthor}">Friend</span>
+                    <a class="comment__meta muted"
+                       th:if="${commentView.authorId != null and commentView.authorUsername != null}"
+                       th:href="@{/profile/{id}(id=${commentView.authorId})}"
+                       th:text="${'@' + commentView.authorUsername}">@user</a>
                     <div class="comment__meta muted"
+                         th:if="${commentView.authorId == null or commentView.authorUsername == null}"
                          th:text="${commentView.authorUsername != null ? '@' + commentView.authorUsername : '@user'}">@user</div>
                 </div>
                 <p class="comment__text" th:text="${commentView.text}">Comment text</p>

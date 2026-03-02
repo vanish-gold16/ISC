@@ -55,7 +55,7 @@
                         <div class="profile-actions">
                             <a class="btn btn--ghost" th:if="${isMyProfile}" th:href="@{/profile/edit}">Edit</a>
                             <button class="btn btn--primary" th:if="${!isMyProfile}" type="button">Follow</button>
-                            <a class="btn btn--ghost" th:if="${isMyProfile == false}" th:href="@{/messages}">Message</a>
+                            <a class="btn btn--ghost" th:if="${isMyProfile == false}" th:href="@{/messages/{id}(id=${user.id})}">Message</a>
                         </div>
                     </div>
 

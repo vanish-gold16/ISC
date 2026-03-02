@@ -53,7 +53,7 @@
 
                 <div class="subscription-actions">
                     <a class="btn btn--ghost btn--sm" th:href="@{/profile/{id}(id=${user.id})}">View profile</a>
-                    <a class="btn btn--primary btn--sm" th:href="@{/messages}">Message</a>
+                    <a class="btn btn--primary btn--sm" th:href="@{/messages/{id}(id=${user.id})}">Message</a>
                 </div>
             </article>
         </div>

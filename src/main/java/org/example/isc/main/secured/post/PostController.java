@@ -122,6 +122,7 @@ public class PostController {
             long repliesCount = postService.getCommentRepliesCount(comment);
             String authorName = "ISC Member";
             String authorUsername = null;
+            Long authorId = null;
             boolean friendAuthor = false;
             if (comment.getUser() != null) {
                 String first = comment.getUser().getFirstName();
@@ -132,6 +133,7 @@ public class PostController {
                 }
                 authorUsername = comment.getUser().getUsername();
                 if (comment.getUser().getId() != null) {
+                    authorId = comment.getUser().getId();
                     friendAuthor = friendIds.contains(comment.getUser().getId());
                 }
             }
@@ -144,6 +146,7 @@ public class PostController {
                     comment.getText(),
                     authorName,
                     authorUsername,
+                    authorId,
                     friendAuthor,
                     likes,
                     liked,

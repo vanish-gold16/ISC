@@ -4,13 +4,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/messenger")
+@RequestMapping({"/messenger", "/messages"})
 public class MessengerController {
 
     @GetMapping()
@@ -18,7 +19,23 @@ public class MessengerController {
             Authentication authentication,
             Model model
     ){
+        populateModel(model, null);
+        return "/private/messenger";
+    }
+
+    @GetMapping("/{id}")
+    public String userPage(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model
+    ){
+        populateModel(model, id);
+        return "/private/messenger";
+    }
+
+    private void populateModel(Model model, Long userId) {
         model.addAttribute("title", "Messenger");
+        model.addAttribute("selectedUserId", userId);
 
         List<Map<String, Object>> conversations = List.of(
                 Map.of(
@@ -64,10 +81,10 @@ public class MessengerController {
         );
 
         Map<String, Object> activeConversation = Map.of(
-                "id", 1L,
+                "id", userId != null ? userId : 1L,
                 "name", "Yuki Tanaka",
                 "avatar", "/images/private/profile/common-profile.png",
-                "subtitle", "Computer Science • Tokyo",
+                "subtitle", "Computer Science - Tokyo",
                 "online", true,
                 "friend", true
         );
@@ -112,18 +129,6 @@ public class MessengerController {
         model.addAttribute("activeConversation", activeConversation);
         model.addAttribute("messages", messages);
         model.addAttribute("quickActions", quickActions);
-
-        return "/private/messenger";
-    }
-
-    @GetMapping("/{id}")
-    public String userPage(
-            Authentication authentication,
-            Model model
-    ){
-
-
-        return "/private/user-page";
     }
 
 }
