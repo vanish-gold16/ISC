@@ -3,8 +3,11 @@ package org.example.isc.main.secured.post;
 import jakarta.transaction.Transactional;
 import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.dto.NewPostForm;
+import org.example.isc.main.secured.models.Comment;
 import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.repositories.CommentLikeRepository;
+import org.example.isc.main.secured.repositories.CommentRepository;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -19,11 +22,15 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final CommentLikeRepository commentLikeRepository;
+    private final CommentRepository commentRepository;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, ImageService imageService) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, ImageService imageService, CommentLikeRepository commentLikeRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.imageService = imageService;
+        this.commentLikeRepository = commentLikeRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Transactional
@@ -48,6 +55,26 @@ public class PostService {
         post.setPhotoUrl(photoUrl);
 
         postRepository.save(post);
+    }
+
+    public Long likedByUser(
+            Comment comment, User user
+    ){
+        return commentLikeRepository.existsCommentLikeByUserAndComment(user, comment);
+    }
+
+    public Long getCommentLikeCounts(
+            Comment comment
+    ){
+        Long likeCount = commentLikeRepository.countCommentLikeByComment(comment);
+
+        return likeCount;
+    }
+
+    public Long getCommentRepliesCount(
+            Comment comment, User user
+    ){
+        return commentRepository.count
     }
 
 }
