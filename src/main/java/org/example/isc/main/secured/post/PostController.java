@@ -7,6 +7,7 @@ import org.example.isc.main.dto.NewPostForm;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.*;
 import org.example.isc.main.secured.notification.NotificationService;
+import org.example.isc.main.secured.post.CommentView;
 import org.example.isc.main.secured.repositories.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -29,16 +33,14 @@ public class PostController {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final NotificationsRepository notificationsRepository;
     private final NotificationService notificationService;
 
-    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationsRepository notificationsRepository, NotificationService notificationService) {
+    public PostController(PostService postService, UserRepository userRepository, LikeRepository likeRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationService notificationService) {
         this.postService = postService;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
-        this.notificationsRepository = notificationsRepository;
         this.notificationService = notificationService;
     }
 
@@ -92,8 +94,30 @@ public class PostController {
         currentPost.setCommentsCount(commentRepository.countByPostId(id));
         currentPost.setLiked(likeRepository.existsByPostIdAndSenderId(id, me.getId()));
 
+        List<Comment> flatComments = commentRepository.findAllByPostIdOrderByIdAsc(id);
+        Map<Long, CommentView> viewById = new LinkedHashMap<>();
+        for (Comment comment : flatComments) {
+            long likes = postService.getCommentLikeCounts(comment);
+            boolean liked = postService.likedByUser(comment, me);
+            long repliesCount = postService.getCommentRepliesCount(comment);
+            viewById.put(comment.getId(), new CommentView(comment, likes, liked, repliesCount));
+        }
+
+        List<CommentView> commentViews = new ArrayList<>();
+        for (CommentView view : viewById.values()) {
+            Comment parent = view.getComment().getParentComment();
+            if (parent != null && parent.getId() != null) {
+                CommentView parentView = viewById.get(parent.getId());
+                if (parentView != null) {
+                    parentView.addReply(view);
+                    continue;
+                }
+            }
+            commentViews.add(view);
+        }
+
         model.addAttribute("commentForm", new NewCommentForm());
-        model.addAttribute("comments", commentRepository.findAllByPostIdOrderByIdAsc(id));
+        model.addAttribute("commentViews", commentViews);
         model.addAttribute("title", currentPost.getUser().getUsername());
         model.addAttribute("post", currentPost);
 

@@ -4,19 +4,22 @@ import jakarta.validation.Valid;
 import org.example.isc.main.dto.NewCommentForm;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.Comment;
-import org.example.isc.main.secured.models.CommentLike;
 import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.notification.NotificationService;
-import org.example.isc.main.secured.repositories.*;
+import org.example.isc.main.secured.post.PostService;
+import org.example.isc.main.secured.repositories.CommentRepository;
+import org.example.isc.main.secured.repositories.PostRepository;
+import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
 
 @Controller
 @RequestMapping("/posts")
@@ -25,17 +28,15 @@ public class CommentController {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final CommentLikeRepository commentLikeRepository;
-    private final NotificationsRepository notificationsRepository;
     private final NotificationService notificationService;
+    private final PostService postService;
 
-    public CommentController(UserRepository userRepository, PostRepository postRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, NotificationsRepository notificationsRepository, NotificationService notificationService) {
+    public CommentController(UserRepository userRepository, PostRepository postRepository, CommentRepository commentRepository, NotificationService notificationService, PostService postService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
-        this.commentLikeRepository = commentLikeRepository;
-        this.notificationsRepository = notificationsRepository;
         this.notificationService = notificationService;
+        this.postService = postService;
     }
 
     @PostMapping("/{postId}/comments/{commentId}/like")
@@ -43,7 +44,7 @@ public class CommentController {
             @PathVariable Long postId,
             @PathVariable Long commentId,
             Authentication authentication,
-            Model model
+            @RequestHeader(value = "Referer", required = false) String referer
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
@@ -51,51 +52,8 @@ public class CommentController {
         Comment currentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalStateException("Comment not found: " + commentId));
 
-        boolean isLikedComment = commentLikeRepository.existsByCommentIdAndUserId(commentId, me.getId());
-        if(isLikedComment) {
-            CommentLike commentLike = commentLikeRepository.findByUserAndComment(
-                    me, currentComment
-            );
-            commentLikeRepository.delete(commentLike);
-        } else{
-            CommentLike commentLike = new CommentLike(me, currentComment);
-            commentLikeRepository.save(commentLike);
-            notificationService.create(
-                    NotificationEnum.COMMENT,
-                    currentComment.getUser(),
-                    me,
-                    "New comment like!",
-                    " has liked your comment",
-                    null
-            );
-        }
-
-        return "redirect:/posts/" + postId;
-    }
-
-    @PostMapping(value = "/{postId}/comments/{commentId}/like")
-    @ResponseBody
-    public ResponseEntity<Void> likeCommentAjax(
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
-            Authentication authentication,
-            Model model
-    ){
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-
-        Comment currentComment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalStateException("Comment not found: " + commentId));
-
-        boolean isLikedComment = commentLikeRepository.existsByCommentIdAndUserId(commentId, me.getId());
-        if(isLikedComment) {
-            CommentLike commentLike = commentLikeRepository.findByUserAndComment(
-                    me, currentComment
-            );
-            commentLikeRepository.delete(commentLike);
-        } else{
-            CommentLike commentLike = new CommentLike(me, currentComment);
-            commentLikeRepository.save(commentLike);
+        boolean liked = postService.toggleCommentLike(me, currentComment);
+        if (liked) {
             notificationService.create(
                     NotificationEnum.LIKE,
                     currentComment.getUser(),
@@ -106,7 +64,40 @@ public class CommentController {
             );
         }
 
-        return ResponseEntity.ok().build();
+        String target = (referer != null && !referer.isBlank()) ? referer : "/posts/" + postId;
+        return "redirect:" + target;
+    }
+
+    @PostMapping(value = "/{postId}/comments/{commentId}/like", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> likeCommentAjax(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Comment currentComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalStateException("Comment not found: " + commentId));
+
+        boolean liked = postService.toggleCommentLike(me, currentComment);
+        if (liked) {
+            notificationService.create(
+                    NotificationEnum.LIKE,
+                    currentComment.getUser(),
+                    me,
+                    "New comment like!",
+                    " has liked your comment",
+                    null
+            );
+        }
+
+        Map<String, Object> payload = Map.of(
+                "liked", liked,
+                "likesCount", postService.getCommentLikeCounts(currentComment)
+        );
+        return ResponseEntity.ok(payload);
     }
 
     @PostMapping("/{postId}/comment/{commentId}/reply")
@@ -114,9 +105,9 @@ public class CommentController {
             @PathVariable Long postId,
             @PathVariable Long commentId,
             Authentication authentication,
+            @Valid @ModelAttribute NewCommentForm form,
             BindingResult result,
-            @RequestHeader(value = "Referer", required = false) String referer,
-            @Valid @ModelAttribute NewCommentForm form
+            @RequestHeader(value = "Referer", required = false) String referer
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
@@ -141,10 +132,10 @@ public class CommentController {
         commentRepository.save(comment);
         notificationService.create(
                 NotificationEnum.COMMENT,
-                me,
                 currentComment.getUser(),
+                me,
                 "New comment reply",
-                " has replyed to your comment",
+                " has replied to your comment",
                 null
         );
 

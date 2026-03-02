@@ -52,6 +52,40 @@
         .comment {
             padding: 12px;
         }
+        .comment__actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .comment__replies-count {
+            font-size: 12px;
+        }
+        .comment__reply-form {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .comment__reply-form--visible {
+            display: flex;
+        }
+        .comment__reply-form textarea {
+            min-height: 48px;
+            resize: vertical;
+        }
+        .comment__replies {
+            margin-top: 12px;
+            padding-left: 12px;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .comment__replies .card.comment {
+            margin-left: 4px;
+            padding-left: 8px;
+        }
         .comment__head {
             display: flex;
             align-items: center;
@@ -142,17 +176,61 @@
             <div class="comment-media-slot">Image placeholder: /images/private/comments/comment-upload.png</div>
         </article>
 
-        <div class="card comment" th:each="c : ${comments}">
-            <div class="comment__head">
-                <div class="comment__name" th:text="${c.user != null ? (c.user.firstName + ' ' + c.user.lastName) : 'ISC Member'}">ISC Member</div>
-                <div class="comment__meta muted" th:text="${c.user != null && c.user.username != null ? '@' + c.user.username : '@user'}">@user</div>
+        <div class="comment-list" th:if="${commentViews == null or #lists.isEmpty(commentViews)}">
+            <div class="card empty">
+                <h3>No comments yet</h3>
+                <p class="muted">Be the first to reply.</p>
             </div>
-            <p th:text="${c.text}">Comment text</p>
         </div>
 
-        <div class="card empty" th:if="${comments == null or #lists.isEmpty(comments)}">
-            <h3>No comments yet</h3>
-            <p class="muted">Be the first to reply.</p>
+        <div class="comment-list" th:if="${commentViews != null and !#lists.isEmpty(commentViews)}">
+            <div th:each="commentView : ${commentViews}">
+                <div th:replace="~{this :: commentCard(commentView=${commentView}, post=${post})}"></div>
+            </div>
+        </div>
+
+        <div th:fragment="commentCard(commentView, post)" th:remove="tag">
+            <article class="card comment" th:classappend="${!#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
+                <div class="comment__head">
+                    <div class="comment__name"
+                         th:text="${commentView.comment.user != null ? (commentView.comment.user.firstName + ' ' + commentView.comment.user.lastName) : 'ISC Member'}">ISC Member</div>
+                    <div class="comment__meta muted"
+                         th:text="${commentView.comment.user != null && commentView.comment.user.username != null ? '@' + commentView.comment.user.username : '@user'}">@user</div>
+                </div>
+                <p th:text="${commentView.comment.text}">Comment text</p>
+                <div class="comment__actions">
+                    <form class="action-form" method="post"
+                          th:action="@{/posts/{postId}/comments/{commentId}/like(postId=${post.id}, commentId=${commentView.comment.id})}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button class="action action--like" type="submit" aria-label="Like"
+                                th:attr="data-liked=${commentView.liked},data-like-icon=@{/images/private/icons/like.png},data-liked-icon=@{/images/private/icons/liked.png}">
+                            <img class="action__icon"
+                                 th:src="${commentView.liked} ? '/images/private/icons/liked.png' : '/images/private/icons/like.png'"
+                                 alt="" />
+                            <span class="action__count" th:text="${commentView.likes} ?: 0">0</span>
+                        </button>
+                    </form>
+                    <button class="action action--reply" type="button" data-comment-reply-toggle>
+                        <img class="action__icon" src="/images/private/icons/comment.png" alt="" />
+                        <span class="action__label">Reply</span>
+                    </button>
+                    <span class="comment__replies-count muted" th:if="${commentView.repliesCount > 0}"
+                          th:text="${commentView.repliesCount} + ' replies'">0 replies</span>
+                </div>
+                <form class="comment__reply-form" method="post"
+                      th:action="@{/posts/{postId}/comment/{commentId}/reply(postId=${post.id}, commentId=${commentView.comment.id})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <textarea class="comment-input" name="text" maxlength="100" placeholder="Reply..." rows="2"></textarea>
+                    <button class="comment-upload" type="submit" aria-label="Send reply">
+                        <img src="/images/private/comments/comment-upload.png" alt="" />
+                    </button>
+                </form>
+                <div class="comment__replies" th:if="${!#lists.isEmpty(commentView.replies)}">
+                    <div th:each="reply : ${commentView.replies}">
+                        <div th:replace="~{this :: commentCard(commentView=${reply}, post=${post})}"></div>
+                    </div>
+                </div>
+            </article>
         </div>
     </section>
 
@@ -222,6 +300,27 @@
                     }
                 } catch (err) {
                     form.submit();
+                }
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        const toggles = Array.from(document.querySelectorAll('[data-comment-reply-toggle]'));
+        if (!toggles.length) return;
+        toggles.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const card = btn.closest('.card.comment');
+                if (!card) return;
+                const form = card.querySelector('.comment__reply-form');
+                if (!form) return;
+                form.classList.toggle('comment__reply-form--visible');
+                if (form.classList.contains('comment__reply-form--visible')) {
+                    const textarea = form.querySelector('textarea');
+                    if (textarea) {
+                        textarea.focus();
+                    }
                 }
             });
         });
