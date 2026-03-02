@@ -41,6 +41,12 @@ public class Comment {
     public Comment() {
     }
 
+    public Comment(Post post, User user, String text) {
+        this.post = post;
+        this.user = user;
+        this.text = text;
+    }
+
     public Long getResponsesCount() {
         return responsesCount;
     }
