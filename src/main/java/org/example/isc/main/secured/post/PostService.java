@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.dto.NewPostForm;
 import org.example.isc.main.secured.models.Comment;
+import org.example.isc.main.secured.models.CommentLike;
 import org.example.isc.main.secured.models.Post;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.CommentLikeRepository;
@@ -57,24 +58,48 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public Long likedByUser(
+    public boolean likedByUser(
             Comment comment, User user
     ){
-        return commentLikeRepository.existsCommentLikeByUserAndComment(user, comment);
+        if (comment == null || user == null) {
+            return false;
+        }
+        return commentLikeRepository.existsByUserAndComment(user, comment);
     }
 
-    public Long getCommentLikeCounts(
+    public long getCommentLikeCounts(
             Comment comment
     ){
-        Long likeCount = commentLikeRepository.countCommentLikeByComment(comment);
-
-        return likeCount;
+        if (comment == null) {
+            return 0;
+        }
+        return commentLikeRepository.countByComment(comment);
     }
 
-    public Long getCommentRepliesCount(
-            Comment comment, User user
+    public long getCommentRepliesCount(
+            Comment comment
     ){
-        return commentRepository.count
+        if (comment == null) {
+            return 0;
+        }
+        return commentRepository.countByParentComment(comment);
+    }
+
+    @Transactional
+    public boolean toggleCommentLike(
+            User user, Comment comment
+    ){
+        if (user == null || comment == null) {
+            throw new IllegalArgumentException("User and comment must be provided");
+        }
+        CommentLike existing = commentLikeRepository.findByUserAndComment(user, comment);
+        if (existing != null) {
+            commentLikeRepository.delete(existing);
+            return false;
+        }
+
+        commentLikeRepository.save(new CommentLike(user, comment));
+        return true;
     }
 
 }

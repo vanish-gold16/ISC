@@ -21,7 +21,8 @@ public class Comment {
     @Column(name = "text")
     private String text;
 
-    @Column(name = "parent_comment")
+    @ManyToOne
+    @JoinColumn(name = "parent_comment")
     private Comment parentComment;
 
     @Column(name = "responses_count")
