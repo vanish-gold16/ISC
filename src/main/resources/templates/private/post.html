@@ -189,7 +189,7 @@
             </div>
         </div>
 
-        <div th:fragment="commentCard(commentView, post)" th:remove="tag">
+        <th:block th:fragment="commentCard(commentView, post)" th:remove="all">
             <article class="card comment" th:classappend="${!#lists.isEmpty(commentView.replies)} ? ' comment--has-replies' : ''">
                 <div class="comment__head">
                     <div class="comment__name"
@@ -231,7 +231,7 @@
                     </div>
                 </div>
             </article>
-        </div>
+        </th:block>
     </section>
 
     <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('home')}"></aside>
