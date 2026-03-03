@@ -90,6 +90,13 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- WebSocket -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+            <version>7.0.5</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
