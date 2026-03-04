@@ -1,9 +1,11 @@
 package org.example.isc.main.secured.messenger;
 
 import org.example.isc.main.dto.ConversationDTO;
+import org.example.isc.main.enums.conversation.ConversationRole;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
+import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
 import org.springframework.stereotype.Service;
@@ -22,26 +24,25 @@ public class MessengerService {
         this.conversationMemberRepository = conversationMemberRepository1;
     }
 
-    public ConversationDTO getConversations(User me){
+    public List<ConversationDTO> getConversations(User me){
         List<Conversation> conversations = conversationRepository.findByMember(me);
         return conversations.stream().map(c -> new ConversationDTO(
                 c.getId(),
                 c.getType(),
                 c.getTitle(),
                 c.getAvatarUrl()
-        ));
+        )).toList();
     }
 
     public Conversation getOrCreateDirect(User me, User target){
         List<Conversation> allConversations = conversationRepository.findByMember(me);
         Conversation currentConversation;
 
-        for (int i = 0; i < allConversations.size(); i++) {
-            currentConversation = allConversations.get(i);
-            if (conversationMemberRepository.existsByConversationAndUser(currentConversation, target)){
-                return allConversations.get(i);
+        for (Conversation c : allConversations) {
+                if(c.getType() ==  ConversationType.DIRECT
+                && conversationMemberRepository.existsByConversationAndUser(c,target))
+                return c;
             }
-        }
 
         currentConversation = new Conversation(
                 ConversationType.DIRECT,
@@ -50,6 +51,14 @@ public class MessengerService {
                 me,
                 LocalDateTime.now()
         );
+
+        conversationRepository.save(currentConversation);
+        conversationMemberRepository.save(new ConversationMember(
+                currentConversation, me, ConversationRole.MEMBER, LocalDateTime.now(), null
+        ));
+        conversationMemberRepository.save(new  ConversationMember(
+                currentConversation, target, ConversationRole.MEMBER, LocalDateTime.now(), null
+        ));
         return currentConversation;
     }
 

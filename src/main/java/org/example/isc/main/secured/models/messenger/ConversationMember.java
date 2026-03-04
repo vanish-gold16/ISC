@@ -40,6 +40,7 @@ public class ConversationMember {
     public ConversationMember() {
     }
 
+
     public Long getId() {
         return id;
     }

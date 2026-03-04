@@ -1,16 +1,14 @@
 package org.example.isc.main.secured.messenger;
 
 import org.example.isc.main.dto.ConversationDTO;
+import org.example.isc.main.dto.CreateDirectRequest;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,12 +33,21 @@ public class MessengerApiController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                         .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        List<ConversationDTO> result = messengerService.getConversations
+        List<ConversationDTO> result = messengerService.getConversations(me);
 
-        return conversationRepository.findByMember(me);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/direct")
-    public void
+    public ResponseEntity<ConversationDTO> createConversation(
+        @RequestBody CreateDirectRequest request,
+        Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        ConversationDTO conversationDTO = messengerService.getOrCreateDirect(me, request.getTarget());
+
+        return ResponseEntity.ok(conversationDTO);
+    }
 
 }
