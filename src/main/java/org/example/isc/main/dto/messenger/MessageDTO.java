@@ -8,6 +8,7 @@ public class MessageDTO {
 
     private Long id;
     private String body;
+    private Long senderId;
     private String senderName;
     private String senderAvatarUrl;
     private LocalDateTime createdAt;
@@ -17,7 +18,10 @@ public class MessageDTO {
         MessageDTO dto = new MessageDTO();
         dto.id = message.getId();
         dto.body = message.getText();
-        dto.senderName = message.getSender().getFirstName();
+        if (message.getSender() != null) {
+            dto.senderId = message.getSender().getId();
+            dto.senderName = message.getSender().getFirstName();
+        }
         dto.createdAt = message.getCreatedAt();
         return dto;
     }
@@ -36,6 +40,14 @@ public class MessageDTO {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public Long getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
     }
 
     public String getSenderName() {

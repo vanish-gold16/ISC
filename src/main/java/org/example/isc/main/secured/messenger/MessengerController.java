@@ -122,6 +122,7 @@ public class MessengerController {
         model.addAttribute("activeConversation", activeConversationView);
         model.addAttribute("messages", messages);
         model.addAttribute("activeConversationId", activeConversation == null ? null : activeConversation.getId());
+        model.addAttribute("currentUserId", me.getId());
     }
 
     private Map<String, Object> buildConversationView(Conversation conversation, User me) {
@@ -215,9 +216,9 @@ public class MessengerController {
     }
 
     private List<Map<String, Object>> buildMessageViews(Conversation conversation, User me) {
-        List<Message> raw = messageRepository
+        List<Message> raw = new ArrayList<>(messageRepository
                 .findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(conversation, PageRequest.of(0, 50))
-                .getContent();
+                .getContent());
         Collections.reverse(raw);
         List<Map<String, Object>> items = new ArrayList<>();
         for (Message message : raw) {

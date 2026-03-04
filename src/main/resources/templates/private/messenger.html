@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 
-<body th:attr="data-conversation-id=${activeConversationId}">
+<body th:attr="data-conversation-id=${activeConversationId},data-current-user-id=${currentUserId}">
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container messenger-layout">
@@ -83,15 +83,15 @@
             </div>
 
             <div class="chat-thread" th:if="${messages != null and !#lists.isEmpty(messages)}">
-                <div class="message" th:each="m : ${messages}" th:classappend="${m.fromMe} ? ' message--me' : ' message--them'">
+                <div class="message" th:each="m : ${messages}" th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'">
                     <div class="message__sender"
-                         th:if="${!m.fromMe and activeConversation.type != 'DIRECT'}"
-                         th:text="${m.senderName}">Sender</div>
-                    <div class="message__bubble" th:text="${m.text}">Message</div>
+                         th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
+                         th:text="${m['senderName']}">Sender</div>
+                    <div class="message__bubble" th:text="${m['text']}">Message</div>
                     <div class="message__meta">
-                        <span th:text="${m.time}">18:21</span>
+                        <span th:text="${m['time']}">18:21</span>
                         <span class="message__status"
-                              th:if="${m.fromMe and m['status'] != null}"
+                              th:if="${m['fromMe'] and m['status'] != null}"
                               th:text="${m['status']}">seen</span>
                     </div>
                 </div>
@@ -136,6 +136,8 @@
     (function () {
         const body = document.body;
         const conversationId = body ? body.getAttribute('data-conversation-id') : null;
+        const currentUserIdRaw = body ? body.getAttribute('data-current-user-id') : null;
+        const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : null;
         const thread = document.querySelector('.chat-thread');
         const composer = document.querySelector('.chat-composer');
         const textarea = composer ? composer.querySelector('textarea') : null;
@@ -152,6 +154,8 @@
                 if (!frame || !frame.body) return;
                 try {
                     const msg = JSON.parse(frame.body);
+                    const fromMe = currentUserId != null && msg && Number(msg.senderId) === currentUserId;
+                    if (fromMe) return;
                     appendMessage(msg, false);
                 } catch (e) {
                     appendMessage({ body: String(frame.body || '') }, false);

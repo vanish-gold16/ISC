@@ -330,6 +330,7 @@
     display: grid;
     gap: 6px;
     max-width: 70%;
+    align-self: start; /* добавить */
 }
 
 .message--me {
@@ -344,6 +345,7 @@
     border: 1px solid var(--msg-border);
     color: var(--msg-text);
     line-height: 1.45;
+    width: fit-content; /* добавить */
 }
 
 .message--me .message__bubble {
@@ -455,7 +457,12 @@
         order: 1;
     }
     .chat-thread {
-        max-height: 420px;
+        padding: 16px 18px;
+        display: flex;          /* grid → flex */
+        flex-direction: column; /* добавить */
+        gap: 14px;
+        overflow: auto;
+        align-items: stretch;   /* добавить */
     }
 }
 
