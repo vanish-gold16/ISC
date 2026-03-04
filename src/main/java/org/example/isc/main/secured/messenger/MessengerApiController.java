@@ -6,10 +6,13 @@ import org.example.isc.main.dto.CreateGroupRequest;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
+import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
 import org.example.isc.main.secured.repositories.conversation.MessageRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +30,14 @@ public class MessengerApiController {
     private final UserRepository userRepository;
     private final MessengerService messengerService;
     private final MessageRepository messageRepository;
+    private final ConversationMemberRepository conversationMemberRepository;
 
-    public MessengerApiController(ConversationRepository conversationRepository, UserRepository userRepository, MessengerService messengerService, MessengerService messengerService1, MessageRepository messageRepository) {
+    public MessengerApiController(ConversationRepository conversationRepository, UserRepository userRepository, MessengerService messengerService, MessengerService messengerService1, MessageRepository messageRepository, ConversationMemberRepository conversationMemberRepository) {
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
         this.messengerService = messengerService1;
         this.messageRepository = messageRepository;
+        this.conversationMemberRepository = conversationMemberRepository;
     }
 
     @GetMapping
@@ -88,7 +93,7 @@ public class MessengerApiController {
     }
 
     @GetMapping("/{id}/messages?page=0")
-    public ResponseEntity<List<Message>> history(
+    public Page<Message> history(
         @PathVariable Long id,
         Authentication authentication,
         int limit
@@ -97,12 +102,14 @@ public class MessengerApiController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         Conversation currentConversation = conversationRepository.findById(id)
                         .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
+        if(conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
+            return Page.empty();
 
         Pageable pageable = PageRequest.of(0, limit);
 
-        List<Message> messages = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(currentConversation, pageable).stream().toList();
+        Page<Message> messages = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(currentConversation, pageable);
 
-        return ResponseEntity.ok(messages);
+        return messages;
     }
 
     @PutMapping("/{id}/rename")
@@ -116,6 +123,23 @@ public class MessengerApiController {
         messengerService.rename(currentConversation, newName, authentication);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/members/add")
+    public ResponseEntity<ConversationMember> addMember(
+            @PathVariable Long id,
+            Authentication authentication,
+            User user
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        Conversation currentConversation = conversationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
+        if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
+            return ResponseEntity.notFound().build();
+
+
+        return ResponseEntity.ok();
     }
 
 }
