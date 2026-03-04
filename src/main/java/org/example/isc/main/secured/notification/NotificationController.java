@@ -167,10 +167,9 @@ public class NotificationController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         Notification notification = notificationsRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Notification not found: " + id));
-        if(notification.getReceiver().getId().equals(me.getId())
-        && notification.getReadAt() == null
-        )
-            notification.setReadAt(LocalDateTime.now());
+        if (notification.getReceiver().getId().equals(me.getId()) && notification.getReadAt() == null) {
+            notificationService.markRead(id, me);
+        }
         if (notification.getType() != null && notification.getType().name().equals("COMMENT")) {
             Long postId = parsePostId(notification.getData());
             if (postId != null) {

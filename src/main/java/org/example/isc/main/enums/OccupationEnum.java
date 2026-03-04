@@ -10,6 +10,7 @@ public enum OccupationEnum {
     SCIENCE,
     EDUCATION,
     ART,
+    SHOW_BUSINESS,
     DESIGN,
     MUSIC,
     MEDIA_AND_COMMUNICATION,

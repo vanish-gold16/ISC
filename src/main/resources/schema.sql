@@ -38,3 +38,50 @@ BEGIN
 END;
 $$;
 @@
+
+DO $$
+BEGIN
+    IF to_regclass('public.profiles') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'profiles_occupation_check'
+          AND conrelid = 'profiles'::regclass
+    ) THEN
+        ALTER TABLE profiles DROP CONSTRAINT profiles_occupation_check;
+    END IF;
+
+    ALTER TABLE profiles
+        ADD CONSTRAINT profiles_occupation_check
+            CHECK (
+                occupation IS NULL OR occupation IN (
+                    'IT',
+                    'ENGINEERING',
+                    'BUSINESS',
+                    'FINANCE',
+                    'LAW',
+                    'MEDICINE',
+                    'SCIENCE',
+                    'EDUCATION',
+                    'ART',
+                    'SHOW_BUSINESS',
+                    'DESIGN',
+                    'MUSIC',
+                    'MEDIA_AND_COMMUNICATION',
+                    'HUMANITIES',
+                    'SOCIAL_SCIENCES',
+                    'SPORTS',
+                    'TOURISM_AND_HOSPITALITY',
+                    'AGRICULTURE_AND_ENVIRONMENT',
+                    'TRANSPORT_AND_LOGISTICS',
+                    'PUBLIC_SERVICE',
+                    'MILITARY_AND_SECURITY',
+                    'OTHER'
+                )
+            );
+END;
+$$;
+@@
