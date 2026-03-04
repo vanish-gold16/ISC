@@ -127,7 +127,7 @@ public class MessengerApiController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/members/{userId}/delete")
+    @PostMapping("/{id}/members/{userId}/add")
     public ResponseEntity<ConversationMember> addMember(
             @PathVariable Long id,
             @PathVariable Long userId,
@@ -149,16 +149,18 @@ public class MessengerApiController {
     public ResponseEntity<String> deleteUser(
             @PathVariable Long id,
             Authentication authentication,
-            User user
+            @PathVariable Long userId
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found " + userId));
         Conversation currentConversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
         if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(messengerService.deleteUser(currentConversation, user, authentication));
+        return ResponseEntity.ok(messengerService.deleteUser(currentConversation, target, authentication));
     }
 
 }

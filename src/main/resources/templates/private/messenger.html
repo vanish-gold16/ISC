@@ -30,11 +30,12 @@
                 <button class="sidebar-tab" type="button">Unread</button>
                 <button class="sidebar-tab" type="button">Groups</button>
             </div>
-            <div class="conversation-list">
-                <div class="conversation-item"
-                     th:each="c : ${conversations}"
-                     th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
-                     data-conversation-item>
+            <div class="conversation-list" th:if="${conversations != null and !#lists.isEmpty(conversations)}">
+                <a class="conversation-item"
+                   th:each="c : ${conversations}"
+                   th:href="@{/messages/c/{id}(id=${c.id})}"
+                   th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
+                   data-conversation-item>
                     <img class="conversation-avatar" th:src="${c.avatar}" alt="" />
                     <div class="conversation-body">
                         <div class="conversation-name">
@@ -49,11 +50,15 @@
                         <span class="conversation-unread" th:if="${c.unread > 0}"
                               th:text="${c.unread}">1</span>
                     </div>
-                </div>
+                </a>
+            </div>
+            <div class="conversation-empty" th:if="${conversations == null or #lists.isEmpty(conversations)}">
+                <h3>No conversations</h3>
+                <p>Start a chat from a profile page.</p>
             </div>
         </section>
 
-        <section class="messenger-panel messenger-chat">
+        <section class="messenger-panel messenger-chat" th:if="${activeConversation != null}">
             <div class="chat-head">
                 <div class="chat-head-left">
                     <img class="chat-avatar" th:src="${activeConversation.avatar}" alt="" />
@@ -74,12 +79,11 @@
                 </div>
             </div>
 
-            <div class="chat-quick">
-                <span class="chip" th:each="a : ${quickActions}" th:text="${a.label}">Action</span>
-            </div>
-
-            <div class="chat-thread">
+            <div class="chat-thread" th:if="${messages != null and !#lists.isEmpty(messages)}">
                 <div class="message" th:each="m : ${messages}" th:classappend="${m.fromMe} ? ' message--me' : ' message--them'">
+                    <div class="message__sender"
+                         th:if="${!m.fromMe and activeConversation.type != 'DIRECT'}"
+                         th:text="${m.senderName}">Sender</div>
                     <div class="message__bubble" th:text="${m.text}">Message</div>
                     <div class="message__meta">
                         <span th:text="${m.time}">18:21</span>
@@ -90,12 +94,23 @@
                 </div>
             </div>
 
+            <div class="chat-empty" th:if="${messages == null or #lists.isEmpty(messages)}">
+                <h3>No messages yet</h3>
+                <p>Say hi to start the conversation.</p>
+            </div>
+
             <div class="chat-composer">
                 <div class="composer-row">
                     <textarea placeholder="Write a message..." rows="2"></textarea>
                     <button class="send-btn" type="button">Send</button>
                 </div>
                 <div class="composer-hint">Tip: drop files or photos here to share quickly.</div>
+            </div>
+        </section>
+        <section class="messenger-panel messenger-chat messenger-chat--empty" th:if="${activeConversation == null}">
+            <div class="chat-empty">
+                <h3>Select a conversation</h3>
+                <p>Choose a chat on the left or start one from a profile page.</p>
             </div>
         </section>
     </div>
@@ -107,12 +122,10 @@
     (function () {
         const items = Array.from(document.querySelectorAll('[data-conversation-item]'));
         if (!items.length) return;
-        items.forEach(item => {
-            item.addEventListener('click', () => {
-                items.forEach(el => el.classList.remove('is-active'));
-                item.classList.add('is-active');
-            });
-        });
+        items.forEach(item => item.addEventListener('click', () => {
+            items.forEach(el => el.classList.remove('is-active'));
+            item.classList.add('is-active');
+        }));
     })();
 </script>
 </body>
