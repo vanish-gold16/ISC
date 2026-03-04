@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.messenger;
 
+import org.example.isc.main.dto.ConversationDTO;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
@@ -19,6 +20,16 @@ public class MessengerService {
     public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, ConversationMemberRepository conversationMemberRepository1) {
         this.conversationRepository = conversationRepository;
         this.conversationMemberRepository = conversationMemberRepository1;
+    }
+
+    public ConversationDTO getConversations(User me){
+        List<Conversation> conversations = conversationRepository.findByMember(me);
+        return conversations.stream().map(c -> new ConversationDTO(
+                c.getId(),
+                c.getType(),
+                c.getTitle(),
+                c.getAvatarUrl()
+        ));
     }
 
     public Conversation getOrCreateDirect(User me, User target){
