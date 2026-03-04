@@ -6,24 +6,24 @@ import org.example.isc.main.secured.models.User;
 public class CreateDirectRequest {
 
     @NotNull
-    private User me;
+    private Long me;
 
     @NotNull
-    private User target;
+    private Long target;
 
-    public User getMe() {
+    public Long getMe() {
         return me;
     }
 
-    public void setMe(User me) {
+    public void setMe(Long me) {
         this.me = me;
     }
 
-    public User getTarget() {
+    public Long getTarget() {
         return target;
     }
 
-    public void setTarget(User target) {
+    public void setTarget(Long target) {
         this.target = target;
     }
 }

@@ -18,6 +18,8 @@ import org.example.isc.main.secured.repositories.conversation.ConversationReposi
 import org.example.isc.main.secured.repositories.conversation.MessageRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,15 +30,13 @@ public class MessengerService {
     private final ConversationRepository conversationRepository;
     private final ConversationMemberRepository conversationMemberRepository;
     private final UserRepository userRepository;
-    private final NotificationsRepository notificationsRepository;
     private final NotificationService notificationService;
     private final MessageRepository messageRepository;
 
-    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, ConversationMemberRepository conversationMemberRepository1, UserRepository userRepository, NotificationsRepository notificationsRepository, NotificationService notificationService, MessageRepository messageRepository) {
+    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, UserRepository userRepository, NotificationService notificationService, MessageRepository messageRepository) {
         this.conversationRepository = conversationRepository;
-        this.conversationMemberRepository = conversationMemberRepository1;
+        this.conversationMemberRepository = conversationMemberRepository;
         this.userRepository = userRepository;
-        this.notificationsRepository = notificationsRepository;
         this.notificationService = notificationService;
         this.messageRepository = messageRepository;
     }
@@ -88,7 +88,11 @@ public class MessengerService {
         return toDTO(conversation);
     }
 
-    public void rename(Conversation conversation, String newName, Authentication authentication){
+    public void rename(
+            Conversation conversation,
+            @RequestParam String newName,
+            Authentication authentication
+    ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, me)
@@ -98,7 +102,7 @@ public class MessengerService {
         if(conversation.getType().equals(ConversationType.GROUP)){
             conversation.setTitle(newName);
             conversationRepository.save(conversation);
-            for(ConversationMember m : conversationMemberRepository.countByConversation(conversation)) {
+            for(ConversationMember m : conversationMemberRepository.findByConversation(conversation)) {
                 notificationService.create(
                         NotificationEnum.MESSAGE,
                         m.getUser(),
@@ -116,7 +120,7 @@ public class MessengerService {
         ){
             conversation.setTitle(newName);
             conversationRepository.save(conversation);
-            for(ConversationMember m :conversationMemberRepository.countByConversation(conversation)){
+            for(ConversationMember m :conversationMemberRepository.findByConversation(conversation)){
                 notificationService.create(
                         NotificationEnum.MESSAGE,
                         m.getUser(),
@@ -129,14 +133,18 @@ public class MessengerService {
         }
     }
 
-    public ConversationMember addUser(Conversation conversation, User user, Authentication authentication){
+    public ConversationMember addUser(
+            Conversation conversation,
+            @RequestParam User user,
+            Authentication authentication
+    ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         ConversationMember member = new ConversationMember(
                 conversation, user, ConversationRole.MEMBER, LocalDateTime.now(), null
         );
         conversationMemberRepository.save(member);
-        for(ConversationMember m : conversationMemberRepository.countByConversation(conversation)) {
+        for(ConversationMember m : conversationMemberRepository.findByConversation(conversation)) {
             notificationService.create(
                     NotificationEnum.MESSAGE,
                     m.getUser(),
@@ -156,15 +164,14 @@ public class MessengerService {
                         new IllegalStateException("Logged-in user not found: " + authentication.getName()))
         ).orElseThrow(() -> new IllegalStateException("User is not in this conversation: " + conversation.getTitle()));
 
-        ConversationMember member = new ConversationMember(
-                conversation, user, ConversationRole.MEMBER, LocalDateTime.now(), null
-        );
+        ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, user)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + user.getUsername()));
 
         String status = "User has not been deleted";
         if(me.getConversationRole().equals(ConversationRole.ADMIN)
         || me.getConversationRole().equals(ConversationRole.OWNER)){
             conversationMemberRepository.delete(member);
-            for(ConversationMember m : conversationMemberRepository.countByConversation(conversation)){
+            for(ConversationMember m : conversationMemberRepository.findByConversation(conversation)){
                 notificationService.create(
                         NotificationEnum.MESSAGE,
                         m.getUser(),

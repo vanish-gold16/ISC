@@ -8,49 +8,45 @@ import java.util.List;
 public class CreateGroupRequest {
 
     @NotNull
-    private User me;
+    private Long me;
 
-    private List<User> target;
+    private List<Long> target;
 
     private String title;
 
     public CreateGroupRequest() {
     }
 
-    public CreateGroupRequest(User me) {
+    public CreateGroupRequest(Long me) {
         this.me = me;
     }
 
-    public CreateGroupRequest(User me, List<User> target) {
+    public CreateGroupRequest(Long me, List<Long> target) {
         this.me = me;
         this.target = target;
     }
 
+    public Long getMe() {
+        return me;
+    }
+
+    public void setMe(Long me) {
+        this.me = me;
+    }
+
+    public List<Long> getTarget() {
+        return target;
+    }
+
+    public void setTarget(List<Long> target) {
+        this.target = target;
+    }
 
     public String getTitle() {
-        if (title == null || title.isBlank()) {
-            return me != null ? me.getUsername() + "'s group" : null;
-        }
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public User getMe() {
-        return me;
-    }
-
-    public void setMe(User me) {
-        this.me = me;
-    }
-
-    public List<User> getTarget() {
-        return target;
-    }
-
-    public void setTarget(List<User> target) {
-        this.target = target;
     }
 }

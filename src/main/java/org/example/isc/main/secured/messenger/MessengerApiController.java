@@ -3,11 +3,11 @@ package org.example.isc.main.secured.messenger;
 import org.example.isc.main.dto.messenger.ConversationDTO;
 import org.example.isc.main.dto.messenger.CreateDirectRequest;
 import org.example.isc.main.dto.messenger.CreateGroupRequest;
+import org.example.isc.main.dto.messenger.MessageDTO;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
-import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
@@ -32,10 +32,10 @@ public class MessengerApiController {
     private final MessageRepository messageRepository;
     private final ConversationMemberRepository conversationMemberRepository;
 
-    public MessengerApiController(ConversationRepository conversationRepository, UserRepository userRepository, MessengerService messengerService, MessengerService messengerService1, MessageRepository messageRepository, ConversationMemberRepository conversationMemberRepository) {
+    public MessengerApiController(ConversationRepository conversationRepository, UserRepository userRepository, MessengerService messengerService, MessageRepository messageRepository, ConversationMemberRepository conversationMemberRepository) {
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
-        this.messengerService = messengerService1;
+        this.messengerService = messengerService;
         this.messageRepository = messageRepository;
         this.conversationMemberRepository = conversationMemberRepository;
     }
@@ -59,7 +59,7 @@ public class MessengerApiController {
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-        User target = userRepository.findById(request.getTarget().getId())
+        User target = userRepository.findById(request.getTarget())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         ConversationDTO conversationDTO = messengerService.getOrCreateDirect(me, target);
@@ -92,24 +92,26 @@ public class MessengerApiController {
         return ResponseEntity.ok(conversationDTO);
     }
 
-    @GetMapping("/{id}/messages?page=0")
-    public Page<Message> history(
+    @GetMapping("/{id}/messages")
+    public ResponseEntity<Page<MessageDTO>> history(
         @PathVariable Long id,
         Authentication authentication,
-        int limit
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         Conversation currentConversation = conversationRepository.findById(id)
                         .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
-        if(conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
-            return Page.empty();
+        if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
+            return ResponseEntity.status(403).build();
 
-        Pageable pageable = PageRequest.of(0, limit);
+        Pageable pageable = PageRequest.of(page, size);
 
-        Page<Message> messages = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(currentConversation, pageable);
+        Page<MessageDTO> messages = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(currentConversation, pageable)
+                .map(MessageDTO::from);
 
-        return messages;
+        return ResponseEntity.ok(messages);
     }
 
     @PutMapping("/{id}/rename")
@@ -125,23 +127,25 @@ public class MessengerApiController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/members/add")
+    @PostMapping("/{id}/members/{userId}/delete")
     public ResponseEntity<ConversationMember> addMember(
             @PathVariable Long id,
-            Authentication authentication,
-            User user
+            @PathVariable Long userId,
+            Authentication authentication
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found " + userId));
         Conversation currentConversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
         if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(messengerService.addUser(currentConversation, user, authentication));
+        return ResponseEntity.ok(messengerService.addUser(currentConversation, target, authentication));
     }
 
-    @DeleteMapping("{id}/members/{userId}")
+    @DeleteMapping("{id}/members/{userId}/delete")
     public ResponseEntity<String> deleteUser(
             @PathVariable Long id,
             Authentication authentication,
