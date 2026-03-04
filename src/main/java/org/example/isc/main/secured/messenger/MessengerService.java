@@ -104,7 +104,7 @@ public class MessengerService {
                         m.getUser(),
                         me,
                         oldName,
-                        me.getUsername() + " has renamed the conversation",
+                        " has renamed the conversation",
                         null
                         );
             }
@@ -122,7 +122,7 @@ public class MessengerService {
                         m.getUser(),
                         me,
                         oldName,
-                        me.getUsername() + " has renamed the channel",
+                        " has renamed the channel",
                         null
                 );
             }
@@ -142,7 +142,7 @@ public class MessengerService {
                     m.getUser(),
                     me,
                     conversation.getTitle(),
-                    member.getUser().getUsername() + " is the new member",
+                    " is the new member",
                     null
             );
         }
@@ -170,7 +170,7 @@ public class MessengerService {
                         m.getUser(),
                         me.getUser(),
                         conversation.getTitle(),
-                        me.getUser().getUsername() + " has deleted " + member.getUser().getUsername(),
+                        " has deleted " + member.getUser().getUsername(),
                         null
                 );
             }
@@ -194,16 +194,22 @@ public class MessengerService {
         );
     }
 
-    public void saveMessage(Conversation conversation, User sender, String text, MessageType type){
-        User receiver = conversationMemberRepository
+    public Message saveMessage(Conversation conversation, User sender, String text, MessageType type){
+        User receiver = conversationMemberRepository.findOtherUserByConversationDirect(conversation, sender);
         Message message = new Message(conversation, sender, text, type, LocalDateTime.now());
 
         messageRepository.save(message);
 
         notificationService.create(
                 NotificationEnum.MESSAGE,
-
+                receiver,
+                sender,
+                "New message",
+                ": " + text,
+                null
         );
+
+        return message;
     }
 
 }
