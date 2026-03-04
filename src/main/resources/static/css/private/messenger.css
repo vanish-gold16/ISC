@@ -26,6 +26,11 @@
     padding: 18px 0 28px;
 }
 
+.messenger-layout .sidebar-right {
+    position: static;
+    width: auto;
+}
+
 .messenger-panel {
     position: relative;
     z-index: 1;
