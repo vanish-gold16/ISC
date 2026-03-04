@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Size;
 import org.example.isc.main.enums.CountryEnum;
 import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.enums.converter.CountryEnumConverter;
-import org.example.isc.main.enums.converter.OccupationEnumConverter;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -37,7 +36,7 @@ public class UserProfile {
     private String currentStudy;
 
     @Column(name = "occupation")
-    @Convert(converter = OccupationEnumConverter.class)
+    @Enumerated(EnumType.STRING)
     private OccupationEnum occupationEnum;
 
     @Column(name = "avatar_url")

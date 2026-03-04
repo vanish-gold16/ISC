@@ -1,24 +1,90 @@
 package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
+import org.example.isc.main.enums.conversation.ConversationType;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chats")
-public class Chat {
+@Table(name = "conversations")
+public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "me")
-    private User me;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private ConversationType type;
 
-    @ManyToOne
-    @JoinColumn(name = "target")
-    private User target;
+    private String title;
+    private String avatarUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    public Conversation(ConversationType type, String title, String avatarUrl, User createdBy, LocalDateTime createdAt) {
+        this.type = type;
+        this.title = title;
+        this.avatarUrl = avatarUrl;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+    }
+
+    public Conversation() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public ConversationType getType() {
+        return type;
+    }
+
+    public void setType(ConversationType type) {
+        this.type = type;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }
 /// Посмотрел проект.
 ///

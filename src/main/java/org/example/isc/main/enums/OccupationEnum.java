@@ -2,8 +2,23 @@ package org.example.isc.main.enums;
 
 public enum OccupationEnum {
     IT,
+    ENGINEERING,
+    BUSINESS,
+    FINANCE,
+    LAW,
     MEDICINE,
-    ART,
+    SCIENCE,
+    EDUCATION,
+    ART_AND_DESIGN,
+    MUSIC,
+    MEDIA_AND_COMMUNICATION,
+    HUMANITIES,
+    SOCIAL_SCIENCES,
     SPORTS,
-    LAW
+    TOURISM_AND_HOSPITALITY,
+    AGRICULTURE_AND_ENVIRONMENT,
+    TRANSPORT_AND_LOGISTICS,
+    PUBLIC_SERVICE,
+    MILITARY_AND_SECURITY,
+    OTHER
 }
