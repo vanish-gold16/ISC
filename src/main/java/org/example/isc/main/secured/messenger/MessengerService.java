@@ -57,6 +57,19 @@ public class MessengerService {
         return toDTO(currentConversation);
     }
 
+    public ConversationDTO getOrCreateGroup(User me, Conversation conversation){
+        if(!conversationRepository.existsByTypeAndId(ConversationType.GROUP, conversation.getId())) {
+            if (!conversationMemberRepository.existsByConversationAndUser(conversation, me)) {
+                conversationRepository.save(conversation);
+                conversationMemberRepository.save(new ConversationMember(
+                        conversation, me, ConversationRole.MEMBER, LocalDateTime.now(), null
+                ));
+            }
+        }
+
+        return toDTO(conversation);
+    }
+
     private ConversationDTO toDTO(Conversation conversation){
         return new ConversationDTO(
                 conversation.getId(),
