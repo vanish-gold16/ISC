@@ -6,8 +6,10 @@ import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
+import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,10 +20,12 @@ public class MessengerService {
 
     private final ConversationRepository conversationRepository;
     private final ConversationMemberRepository conversationMemberRepository;
+    private final UserRepository userRepository;
 
-    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, ConversationMemberRepository conversationMemberRepository1) {
+    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, ConversationMemberRepository conversationMemberRepository1, UserRepository userRepository) {
         this.conversationRepository = conversationRepository;
         this.conversationMemberRepository = conversationMemberRepository1;
+        this.userRepository = userRepository;
     }
 
     public List<ConversationDTO> getConversations(User me){
@@ -69,6 +73,26 @@ public class MessengerService {
         }
 
         return toDTO(conversation);
+    }
+
+    public void rename(Conversation conversation, String newName, Authentication authentication){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, me)
+                .orElseThrow(() -> new IllegalStateException("User is not in this conversation: " + conversation.getTitle()));
+
+        if(conversation.getType().equals(ConversationType.GROUP)){
+            conversation.setTitle(newName);
+            conversationRepository.save(conversation);
+        }
+        else if(
+                conversation.getType().equals(ConversationType.CHANNEL)
+                && (member.getConversationRole().equals(ConversationRole.OWNER)
+                ||  member.getConversationRole().equals(ConversationRole.ADMIN))
+        ){
+            conversation.setTitle(newName);
+            conversationRepository.save(conversation);
+        }
     }
 
     private ConversationDTO toDTO(Conversation conversation){

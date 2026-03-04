@@ -106,10 +106,16 @@ public class MessengerApiController {
     }
 
     @PutMapping("/{id}/rename")
-    public String rename(){
+    public ResponseEntity<Void> rename(
+            @PathVariable Long id,
+            Authentication authentication,
+            String newName
+    ){
+        Conversation currentConversation = conversationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
+        messengerService.rename(currentConversation, newName, authentication);
 
-
-
+        return ResponseEntity.ok().build();
     }
 
 }
