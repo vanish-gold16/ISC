@@ -19,26 +19,11 @@
     font-family: "Trebuchet MS", "Candara", "Segoe UI", sans-serif;
 }
 
-.messenger-page::before {
-    content: "";
-    position: absolute;
-    inset: -40px -20px auto auto;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle at 30% 30%, rgba(14, 165, 164, 0.2), transparent 65%);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.messenger-page::after {
-    content: "";
-    position: absolute;
-    inset: auto auto -40px -40px;
-    width: 260px;
-    height: 260px;
-    background: radial-gradient(circle at 70% 30%, rgba(249, 115, 22, 0.22), transparent 65%);
-    pointer-events: none;
-    z-index: 0;
+.messenger-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    padding: 18px 0 28px;
 }
 
 .messenger-panel {
@@ -426,6 +411,15 @@
     color: var(--msg-muted);
 }
 
+.chat-empty-logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 16px;
+    opacity: 0.9;
+}
+
 .chat-empty h3 {
     margin: 0 0 6px 0;
     color: var(--msg-text);
@@ -444,6 +438,9 @@
 }
 
 @media (max-width: 900px) {
+    .messenger-layout {
+        grid-template-columns: 1fr;
+    }
     .messenger-page {
         grid-template-columns: 1fr;
     }

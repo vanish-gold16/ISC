@@ -43,8 +43,20 @@
                 <input id="photo" class="input input--file" type="file" th:field="*{photo}" accept="image/*" />
                 <p class="field__hint muted">JPG/PNG/WEBP, up to 5MB.</p>
                 <div class="photo-preview" id="photo-preview" hidden>
-                    <img id="photo-preview-img" alt="" />
-                    <button class="btn btn--ghost btn--sm" type="button" id="photo-clear">Remove photo</button>
+                    <div class="photo-cropper">
+                        <canvas id="photo-canvas" class="photo-canvas" aria-label="Photo crop preview"></canvas>
+                    </div>
+                    <div class="photo-tools">
+                        <div class="photo-aspect">
+                            <button class="btn btn--ghost btn--sm is-active" type="button" data-aspect="1">Square</button>
+                            <button class="btn btn--ghost btn--sm" type="button" data-aspect="9/16">9:16</button>
+                        </div>
+                        <label class="photo-zoom">
+                            <span>Zoom</span>
+                            <input id="photo-zoom" type="range" min="1" max="3" step="0.01" value="1" />
+                        </label>
+                        <button class="btn btn--ghost btn--sm" type="button" id="photo-clear">Remove photo</button>
+                    </div>
                 </div>
             </div>
 
@@ -66,30 +78,183 @@
     (function () {
         const input = document.getElementById('photo');
         const preview = document.getElementById('photo-preview');
-        const img = document.getElementById('photo-preview-img');
         const clear = document.getElementById('photo-clear');
+        const canvas = document.getElementById('photo-canvas');
+        const zoomInput = document.getElementById('photo-zoom');
+        const aspectButtons = Array.from(document.querySelectorAll('[data-aspect]'));
+        const form = document.querySelector('.new-post__form');
 
-        if (!input || !preview || !img || !clear) return;
+        if (!input || !preview || !clear || !canvas || !zoomInput || !form) return;
+
+        const ctx = canvas.getContext('2d');
+        const state = {
+            img: null,
+            zoom: 1,
+            baseScale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            aspect: 1,
+            dragging: false,
+            lastX: 0,
+            lastY: 0,
+            processed: false
+        };
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function setCanvasSize() {
+            const maxWidth = 420;
+            const width = Math.min(maxWidth, preview.clientWidth || maxWidth);
+            const height = Math.round(width / state.aspect);
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        function computeScale() {
+            if (!state.img) return;
+            const imgW = state.img.naturalWidth || state.img.width;
+            const imgH = state.img.naturalHeight || state.img.height;
+            const scaleX = canvas.width / imgW;
+            const scaleY = canvas.height / imgH;
+            state.baseScale = Math.max(scaleX, scaleY);
+        }
+
+        function clampOffsets() {
+            if (!state.img) return;
+            const imgW = state.img.naturalWidth || state.img.width;
+            const imgH = state.img.naturalHeight || state.img.height;
+            const scale = state.baseScale * state.zoom;
+            const maxX = Math.max(0, (imgW * scale - canvas.width) / 2);
+            const maxY = Math.max(0, (imgH * scale - canvas.height) / 2);
+            state.offsetX = clamp(state.offsetX, -maxX, maxX);
+            state.offsetY = clamp(state.offsetY, -maxY, maxY);
+        }
+
+        function draw() {
+            if (!state.img) return;
+            const imgW = state.img.naturalWidth || state.img.width;
+            const imgH = state.img.naturalHeight || state.img.height;
+            const scale = state.baseScale * state.zoom;
+            clampOffsets();
+            const drawW = imgW * scale;
+            const drawH = imgH * scale;
+            const x = (canvas.width - drawW) / 2 + state.offsetX;
+            const y = (canvas.height - drawH) / 2 + state.offsetY;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(state.img, x, y, drawW, drawH);
+        }
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const image = new Image();
+                image.onload = () => {
+                    state.img = image;
+                    state.zoom = 1;
+                    state.offsetX = 0;
+                    state.offsetY = 0;
+                    setCanvasSize();
+                    computeScale();
+                    draw();
+                    preview.hidden = false;
+                };
+                image.src = String(e.target.result || '');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setAspect(value) {
+            state.aspect = value;
+            setCanvasSize();
+            computeScale();
+            draw();
+        }
 
         input.addEventListener('change', () => {
             const file = input.files && input.files[0];
             if (!file) {
                 preview.hidden = true;
-                img.src = '';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                state.img = null;
                 return;
             }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                img.src = String(e.target.result || '');
-                preview.hidden = false;
-            };
-            reader.readAsDataURL(file);
+            state.processed = false;
+            loadImage(file);
+        });
+
+        aspectButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                aspectButtons.forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                const raw = btn.getAttribute('data-aspect') || '1';
+                const value = raw.includes('/') ? (Number(raw.split('/')[0]) / Number(raw.split('/')[1])) : Number(raw);
+                setAspect(value);
+            });
+        });
+
+        zoomInput.addEventListener('input', () => {
+            state.zoom = Number(zoomInput.value || 1);
+            draw();
+        });
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (!state.img) return;
+            state.dragging = true;
+            state.lastX = e.clientX;
+            state.lastY = e.clientY;
+            canvas.setPointerCapture(e.pointerId);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!state.dragging) return;
+            const dx = e.clientX - state.lastX;
+            const dy = e.clientY - state.lastY;
+            state.lastX = e.clientX;
+            state.lastY = e.clientY;
+            state.offsetX += dx;
+            state.offsetY += dy;
+            draw();
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
+            state.dragging = false;
+            canvas.releasePointerCapture(e.pointerId);
+        });
+
+        canvas.addEventListener('pointerleave', () => {
+            state.dragging = false;
+        });
+
+        form.addEventListener('submit', (e) => {
+            if (!state.img || state.processed) return;
+            e.preventDefault();
+            const original = input.files && input.files[0];
+            const type = original && original.type ? original.type : 'image/jpeg';
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    form.submit();
+                    return;
+                }
+                const name = original && original.name ? original.name.replace(/\.[^/.]+$/, '') : 'photo';
+                const ext = type === 'image/png' ? '.png' : type === 'image/webp' ? '.webp' : '.jpg';
+                const file = new File([blob], name + ext, { type });
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                state.processed = true;
+                form.submit();
+            }, type, 0.9);
         });
 
         clear.addEventListener('click', () => {
             input.value = '';
             preview.hidden = true;
-            img.src = '';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            state.img = null;
         });
     })();
 </script>

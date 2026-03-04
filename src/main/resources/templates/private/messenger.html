@@ -14,7 +14,7 @@
 <body>
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
-<main class="container">
+<main class="container messenger-layout">
     <div class="messenger-page">
         <section class="messenger-panel messenger-sidebar">
             <div class="sidebar-head">
@@ -109,11 +109,13 @@
         </section>
         <section class="messenger-panel messenger-chat messenger-chat--empty" th:if="${activeConversation == null}">
             <div class="chat-empty">
+                <img class="chat-empty-logo" src="/images/private/sidebar-icons/messages.png" alt="" />
                 <h3>Select a conversation</h3>
                 <p>Choose a chat on the left or start one from a profile page.</p>
             </div>
         </section>
     </div>
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('messages')}"></aside>
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>

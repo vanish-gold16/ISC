@@ -109,9 +109,6 @@ public class MessengerController {
     private void populateModel(Model model, User me, Conversation activeConversation) {
         model.addAttribute("title", "Messenger");
         List<Conversation> conversations = conversationRepository.findByMember(me);
-        if (activeConversation == null && !conversations.isEmpty()) {
-            activeConversation = conversations.get(0);
-        }
 
         List<Map<String, Object>> conversationViews = new ArrayList<>();
         for (Conversation conversation : conversations) {

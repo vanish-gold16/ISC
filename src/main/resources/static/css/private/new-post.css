@@ -293,9 +293,49 @@ button { font: inherit; }
     justify-items: start;
 }
 
-.photo-preview img {
+.photo-cropper {
     width: min(420px, 100%);
     border-radius: 12px;
     border: 1px solid var(--border);
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.photo-canvas {
     display: block;
+    cursor: grab;
+    width: 100%;
+    height: auto;
+}
+
+.photo-canvas:active {
+    cursor: grabbing;
+}
+
+.photo-tools {
+    display: grid;
+    gap: 10px;
+    width: min(420px, 100%);
+}
+
+.photo-aspect {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.photo-aspect .btn.is-active {
+    border-color: rgba(37, 99, 235, 0.55);
+    background: var(--accent-soft);
+    font-weight: 700;
+}
+
+.photo-zoom {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.photo-zoom input[type="range"] {
+    width: 100%;
 }
