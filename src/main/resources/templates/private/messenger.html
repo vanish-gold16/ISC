@@ -9,9 +9,12 @@
 
     <link rel="stylesheet" href="/css/private/home.css" />
     <link rel="stylesheet" href="/css/private/messenger.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 
-<body>
+<body th:attr="data-conversation-id=${activeConversationId}">
 <header th:replace="~{private/blocks/private-header :: header}"></header>
 
 <main class="container messenger-layout">
@@ -88,8 +91,8 @@
                     <div class="message__meta">
                         <span th:text="${m.time}">18:21</span>
                         <span class="message__status"
-                              th:if="${m.fromMe and m.status != null}"
-                              th:text="${m.status}">seen</span>
+                              th:if="${m.fromMe and m['status'] != null}"
+                              th:text="${m['status']}">seen</span>
                     </div>
                 </div>
             </div>
@@ -104,7 +107,6 @@
                     <textarea placeholder="Write a message..." rows="2"></textarea>
                     <button class="send-btn" type="button">Send</button>
                 </div>
-                <div class="composer-hint">Tip: drop files or photos here to share quickly.</div>
             </div>
         </section>
         <section class="messenger-panel messenger-chat messenger-chat--empty" th:if="${activeConversation == null}">
@@ -128,6 +130,74 @@
             items.forEach(el => el.classList.remove('is-active'));
             item.classList.add('is-active');
         }));
+    })();
+</script>
+<script>
+    (function () {
+        const body = document.body;
+        const conversationId = body ? body.getAttribute('data-conversation-id') : null;
+        const thread = document.querySelector('.chat-thread');
+        const composer = document.querySelector('.chat-composer');
+        const textarea = composer ? composer.querySelector('textarea') : null;
+        const sendBtn = composer ? composer.querySelector('.send-btn') : null;
+
+        if (!conversationId || !window.SockJS || !window.Stomp) return;
+
+        const socket = new SockJS('/ws');
+        const stomp = Stomp.over(socket);
+        stomp.debug = null;
+
+        stomp.connect({}, () => {
+            stomp.subscribe('/topic/conversation.' + conversationId, (frame) => {
+                if (!frame || !frame.body) return;
+                try {
+                    const msg = JSON.parse(frame.body);
+                    appendMessage(msg, false);
+                } catch (e) {
+                    appendMessage({ body: String(frame.body || '') }, false);
+                }
+            });
+        });
+
+        if (!textarea || !sendBtn) return;
+
+        function send() {
+            const text = (textarea.value || '').trim();
+            if (!text) return;
+            stomp.send('/app/chat/' + conversationId, {}, JSON.stringify({ body: text }));
+            appendMessage({ body: text }, true);
+            textarea.value = '';
+        }
+
+        sendBtn.addEventListener('click', send);
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+
+        function appendMessage(msg, fromMe) {
+            if (!thread) return;
+            const message = document.createElement('div');
+            message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message__bubble';
+            bubble.textContent = msg && msg.body ? msg.body : '';
+            message.appendChild(bubble);
+
+            const meta = document.createElement('div');
+            meta.className = 'message__meta';
+            const time = document.createElement('span');
+            const now = new Date();
+            time.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            meta.appendChild(time);
+            message.appendChild(meta);
+
+            thread.appendChild(message);
+            thread.scrollTop = thread.scrollHeight;
+        }
     })();
 </script>
 </body>
