@@ -154,7 +154,7 @@ public class MessengerApiController {
         if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
             return ResponseEntity.notFound().build();
 
-
+        return ResponseEntity.ok(messengerService.deleteUser(currentConversation, user, authentication));
     }
 
 }

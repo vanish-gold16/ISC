@@ -46,6 +46,8 @@ public class SecurityConfig {
                                 .requestMatchers("/", "/landing", "/auth/**", "/error").permitAll()
                                 // admin
                                 .requestMatchers("/admin/**").hasAnyRole(RoleEnum.ADMIN.name())
+                                .requestMatchers("/ws/**").authenticated()
+                                // + добавить CSRF исключение для /ws/** или использовать SockJS
                                 // others only after login
                                 .anyRequest().authenticated()
                 )
