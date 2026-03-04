@@ -23,4 +23,12 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
           and cm.user <> :user
         """)
     User findOtherUserByConversationDirect(@Param("conversation") Conversation conversation, @Param("user") User user);
+
+    @Query("""
+        select cm.user
+        from ConversationMember cm
+        where cm.conversation = :conversation
+          and cm.user <> :user
+        """)
+    List<User> findOtherUsersByConversation(@Param("conversation") Conversation conversation, @Param("user") User user);
 }

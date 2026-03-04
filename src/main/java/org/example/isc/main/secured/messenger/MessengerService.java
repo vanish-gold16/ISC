@@ -202,19 +202,37 @@ public class MessengerService {
     }
 
     public Message saveMessage(Conversation conversation, User sender, String text, MessageType type){
-        User receiver = conversationMemberRepository.findOtherUserByConversationDirect(conversation, sender);
+        List<User> receivers;
+        User receiver;
+
+        if(conversation.getType().equals(ConversationType.DIRECT)){
+            receiver = conversationMemberRepository.findOtherUserByConversationDirect(conversation, sender);
+            notificationService.create(
+                    NotificationEnum.MESSAGE,
+                    receiver,
+                    sender,
+                    "New message",
+                    ": " + text,
+                    null
+            );
+        }
+        else if (conversation.getType().equals(ConversationType.CHANNEL)
+        || conversation.getType().equals(ConversationType.GROUP)){
+            receivers = conversationMemberRepository.findOtherUsersByConversation(conversation, sender);
+            for (User user : receivers) {
+                notificationService.create(
+                        NotificationEnum.MESSAGE,
+                        user,
+                        sender,
+                        "New message",
+                        ": " + text,
+                        null
+                );
+            }
+        }
         Message message = new Message(conversation, sender, text, type, LocalDateTime.now());
 
         messageRepository.save(message);
-
-        notificationService.create(
-                NotificationEnum.MESSAGE,
-                receiver,
-                sender,
-                "New message",
-                ": " + text,
-                null
-        );
 
         return message;
     }
