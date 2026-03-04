@@ -1,7 +1,8 @@
-package org.example.isc.main.secured.models;
+package org.example.isc.main.secured.models.messenger;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.conversation.ConversationType;
+import org.example.isc.main.secured.models.User;
 
 import java.time.LocalDateTime;
 
