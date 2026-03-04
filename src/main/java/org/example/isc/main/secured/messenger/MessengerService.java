@@ -35,8 +35,9 @@ public class MessengerService {
 
         for (Conversation c : allConversations) {
                 if(c.getType() ==  ConversationType.DIRECT
-                && conversationMemberRepository.existsByConversationAndUser(c,target))
-                return toDTO(c);
+                && conversationMemberRepository.existsByConversationAndUser(c,target)) {
+                    return toDTO(c);
+                }
             }
 
         currentConversation = new Conversation(

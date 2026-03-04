@@ -420,11 +420,17 @@ public class ProfileController {
         String coverUrl = null;
         String bio = null;
         String location = null;
+        String occupation = null;
+        String currentStudy = null;
 
         if (profile != null) {
             avatarUrl = normalizeImagePath(profile.getAvatarUrl(), DEFAULT_AVATAR);
             coverUrl = normalizeImagePath(profile.getCoverUrl(), DEFAULT_COVER);
             bio = profile.getBio();
+            currentStudy = profile.getCurrentStudy();
+            if (profile.getOccupationEnum() != null) {
+                occupation = profile.getOccupationEnum().name().replace('_', ' ');
+            }
 
             String city = profile.getCity();
             String country = profile.getCountry() == null ? null : profile.getCountry().name().replace('_', ' ');
@@ -440,6 +446,8 @@ public class ProfileController {
         model.addAttribute("profileCoverUrl", coverUrl == null ? DEFAULT_COVER : coverUrl);
         model.addAttribute("profileBio", bio);
         model.addAttribute("profileLocation", location);
+        model.addAttribute("profileOccupation", occupation);
+        model.addAttribute("profileCurrentStudy", currentStudy);
         model.addAttribute("profileJoined", user.getDate());
         model.addAttribute("profileSubscriptionsCount", subscriptionRepository.countByFollowerId(user.getId()));
         model.addAttribute("profileSubscribersCount", subscriptionRepository.countByFollowedId(user.getId()));

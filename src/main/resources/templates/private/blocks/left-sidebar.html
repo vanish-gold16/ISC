@@ -25,6 +25,14 @@
                         <div class="about-k muted">Location</div>
                         <div class="about-v" th:text="${profileLocation}">Prague</div>
                     </div>
+                    <div class="about-row" th:if="${profileOccupation != null}">
+                        <div class="about-k muted">Occupation</div>
+                        <div class="about-v" th:text="${profileOccupation}">IT</div>
+                    </div>
+                    <div class="about-row">
+                        <div class="about-k muted">Current study</div>
+                        <div class="about-v" th:text="${profileCurrentStudy} ?: 'None'">National University of Art</div>
+                    </div>
                 </div>
             </div>
 
