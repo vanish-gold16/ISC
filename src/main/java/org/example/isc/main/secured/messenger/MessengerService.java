@@ -26,22 +26,17 @@ public class MessengerService {
 
     public List<ConversationDTO> getConversations(User me){
         List<Conversation> conversations = conversationRepository.findByMember(me);
-        return conversations.stream().map(c -> new ConversationDTO(
-                c.getId(),
-                c.getType(),
-                c.getTitle(),
-                c.getAvatarUrl()
-        )).toList();
+        return conversations.stream().map(this::toDTO).toList();
     }
 
-    public Conversation getOrCreateDirect(User me, User target){
+    public ConversationDTO getOrCreateDirect(User me, User target){
         List<Conversation> allConversations = conversationRepository.findByMember(me);
         Conversation currentConversation;
 
         for (Conversation c : allConversations) {
                 if(c.getType() ==  ConversationType.DIRECT
                 && conversationMemberRepository.existsByConversationAndUser(c,target))
-                return c;
+                return toDTO(c);
             }
 
         currentConversation = new Conversation(
@@ -59,7 +54,16 @@ public class MessengerService {
         conversationMemberRepository.save(new  ConversationMember(
                 currentConversation, target, ConversationRole.MEMBER, LocalDateTime.now(), null
         ));
-        return currentConversation;
+        return toDTO(currentConversation);
+    }
+
+    private ConversationDTO toDTO(Conversation conversation){
+        return new ConversationDTO(
+                conversation.getId(),
+                conversation.getType(),
+                conversation.getTitle(),
+                conversation.getAvatarUrl()
+        );
     }
 
 }
