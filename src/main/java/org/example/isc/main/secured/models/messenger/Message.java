@@ -32,10 +32,10 @@ public class Message {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "edited_at")
+    @Column(name = "edited_at", nullable = true)
     private LocalDateTime editedAt;
 
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at", nullable = true)
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,15 +45,12 @@ public class Message {
     public Message() {
     }
 
-    public Message(Conversation conversation, User sender, String text, MessageType messageType, LocalDateTime createdAt, LocalDateTime editedAt, LocalDateTime deletedAt, Message replyTo) {
+    public Message(Conversation conversation, User sender, String text, MessageType messageType, LocalDateTime createdAt) {
         this.conversation = conversation;
         this.sender = sender;
         this.text = text;
         this.messageType = messageType;
         this.createdAt = createdAt;
-        this.editedAt = editedAt;
-        this.deletedAt = deletedAt;
-        this.replyTo = replyTo;
     }
 
     public Long getId() {

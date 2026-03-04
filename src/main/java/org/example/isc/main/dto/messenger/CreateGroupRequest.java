@@ -1,8 +1,7 @@
-package org.example.isc.main.dto;
+package org.example.isc.main.dto.messenger;
 
 import jakarta.validation.constraints.NotNull;
 import org.example.isc.main.secured.models.User;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.List;
 

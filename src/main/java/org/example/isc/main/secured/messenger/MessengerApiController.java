@@ -1,8 +1,8 @@
 package org.example.isc.main.secured.messenger;
 
-import org.example.isc.main.dto.ConversationDTO;
-import org.example.isc.main.dto.CreateDirectRequest;
-import org.example.isc.main.dto.CreateGroupRequest;
+import org.example.isc.main.dto.messenger.ConversationDTO;
+import org.example.isc.main.dto.messenger.CreateDirectRequest;
+import org.example.isc.main.dto.messenger.CreateGroupRequest;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;

@@ -1,4 +1,4 @@
-package org.example.isc.main.dto;
+package org.example.isc.main.dto.messenger;
 
 import org.example.isc.main.enums.conversation.ConversationType;
 
