@@ -28,11 +28,6 @@
             <div class="sidebar-search">
                 <input type="search" placeholder="Search messages..." aria-label="Search messages" />
             </div>
-            <div class="sidebar-tabs">
-                <button class="sidebar-tab is-active" type="button">All</button>
-                <button class="sidebar-tab" type="button">Unread</button>
-                <button class="sidebar-tab" type="button">Groups</button>
-            </div>
             <div class="conversation-list" th:if="${conversations != null and !#lists.isEmpty(conversations)}">
                 <a class="conversation-item"
                    th:each="c : ${conversations}"
@@ -82,7 +77,7 @@
                 </div>
             </div>
 
-            <div class="chat-thread" th:if="${messages != null and !#lists.isEmpty(messages)}">
+            <div class="chat-thread" id="chat-thread" th:classappend="${messages == null or #lists.isEmpty(messages)} ? ' is-hidden' : ''">
                 <div class="message" th:each="m : ${messages}" th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'">
                     <div class="message__sender"
                          th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
@@ -97,7 +92,7 @@
                 </div>
             </div>
 
-            <div class="chat-empty" th:if="${messages == null or #lists.isEmpty(messages)}">
+            <div class="chat-empty" id="chat-empty" th:classappend="${messages != null and !#lists.isEmpty(messages)} ? ' is-hidden' : ''">
                 <h3>No messages yet</h3>
                 <p>Say hi to start the conversation.</p>
             </div>
@@ -138,7 +133,8 @@
         const conversationId = body ? body.getAttribute('data-conversation-id') : null;
         const currentUserIdRaw = body ? body.getAttribute('data-current-user-id') : null;
         const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : null;
-        const thread = document.querySelector('.chat-thread');
+        const thread = document.getElementById('chat-thread');
+        const emptyState = document.getElementById('chat-empty');
         const composer = document.querySelector('.chat-composer');
         const textarea = composer ? composer.querySelector('textarea') : null;
         const sendBtn = composer ? composer.querySelector('.send-btn') : null;
@@ -183,6 +179,8 @@
 
         function appendMessage(msg, fromMe) {
             if (!thread) return;
+            if (emptyState) emptyState.classList.add('is-hidden');
+            thread.classList.remove('is-hidden');
             const message = document.createElement('div');
             message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
 
