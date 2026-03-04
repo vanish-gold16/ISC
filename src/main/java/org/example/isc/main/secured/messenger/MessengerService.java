@@ -124,7 +124,7 @@ public class MessengerService {
         }
     }
 
-    public void addUser(Conversation conversation, User user, Authentication authentication){
+    public ConversationMember addUser(Conversation conversation, User user, Authentication authentication){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         ConversationMember member = new ConversationMember(
@@ -141,6 +141,38 @@ public class MessengerService {
                     null
             );
         }
+        return member;
+    }
+
+    public String deleteUser(Conversation conversation, User user, Authentication authentication){
+        ConversationMember me = conversationMemberRepository.findByConversationAndUser(
+                conversation,
+                userRepository.findByUsernameIgnoreCase(authentication.getName()).orElseThrow(() ->
+                        new IllegalStateException("Logged-in user not found: " + authentication.getName()))
+        ).orElseThrow(() -> new IllegalStateException("User is not in this conversation: " + conversation.getTitle()));
+
+        ConversationMember member = new ConversationMember(
+                conversation, user, ConversationRole.MEMBER, LocalDateTime.now(), null
+        );
+
+        String status = "User has not been deleted";
+        if(me.getConversationRole().equals(ConversationRole.ADMIN)
+        || me.getConversationRole().equals(ConversationRole.OWNER)){
+            conversationMemberRepository.delete(member);
+            for(ConversationMember m : conversationMemberRepository.countByConversation(conversation)){
+                notificationService.create(
+                        NotificationEnum.MESSAGE,
+                        m.getUser(),
+                        me.getUser(),
+                        conversation.getTitle(),
+                        me.getUser().getUsername() + " has deleted " + member.getUser().getUsername(),
+                        null
+                );
+            }
+            status = "User has been deleted";
+        }
+
+        return status;
     }
 
     private ConversationDTO toDTO(Conversation conversation){

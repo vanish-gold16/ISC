@@ -138,8 +138,23 @@ public class MessengerApiController {
         if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
             return ResponseEntity.notFound().build();
 
+        return ResponseEntity.ok(messengerService.addUser(currentConversation, user, authentication));
+    }
 
-        return ResponseEntity.ok();
+    @DeleteMapping("{id}/members/{userId}")
+    public ResponseEntity<String> deleteUser(
+            @PathVariable Long id,
+            Authentication authentication,
+            User user
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        Conversation currentConversation = conversationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
+        if(!conversationMemberRepository.existsByConversationAndUser(currentConversation, me))
+            return ResponseEntity.notFound().build();
+
+
     }
 
 }
