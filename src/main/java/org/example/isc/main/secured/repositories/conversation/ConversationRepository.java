@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.repositories.conversation;
 
+import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
         ORDER BY c.createdAt DESC
 """)
     List<Conversation> findByMember(@Param("user") User user);
+
+    boolean existsByTypeAndId(ConversationType type, Long id);
 }
