@@ -3,7 +3,9 @@ package org.example.isc.main.secured.messenger;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
+import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
+import org.example.isc.main.secured.profile.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
@@ -38,13 +40,15 @@ public class MessengerController {
     private final ConversationMemberRepository conversationMemberRepository;
     private final MessageRepository messageRepository;
     private final MessengerService messengerService;
+    private final ActivityService activityService;
 
-    public MessengerController(UserRepository userRepository, ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, MessageRepository messageRepository, MessengerService messengerService) {
+    public MessengerController(UserRepository userRepository, ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, MessageRepository messageRepository, MessengerService messengerService, ActivityService activityService) {
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.conversationMemberRepository = conversationMemberRepository;
         this.messageRepository = messageRepository;
         this.messengerService = messengerService;
+        this.activityService = activityService;
     }
 
     //  1. Отправка сообщений через HTTP или WebSocket
@@ -107,6 +111,70 @@ public class MessengerController {
         return "/private/messenger";
     }
 
+    //Ниже — честный разбор и сразу фиксы. Я уже поправил MessengerController так, чтобы messengerPage() работал нормально и онлайн‑статус был там, где нужно.
+    //
+    //  Исправил в коде:
+    //
+    //  - Убрал твой блок из messengerPage() — он ломал conversations (заменял Map‑список на entity‑список), использовал несуществующие переменные (target) и неверные вызовы
+    //    (findByConversationAndUser() без аргументов, activityService.online(i) по индексу).
+    //  - Перенёс online/lastSeenAt в buildConversationView() и buildActiveConversationView() — это правильное место, потому что там формируется DTO для шаблона.
+    //
+    //  Файл:
+    //
+    //  - src/main/java/org/example/isc/main/secured/messenger/MessengerController.java
+    //
+    //  ———
+    //
+    //  ## Что у тебя было сделано плохо (критично)
+    //
+    //  1. messengerPage()
+    //      - model.addAttribute("conversations", allConversations) ломает шаблон (ожидаются Map‑ы с полями).
+    //      - conversationMemberRepository.findByConversationAndUser() без параметров — не скомпилируется.
+    //      - activityService.online(i) — нельзя передавать индекс, нужен userId.
+    //      - target не объявлен.
+    //  2. buildActiveConversationView()
+    //      - lastMessage добавлялся как Optional<Message> — это ломает шаблон при доступе как к строке. Я удалил его из map.
+    //
+    //  ———
+    //
+    //  ## Что теперь в модели
+    //
+    //  Для каждого чата:
+    //
+    //  - online (boolean)
+    //  - lastSeenAt (LocalDateTime)
+    //
+    //  Это уже готово в buildConversationView и buildActiveConversationView.
+    //
+    //  ———
+    //
+    //  ## Куда ещё добавить (для профиля)
+    //
+    //  В ProfileController добавь:
+    //
+    //  - online и lastSeenAt для отображаемого юзера.
+    //    Точно так же, как в buildConversationView():
+    //
+    //  boolean online = activityService.online(target.getId());
+    //  LocalDateTime lastSeenAt = target.getProfile() != null ? target.getProfile().getLastActivityAt() : null;
+    //
+    //  model.addAttribute("online", online);
+    //  model.addAttribute("lastSeenAt", lastSeenAt);
+    //
+    //  ———
+    //
+    //  ## Важно
+    //
+    //  В ActivityService.online() у тебя жестко стоит <= 1 мин.
+    //  Если хочешь “3–5 минут” — поменяй там порог.
+    //
+    //  ———
+    //
+    //  Если хочешь, я дальше:
+    //
+    //  1. Вставлю статус в messenger.html и profile.html (front).
+    //  2. Добавлю красивую текстовку “Online now / Last seen 5 min ago”.
+
     private void populateModel(Model model, User me, Conversation activeConversation) {
         model.addAttribute("title", "Messenger");
         List<Conversation> conversations = conversationRepository.findByMember(me);
@@ -131,6 +199,8 @@ public class MessengerController {
         String name = conversation.getTitle();
         String avatar = conversation.getAvatarUrl();
         String subtitle = "";
+        boolean online = false;
+        LocalDateTime lastSeenAt = null;
 
         if (conversation.getType() == ConversationType.DIRECT) {
             other = conversationMemberRepository.findOtherUserByConversationDirect(conversation, me);
@@ -140,6 +210,10 @@ public class MessengerController {
                 if (other.getProfile() != null && other.getProfile().getAvatarUrl() != null) {
                     avatar = other.getProfile().getAvatarUrl();
                 }
+                if (other.getProfile() != null) {
+                    lastSeenAt = other.getProfile().getLastActivityAt();
+                }
+                online = activityService.online(other.getId());
             }
         }
 
@@ -175,7 +249,8 @@ public class MessengerController {
                 "time", time,
                 "lastMessageAt", lastMessageAt,
                 "unread", 0,
-                "online", false,
+                "online", online,
+                "lastSeenAt", lastSeenAt,
                 "friend", false,
                 "subtitle", subtitle
         );
@@ -186,6 +261,8 @@ public class MessengerController {
         String name = conversation.getTitle();
         String avatar = conversation.getAvatarUrl();
         String subtitle = conversation.getType() == ConversationType.GROUP ? "Group chat" : "Conversation";
+        boolean online = false;
+        LocalDateTime lastSeenAt = null;
 
         Optional<Message> lastMessage = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(
                 conversation, PageRequest.of(0, 1)
@@ -201,6 +278,10 @@ public class MessengerController {
                 if (other.getProfile() != null && other.getProfile().getAvatarUrl() != null) {
                     avatar = other.getProfile().getAvatarUrl();
                 }
+                if (other.getProfile() != null) {
+                    lastSeenAt = other.getProfile().getLastActivityAt();
+                }
+                online = activityService.online(other.getId());
             }
         } else if (conversation.getType() == ConversationType.GROUP) {
             int members = conversationMemberRepository.findByConversation(conversation).size();
@@ -218,10 +299,10 @@ public class MessengerController {
                 "id", conversation.getId(),
                 "name", name,
                 "avatar", avatar,
-                "lastMessage", lastMessage,
                 "lastMessageAt", lastMessageAt,
                 "subtitle", subtitle,
-                "online", false,
+                "online", online,
+                "lastSeenAt", lastSeenAt,
                 "friend", false,
                 "type", conversation.getType().name()
         );

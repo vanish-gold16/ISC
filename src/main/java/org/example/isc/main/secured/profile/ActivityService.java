@@ -19,7 +19,7 @@ public class ActivityService {
 
     public boolean online(@RequestParam Long id){
         User target = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id))
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
         boolean online = target.getProfile().getLastActivityAt() != null
                 && Duration.between(target.getProfile().getLastActivityAt(), LocalDateTime.now()).toMinutes() <= 1;
 
