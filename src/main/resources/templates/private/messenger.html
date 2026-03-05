@@ -82,7 +82,7 @@
                 <div class="message"
                      th:each="m : ${messages}"
                      th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'"
-                     th:attr="data-sent-at=${m['sentAt']}">
+                     th:attr="data-sent-at=${m['sentAt']},data-sender-id=${m['senderId']}">
                     <div class="message__sender"
                          th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
                          th:text="${m['senderName']}">Sender</div>
@@ -145,6 +145,7 @@
         const conversationItems = Array.from(document.querySelectorAll('[data-conversation-item]'));
         const lastActivity = new Map();
         let lastDayKey = null;
+        const GAP_MINUTES = 20;
 
         if (!conversationId || !window.SockJS || !window.Stomp) return;
 
@@ -155,6 +156,7 @@
         }
         initConversationSorting();
         insertDayDividersFromMessages();
+        applyMessageSpacing();
 
         const socket = new SockJS('/ws');
         const stomp = Stomp.over(socket);
@@ -166,12 +168,12 @@
                 try {
                     const msg = JSON.parse(frame.body);
                     const fromMe = currentUserId != null && msg && Number(msg.senderId) === currentUserId;
-            if (fromMe) return;
-            appendMessage(msg, false);
-        } catch (e) {
-            appendMessage({ body: String(frame.body || '') }, false);
-        }
-    });
+                    if (fromMe) return;
+                    appendMessage(msg, false);
+                } catch (e) {
+                    appendMessage({ body: String(frame.body || '') }, false);
+                }
+            });
         });
 
         if (!textarea || !sendBtn) return;
@@ -180,7 +182,7 @@
             const text = (textarea.value || '').trim();
             if (!text) return;
             stomp.send('/app/chat/' + conversationId, {}, JSON.stringify({ body: text }));
-            appendMessage({ body: text }, true);
+            appendMessage({ body: text, senderId: currentUserId }, true);
             textarea.value = '';
         }
 
@@ -200,6 +202,10 @@
             const message = document.createElement('div');
             message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
             message.setAttribute('data-sent-at', now.toISOString());
+            const senderId = msg && msg.senderId ? String(msg.senderId) : (fromMe && currentUserId != null ? String(currentUserId) : '');
+            if (senderId) {
+                message.setAttribute('data-sender-id', senderId);
+            }
 
             const bubble = document.createElement('div');
             bubble.className = 'message__bubble';
@@ -216,6 +222,7 @@
 
             thread.appendChild(message);
             thread.scrollTop = thread.scrollHeight;
+            applyMessageSpacing();
 
             const text = msg && msg.body ? msg.body : '';
             updateConversationPreview(text, now);
@@ -314,6 +321,32 @@
                     lastDayKey = date.toISOString().slice(0, 10);
                 }
             }
+        }
+
+        function applyMessageSpacing() {
+            if (!thread) return;
+            const nodes = Array.from(thread.querySelectorAll('.message'));
+            if (!nodes.length) return;
+            let prev = null;
+            nodes.forEach(node => {
+                node.classList.remove('message--time-gap');
+                if (!prev) {
+                    prev = node;
+                    return;
+                }
+                const sameSender = (node.getAttribute('data-sender-id') || '') === (prev.getAttribute('data-sender-id') || '');
+                const prevAtRaw = prev.getAttribute('data-sent-at');
+                const curAtRaw = node.getAttribute('data-sent-at');
+                const prevAt = prevAtRaw ? new Date(prevAtRaw).getTime() : NaN;
+                const curAt = curAtRaw ? new Date(curAtRaw).getTime() : NaN;
+                const diffMin = Number.isFinite(prevAt) && Number.isFinite(curAt)
+                    ? Math.abs(curAt - prevAt) / 60000
+                    : 0;
+                if (sameSender && diffMin >= GAP_MINUTES) {
+                    node.classList.add('message--time-gap');
+                }
+                prev = node;
+            });
         }
     })();
 </script>

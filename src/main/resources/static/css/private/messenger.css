@@ -323,10 +323,16 @@
 .chat-thread {
     padding: 16px 18px;
     display: grid;
-    gap: 14px;
+    gap: 6px;
     overflow: auto;
     min-height: 0;
     flex: 1 1 auto;
+}
+
+.chat-date-separator {
+    align-self: center;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .chat-day {
@@ -356,6 +362,10 @@
 .message--me {
     margin-left: auto;
     text-align: right;
+}
+
+.message--time-gap {
+    margin-top: 10px;
 }
 
 .message__bubble {

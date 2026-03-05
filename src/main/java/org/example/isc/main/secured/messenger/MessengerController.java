@@ -236,6 +236,7 @@ public class MessengerController {
         for (Message message : raw) {
             boolean fromMe = message.getSender() != null && message.getSender().getId().equals(me.getId());
             String senderName = message.getSender() != null ? message.getSender().getFirstName() : "Unknown";
+            Long senderId = message.getSender() != null ? message.getSender().getId() : null;
             String text = message.getText();
             if (text == null) {
                 text = "";
@@ -245,6 +246,7 @@ public class MessengerController {
                     "text", text,
                     "time", formatTime(message.getCreatedAt()),
                     "senderName", senderName,
+                    "senderId", senderId,
                     "sentAt", message.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toString()
             ));
         }
