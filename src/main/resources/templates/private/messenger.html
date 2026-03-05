@@ -147,8 +147,6 @@
         let lastDayKey = null;
         const GAP_MINUTES = 20;
 
-        if (!conversationId || !window.SockJS || !window.Stomp) return;
-
         if (thread && !thread.classList.contains('is-hidden')) {
             requestAnimationFrame(() => {
                 thread.scrollTop = thread.scrollHeight;
@@ -157,6 +155,8 @@
         initConversationSorting();
         insertDayDividersFromMessages();
         applyMessageSpacing();
+
+        if (!conversationId || !window.SockJS || !window.Stomp) return;
 
         const socket = new SockJS('/ws');
         const stomp = Stomp.over(socket);
@@ -199,6 +199,7 @@
             if (emptyState) emptyState.classList.add('is-hidden');
             thread.classList.remove('is-hidden');
             ensureDayDivider();
+            const now = new Date();
             const message = document.createElement('div');
             message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
             message.setAttribute('data-sent-at', now.toISOString());
@@ -215,7 +216,6 @@
             const meta = document.createElement('div');
             meta.className = 'message__meta';
             const time = document.createElement('span');
-            const now = new Date();
             time.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             meta.appendChild(time);
             message.appendChild(meta);
@@ -334,7 +334,7 @@
                     prev = node;
                     return;
                 }
-                const sameSender = (node.getAttribute('data-sender-id') || '') === (prev.getAttribute('data-sender-id') || '');
+                const sameSender = getSenderKey(node) === getSenderKey(prev);
                 const prevAtRaw = prev.getAttribute('data-sent-at');
                 const curAtRaw = node.getAttribute('data-sent-at');
                 const prevAt = prevAtRaw ? new Date(prevAtRaw).getTime() : NaN;
@@ -347,6 +347,17 @@
                 }
                 prev = node;
             });
+        }
+
+        function getSenderKey(node) {
+            const id = node.getAttribute('data-sender-id');
+            if (id) return id;
+            if (node.classList.contains('message--me')) return 'me';
+            const senderEl = node.querySelector('.message__sender');
+            if (senderEl && senderEl.textContent) {
+                return 'name:' + senderEl.textContent.trim();
+            }
+            return 'them';
         }
     })();
 </script>
