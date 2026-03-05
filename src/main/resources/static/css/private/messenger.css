@@ -360,12 +360,77 @@
 }
 
 .message--me {
-    margin-left: auto;
     text-align: right;
+}
+
+.message-row--me .message {
+    margin-left: 0;
 }
 
 .message--time-gap {
     margin-top: 6px;
+}
+
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.message-row--me {
+    justify-content: flex-end;
+}
+
+.message-row:hover {
+    background: #eef2f7;
+}
+
+.message-row--time-gap {
+    margin-top: 6px;
+}
+
+.message-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    font-size: 11px;
+    color: var(--msg-muted);
+    order: -1;
+}
+
+.message-row:hover .message-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.message-time {
+    font-size: 11px;
+    color: var(--msg-muted);
+}
+
+.message-action {
+    border: 1px solid var(--msg-border);
+    background: #fff;
+    color: var(--msg-text);
+    border-radius: 8px;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.message-action:hover {
+    background: #f1f5f9;
+}
+
+.message-action--danger {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #dc2626;
 }
 
 .message__bubble {

@@ -79,19 +79,23 @@
             </div>
 
             <div class="chat-thread" id="chat-thread" th:classappend="${messages == null or #lists.isEmpty(messages)} ? ' is-hidden' : ''">
-                <div class="message"
+                <div class="message-row"
                      th:each="m : ${messages}"
-                     th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'"
-                     th:attr="data-sent-at=${m['sentAt']},data-sender-id=${m['senderId']}">
-                    <div class="message__sender"
-                         th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
-                         th:text="${m['senderName']}">Sender</div>
-                    <div class="message__bubble" th:text="${m['text']}">Message</div>
-                    <div class="message__meta">
-                        <span th:text="${m['time']}">18:21</span>
-                        <span class="message__status"
-                              th:if="${m['fromMe'] and m['status'] != null}"
-                              th:text="${m['status']}">seen</span>
+                     th:classappend="${m['fromMe']} ? ' message-row--me' : ''">
+                    <div class="message"
+                         th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'"
+                         th:attr="data-sent-at=${m['sentAt']},data-sender-id=${m['senderId']}">
+                        <div class="message__sender"
+                             th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
+                             th:text="${m['senderName']}">Sender</div>
+                        <div class="message__bubble" th:text="${m['text']}">Message</div>
+                    </div>
+                    <div class="message-actions">
+                        <span class="message-time" th:text="${m['time']}">18:21</span>
+                        <button class="message-action" type="button"
+                                th:if="${m['fromMe']}">Edit</button>
+                        <button class="message-action message-action--danger" type="button"
+                                th:if="${m['fromMe']}">Delete</button>
                     </div>
                 </div>
             </div>
@@ -200,6 +204,9 @@
             thread.classList.remove('is-hidden');
             ensureDayDivider();
             const now = new Date();
+            const row = document.createElement('div');
+            row.className = 'message-row' + (fromMe ? ' message-row--me' : '');
+
             const message = document.createElement('div');
             message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
             message.setAttribute('data-sent-at', now.toISOString());
@@ -213,14 +220,29 @@
             bubble.textContent = msg && msg.body ? msg.body : '';
             message.appendChild(bubble);
 
-            const meta = document.createElement('div');
-            meta.className = 'message__meta';
+            const actions = document.createElement('div');
+            actions.className = 'message-actions';
             const time = document.createElement('span');
+            time.className = 'message-time';
             time.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            meta.appendChild(time);
-            message.appendChild(meta);
+            actions.appendChild(time);
+            if (fromMe) {
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'message-action';
+                edit.textContent = 'Edit';
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'message-action message-action--danger';
+                del.textContent = 'Delete';
+                actions.appendChild(edit);
+                actions.appendChild(del);
+            }
 
-            thread.appendChild(message);
+            row.appendChild(message);
+            row.appendChild(actions);
+
+            thread.appendChild(row);
             thread.scrollTop = thread.scrollHeight;
             applyMessageSpacing();
 
@@ -310,7 +332,7 @@
                     const divider = document.createElement('div');
                     divider.className = 'chat-day';
                     divider.textContent = formatDayLabel(date);
-                    thread.insertBefore(divider, message);
+                    thread.insertBefore(divider, message.parentElement || message);
                     prevDayKey = dayKey;
                 }
             });
@@ -330,6 +352,8 @@
             let prev = null;
             nodes.forEach(node => {
                 node.classList.remove('message--time-gap');
+                const row = node.closest('.message-row');
+                if (row) row.classList.remove('message-row--time-gap');
                 if (!prev) {
                     prev = node;
                     return;
@@ -344,6 +368,7 @@
                     : 0;
                 if (sameSender && diffMin >= GAP_MINUTES) {
                     node.classList.add('message--time-gap');
+                    if (row) row.classList.add('message-row--time-gap');
                 }
                 prev = node;
             });
