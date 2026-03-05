@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequestMapping("/messenger")
 public class ChatWebSocketController {
@@ -54,6 +56,9 @@ public class ChatWebSocketController {
         MessageDTO dto = MessageDTO.from(saved);
 
         brokerMessagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), dto);
+
+        user.getProfile().setLastActivityAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 
 }
