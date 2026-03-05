@@ -102,6 +102,9 @@
             align-items: flex-start;
             gap: 12px;
         }
+        .notification-item--clickable {
+            cursor: pointer;
+        }
 
         .notification-item__avatar {
             width: 48px;
@@ -248,7 +251,8 @@
                 <div class="notifications-list"
                      th:if="${unreadNotificationsList != null and !#lists.isEmpty(unreadNotificationsList)}">
                     <th:block th:each="n : ${unreadNotificationsList}">
-                        <article class="card notification-item is-unread"
+                        <article class="card notification-item notification-item--clickable is-unread"
+                                 th:attr="data-open=@{/notifications/{id}/open(id=${n.notificationId})}"
                                  th:with="postPreview=${commentPostPreviews != null ? commentPostPreviews[n.notificationId] : null}">
                             <!-- Avatar вЂ” РєР»РёРє С‡РёС‚Р°РµС‚ СѓРІРµРґРѕРјР»РµРЅРёРµ Рё РёРґС‘С‚ РЅР° РїСЂРѕС„РёР»СЊ -->
                             <a th:if="${n.sender != null}"
@@ -364,7 +368,8 @@
                 <div class="notifications-list"
                      th:if="${readNotificationsList != null and !#lists.isEmpty(readNotificationsList)}">
                     <th:block th:each="n : ${readNotificationsList}">
-                        <article class="card notification-item is-read"
+                        <article class="card notification-item notification-item--clickable is-read"
+                                 th:attr="data-open=@{/notifications/{id}/open(id=${n.notificationId})}"
                                  th:with="postPreview=${commentPostPreviews != null ? commentPostPreviews[n.notificationId] : null}">
                             <a th:if="${n.sender != null}"
                                th:href="@{/profile/{id}(id=${n.sender.id})}">
@@ -470,6 +475,16 @@
         btn.classList.add('active');
         document.getElementById('panel-' + name).classList.add('active');
     }
+
+    document.addEventListener('click', (event) => {
+        const item = event.target.closest('.notification-item--clickable');
+        if (!item) return;
+        if (event.target.closest('a, button, form, input, textarea, select, label')) return;
+        const url = item.getAttribute('data-open');
+        if (url) {
+            window.location.href = url;
+        }
+    });
 </script>
 </body>
 </html>

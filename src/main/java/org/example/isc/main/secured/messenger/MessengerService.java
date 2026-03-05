@@ -109,7 +109,7 @@ public class MessengerService {
                         me,
                         oldName,
                         " has renamed the conversation",
-                        null
+                        conversationIdData(conversation)
                         );
             }
         }
@@ -127,7 +127,7 @@ public class MessengerService {
                         me,
                         oldName,
                         " has renamed the channel",
-                        null
+                        conversationIdData(conversation)
                 );
             }
         }
@@ -151,7 +151,7 @@ public class MessengerService {
                     me,
                     conversation.getTitle(),
                     " is the new member",
-                    null
+                    conversationIdData(conversation)
             );
         }
         return member;
@@ -178,7 +178,7 @@ public class MessengerService {
                         me.getUser(),
                         conversation.getTitle(),
                         " has deleted " + member.getUser().getUsername(),
-                        null
+                        conversationIdData(conversation)
                 );
             }
             status = "User has been deleted";
@@ -213,7 +213,7 @@ public class MessengerService {
                     sender,
                     "New message",
                     ": " + text,
-                    null
+                    conversationIdData(conversation)
             );
         }
         else if (conversation.getType().equals(ConversationType.CHANNEL)
@@ -226,7 +226,7 @@ public class MessengerService {
                         sender,
                         "New message",
                         ": " + text,
-                        null
+                        conversationIdData(conversation)
                 );
             }
         }
@@ -237,4 +237,7 @@ public class MessengerService {
         return message;
     }
 
+    private String conversationIdData(Conversation conversation) {
+        return conversation != null && conversation.getId() != null ? conversation.getId().toString() : null;
+    }
 }

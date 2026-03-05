@@ -171,10 +171,17 @@ public class NotificationController {
             notificationService.markRead(id, me);
         }
         if (notification.getType() != null && notification.getType().name().equals("COMMENT")) {
-            Long postId = parsePostId(notification.getData());
+            Long postId = parseId(notification.getData());
             if (postId != null) {
                 return "redirect:/posts/" + postId;
             }
+        }
+        if (notification.getType() != null && notification.getType().name().equals("MESSAGE")) {
+            Long conversationId = parseId(notification.getData());
+            if (conversationId != null) {
+                return "redirect:/messages/c/" + conversationId;
+            }
+            return "redirect:/messages";
         }
         if(notification.getSender() != null)
             return "redirect:/profile/" + notification.getSender().getId();
@@ -182,7 +189,7 @@ public class NotificationController {
         return "redirect:/notifications";
     }
 
-    private Long parsePostId(String data) {
+    private Long parseId(String data) {
         if (data == null || data.isBlank()) {
             return null;
         }
@@ -202,7 +209,7 @@ public class NotificationController {
             if (n == null || n.getType() == null || !n.getType().name().equals("COMMENT")) {
                 continue;
             }
-            Long postId = parsePostId(n.getData());
+            Long postId = parseId(n.getData());
             if (postId == null) {
                 continue;
             }
