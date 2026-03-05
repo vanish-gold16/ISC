@@ -321,22 +321,25 @@
 }
 
 .chat-thread {
-    padding: 16px 18px;
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* не flex-end */
     gap: 2px;
+    padding: 16px 18px;
     overflow: auto;
     min-height: 0;
     flex: 1 1 auto;
 }
 
+/* Фикс капли даты */
 .chat-date-separator {
     align-self: center;
+    justify-self: center;
     width: fit-content;
-    margin: 0 auto;
+    margin: 8px auto;
 }
 
 .chat-day {
-    justify-self: center;
     padding: 4px 12px;
     border-radius: 999px;
     background: #f1f5f9;
@@ -344,6 +347,13 @@
     font-size: 12px;
     font-weight: 700;
     border: 1px solid var(--msg-border);
+    width: fit-content;
+}
+
+.chat-date-separator {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0;
 }
 
 .message__sender {
@@ -422,6 +432,11 @@
     padding: 2px 6px;
     font-size: 11px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
 }
 
 .message-action:hover {
@@ -431,6 +446,13 @@
 .message-action--danger {
     border-color: rgba(239, 68, 68, 0.35);
     color: #dc2626;
+}
+
+.message-action__icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    display: block;
 }
 
 .message__bubble {
@@ -513,6 +535,11 @@
 
 .chat-thread.is-hidden {
     display: none;
+}
+
+.chat-thread::before {
+    content: '';
+    flex: 1 1 auto;
 }
 
 .chat-empty.is-hidden {

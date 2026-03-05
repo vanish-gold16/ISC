@@ -93,9 +93,13 @@
                     <div class="message-actions">
                         <span class="message-time" th:text="${m['time']}">18:21</span>
                         <button class="message-action" type="button"
-                                th:if="${m['fromMe']}">Edit</button>
+                                th:if="${m['fromMe']}" aria-label="Edit message">
+                            <img class="message-action__icon" src="/images/private/icons/edit.png" alt="" />
+                        </button>
                         <button class="message-action message-action--danger" type="button"
-                                th:if="${m['fromMe']}">Delete</button>
+                                th:if="${m['fromMe']}" aria-label="Delete message">
+                            <img class="message-action__icon" src="/images/private/icons/delete.png" alt="" />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -230,11 +234,23 @@
                 const edit = document.createElement('button');
                 edit.type = 'button';
                 edit.className = 'message-action';
-                edit.textContent = 'Edit';
+                edit.setAttribute('aria-label', 'Edit message');
+                const editIcon = document.createElement('img');
+                editIcon.className = 'message-action__icon';
+                editIcon.src = '/images/private/icons/edit.png';
+                editIcon.alt = '';
+                edit.appendChild(editIcon);
+
                 const del = document.createElement('button');
                 del.type = 'button';
                 del.className = 'message-action message-action--danger';
-                del.textContent = 'Delete';
+                del.setAttribute('aria-label', 'Delete message');
+                const delIcon = document.createElement('img');
+                delIcon.className = 'message-action__icon';
+                delIcon.src = '/images/private/icons/delete.png';
+                delIcon.alt = '';
+                del.appendChild(delIcon);
+
                 actions.appendChild(edit);
                 actions.appendChild(del);
             }
@@ -256,8 +272,11 @@
             if (lastDayKey === dayKey) return;
             lastDayKey = dayKey;
             const divider = document.createElement('div');
-            divider.className = 'chat-day';
-            divider.textContent = formatDayLabel(now);
+            divider.className = 'chat-date-separator';
+            const inner = document.createElement('span');
+            inner.className = 'chat-day';
+            inner.textContent = formatDayLabel(now);
+            divider.appendChild(inner);
             thread.appendChild(divider);
         }
 
@@ -330,10 +349,12 @@
                 const dayKey = date.toISOString().slice(0, 10);
                 if (prevDayKey !== dayKey) {
                     const divider = document.createElement('div');
-                    divider.className = 'chat-day';
-                    divider.textContent = formatDayLabel(date);
+                    divider.className = 'chat-date-separator';
+                    const inner = document.createElement('span');
+                    inner.className = 'chat-day';
+                    inner.textContent = formatDayLabel(date);
+                    divider.appendChild(inner);
                     thread.insertBefore(divider, message.parentElement || message);
-                    prevDayKey = dayKey;
                 }
             });
             const lastMessageWithDate = [...messages].reverse().find(m => m.getAttribute('data-sent-at'));
