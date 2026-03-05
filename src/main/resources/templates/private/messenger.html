@@ -269,6 +269,13 @@
         function ensureDayDivider() {
             const now = new Date();
             const dayKey = now.toISOString().slice(0, 10);
+            if (!lastDayKey) {
+                lastDayKey = getLastDayKeyFromDom();
+            }
+            const lastChild = thread ? thread.lastElementChild : null;
+            if (lastChild && lastChild.classList.contains('chat-date-separator') && lastDayKey === dayKey) {
+                return;
+            }
             if (lastDayKey === dayKey) return;
             lastDayKey = dayKey;
             const divider = document.createElement('div');
@@ -338,7 +345,7 @@
             if (!thread) return;
             const messages = Array.from(thread.querySelectorAll('.message'));
             if (!messages.length) return;
-            const existing = thread.querySelectorAll('.chat-day');
+            const existing = thread.querySelectorAll('.chat-date-separator');
             existing.forEach(el => el.remove());
             let prevDayKey = null;
             messages.forEach(message => {
@@ -355,6 +362,7 @@
                     inner.textContent = formatDayLabel(date);
                     divider.appendChild(inner);
                     thread.insertBefore(divider, message.parentElement || message);
+                    prevDayKey = dayKey;
                 }
             });
             const lastMessageWithDate = [...messages].reverse().find(m => m.getAttribute('data-sent-at'));
@@ -364,6 +372,39 @@
                     lastDayKey = date.toISOString().slice(0, 10);
                 }
             }
+        }
+
+        function getLastDayKeyFromDom() {
+            if (!thread) return null;
+            const children = Array.from(thread.children).reverse();
+            for (const child of children) {
+                if (child.classList && child.classList.contains('chat-date-separator')) {
+                    const label = child.querySelector('.chat-day');
+                    const txt = label ? (label.textContent || '').trim() : '';
+                    if (txt === 'Today') return new Date().toISOString().slice(0, 10);
+                    if (txt === 'Yesterday') {
+                        const d = new Date();
+                        d.setDate(d.getDate() - 1);
+                        return d.toISOString().slice(0, 10);
+                    }
+                    if (txt === 'The day before yesterday') {
+                        const d = new Date();
+                        d.setDate(d.getDate() - 2);
+                        return d.toISOString().slice(0, 10);
+                    }
+                }
+                if (child.classList && child.classList.contains('message-row')) {
+                    const msg = child.querySelector('.message');
+                    const raw = msg ? msg.getAttribute('data-sent-at') : null;
+                    if (raw) {
+                        const d = new Date(raw);
+                        if (!Number.isNaN(d.getTime())) {
+                            return d.toISOString().slice(0, 10);
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         function applyMessageSpacing() {
