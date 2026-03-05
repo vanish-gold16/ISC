@@ -33,6 +33,7 @@
                    th:each="c : ${conversations}"
                    th:href="@{/messages/c/{id}(id=${c.id})}"
                    th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
+                   th:attr="data-last-ts=${c['lastMessageAt']}"
                    data-conversation-item>
                     <img class="conversation-avatar" th:src="${c.avatar}" alt="" />
                     <div class="conversation-body">
@@ -78,7 +79,10 @@
             </div>
 
             <div class="chat-thread" id="chat-thread" th:classappend="${messages == null or #lists.isEmpty(messages)} ? ' is-hidden' : ''">
-                <div class="message" th:each="m : ${messages}" th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'">
+                <div class="message"
+                     th:each="m : ${messages}"
+                     th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'"
+                     th:attr="data-sent-at=${m['sentAt']}">
                     <div class="message__sender"
                          th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
                          th:text="${m['senderName']}">Sender</div>
@@ -138,6 +142,9 @@
         const composer = document.querySelector('.chat-composer');
         const textarea = composer ? composer.querySelector('textarea') : null;
         const sendBtn = composer ? composer.querySelector('.send-btn') : null;
+        const conversationItems = Array.from(document.querySelectorAll('[data-conversation-item]'));
+        const lastActivity = new Map();
+        let lastDayKey = null;
 
         if (!conversationId || !window.SockJS || !window.Stomp) return;
 
@@ -146,6 +153,8 @@
                 thread.scrollTop = thread.scrollHeight;
             });
         }
+        initConversationSorting();
+        insertDayDividersFromMessages();
 
         const socket = new SockJS('/ws');
         const stomp = Stomp.over(socket);
@@ -157,12 +166,12 @@
                 try {
                     const msg = JSON.parse(frame.body);
                     const fromMe = currentUserId != null && msg && Number(msg.senderId) === currentUserId;
-                    if (fromMe) return;
-                    appendMessage(msg, false);
-                } catch (e) {
-                    appendMessage({ body: String(frame.body || '') }, false);
-                }
-            });
+            if (fromMe) return;
+            appendMessage(msg, false);
+        } catch (e) {
+            appendMessage({ body: String(frame.body || '') }, false);
+        }
+    });
         });
 
         if (!textarea || !sendBtn) return;
@@ -187,8 +196,10 @@
             if (!thread) return;
             if (emptyState) emptyState.classList.add('is-hidden');
             thread.classList.remove('is-hidden');
+            ensureDayDivider();
             const message = document.createElement('div');
             message.className = 'message' + (fromMe ? ' message--me' : ' message--them');
+            message.setAttribute('data-sent-at', now.toISOString());
 
             const bubble = document.createElement('div');
             bubble.className = 'message__bubble';
@@ -205,6 +216,104 @@
 
             thread.appendChild(message);
             thread.scrollTop = thread.scrollHeight;
+
+            const text = msg && msg.body ? msg.body : '';
+            updateConversationPreview(text, now);
+        }
+
+        function ensureDayDivider() {
+            const now = new Date();
+            const dayKey = now.toISOString().slice(0, 10);
+            if (lastDayKey === dayKey) return;
+            lastDayKey = dayKey;
+            const divider = document.createElement('div');
+            divider.className = 'chat-day';
+            divider.textContent = formatDayLabel(now);
+            thread.appendChild(divider);
+        }
+
+        function formatDayLabel(date) {
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startOfThatDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const diffDays = Math.round((startOfToday - startOfThatDay) / 86400000);
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays === 2) return 'The day before yesterday';
+            return date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function updateConversationPreview(text, time) {
+            const item = conversationItems.find(el => String(el.getAttribute('href') || '').includes('/' + conversationId));
+            if (!item) return;
+
+            const preview = item.querySelector('.conversation-preview');
+            if (preview) {
+                preview.textContent = text || 'New message';
+            }
+
+            const metaTime = item.querySelector('.conversation-meta span');
+            if (metaTime) {
+                metaTime.textContent = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+
+            const ts = time.getTime();
+            lastActivity.set(item, ts);
+            item.setAttribute('data-last-ts', String(ts));
+            sortConversationList();
+        }
+
+        function initConversationSorting() {
+            if (!conversationItems.length) return;
+            conversationItems.forEach(item => {
+                const raw = item.getAttribute('data-last-ts');
+                const ts = raw ? Number(raw) : 0;
+                lastActivity.set(item, Number.isFinite(ts) ? ts : 0);
+            });
+            sortConversationList();
+        }
+
+        function sortConversationList() {
+            if (!conversationItems.length) return;
+            conversationItems.forEach(item => {
+                if (!lastActivity.has(item)) {
+                    lastActivity.set(item, 0);
+                }
+            });
+            const sorted = [...conversationItems].sort((a, b) => (lastActivity.get(b) || 0) - (lastActivity.get(a) || 0));
+            const list = sorted[0] ? sorted[0].parentElement : null;
+            if (!list) return;
+            sorted.forEach(item => list.appendChild(item));
+        }
+
+        function insertDayDividersFromMessages() {
+            if (!thread) return;
+            const messages = Array.from(thread.querySelectorAll('.message'));
+            if (!messages.length) return;
+            const existing = thread.querySelectorAll('.chat-day');
+            existing.forEach(el => el.remove());
+            let prevDayKey = null;
+            messages.forEach(message => {
+                const raw = message.getAttribute('data-sent-at');
+                if (!raw) return;
+                const date = new Date(raw);
+                if (Number.isNaN(date.getTime())) return;
+                const dayKey = date.toISOString().slice(0, 10);
+                if (prevDayKey !== dayKey) {
+                    const divider = document.createElement('div');
+                    divider.className = 'chat-day';
+                    divider.textContent = formatDayLabel(date);
+                    thread.insertBefore(divider, message);
+                    prevDayKey = dayKey;
+                }
+            });
+            const lastMessageWithDate = [...messages].reverse().find(m => m.getAttribute('data-sent-at'));
+            if (lastMessageWithDate) {
+                const date = new Date(lastMessageWithDate.getAttribute('data-sent-at'));
+                if (!Number.isNaN(date.getTime())) {
+                    lastDayKey = date.toISOString().slice(0, 10);
+                }
+            }
         }
     })();
 </script>

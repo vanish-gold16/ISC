@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -183,6 +184,12 @@ public class MessengerController {
         String avatar = conversation.getAvatarUrl();
         String subtitle = conversation.getType() == ConversationType.GROUP ? "Group chat" : "Conversation";
 
+        Optional<Message> lastMessage = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(
+                conversation, PageRequest.of(0, 1)
+        ).stream().findFirst();
+        Long lastMessageAt = lastMessage.map(Message::getCreatedAt)
+                .map(dt -> dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).orElse(0L);
+
         if (conversation.getType() == ConversationType.DIRECT) {
             other = conversationMemberRepository.findOtherUserByConversationDirect(conversation, me);
             if (other != null) {
@@ -208,6 +215,8 @@ public class MessengerController {
                 "id", conversation.getId(),
                 "name", name,
                 "avatar", avatar,
+                "lastMessage", lastMessage,
+                "lastMessageAt", lastMessageAt,
                 "subtitle", subtitle,
                 "online", false,
                 "friend", false,
@@ -232,7 +241,8 @@ public class MessengerController {
                     "fromMe", fromMe,
                     "text", text,
                     "time", formatTime(message.getCreatedAt()),
-                    "senderName", senderName
+                    "senderName", senderName,
+                    "sentAt", message.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toString()
             ));
         }
         return items;

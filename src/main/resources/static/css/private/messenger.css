@@ -118,7 +118,8 @@
 
 .conversation-list {
     padding: 6px 8px 14px;
-    display: grid;
+    display: flex;          /* grid → flex */
+    flex-direction: column; /* добавить */
     gap: 6px;
     overflow: auto;
 }
@@ -328,6 +329,17 @@
     flex: 1 1 auto;
 }
 
+.chat-day {
+    justify-self: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--msg-muted);
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--msg-border);
+}
+
 .message__sender {
     font-size: 11px;
     font-weight: 700;
@@ -484,7 +496,15 @@
 
 @media (max-width: 600px) {
     .conversation-item {
-        grid-template-columns: 40px 1fr auto;
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 14px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 120ms ease, border 120ms ease;
+        align-self: start; /* добавить */
     }
     .conversation-avatar {
         width: 40px;
