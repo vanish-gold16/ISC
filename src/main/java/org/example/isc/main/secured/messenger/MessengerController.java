@@ -159,6 +159,8 @@ public class MessengerController {
             lastText = "No messages yet";
         }
         String time = lastMessage.map(Message::getCreatedAt).map(this::formatTime).orElse("");
+        Long lastMessageAt = lastMessage.map(Message::getCreatedAt)
+                .map(dt -> dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).orElse(0L);
 
         if (conversation.getType() != ConversationType.DIRECT && lastMessage.isPresent()) {
             String senderName = lastMessage.get().getSender().getFirstName();
@@ -171,6 +173,7 @@ public class MessengerController {
                 "avatar", avatar,
                 "lastMessage", lastText,
                 "time", time,
+                "lastMessageAt", lastMessageAt,
                 "unread", 0,
                 "online", false,
                 "friend", false,
