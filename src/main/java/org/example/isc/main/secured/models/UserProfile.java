@@ -7,6 +7,7 @@ import org.example.isc.main.enums.OccupationEnum;
 import org.example.isc.main.enums.converter.CountryEnumConverter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -48,6 +49,9 @@ public class UserProfile {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
+
     public UserProfile(User user, String bio, CountryEnum country, String city, String currentStudy, OccupationEnum occupationEnum, LocalDate birthday) {
         this.user = user;
         this.bio = bio;
@@ -59,6 +63,14 @@ public class UserProfile {
     }
 
     public UserProfile() {
+    }
+
+    public LocalDateTime getLastActivityAt() {
+        return lastActivityAt;
+    }
+
+    public void setLastActivityAt(LocalDateTime lastActivityAt) {
+        this.lastActivityAt = lastActivityAt;
     }
 
     public Long getId() {
