@@ -17,10 +17,7 @@ html, body { height: 100%; }
 body {
     margin: 0;
     color: var(--text);
-    background:
-            radial-gradient(900px 420px at 12% 0%, rgba(37, 99, 235, 0.1), transparent 60%),
-            radial-gradient(900px 420px at 88% 12%, rgba(37, 99, 235, 0.06), transparent 55%),
-            var(--bg);
+    background: var(--bg);
     font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
 }
 

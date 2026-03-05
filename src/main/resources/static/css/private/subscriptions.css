@@ -23,10 +23,7 @@ body {
 body {
     margin: 0;
     color: var(--text);
-    background:
-            radial-gradient(1000px 500px at 18% 0%, rgba(110, 168, 254, 0.22), transparent 60%),
-            radial-gradient(900px 450px at 85% 15%, rgba(126, 224, 194, 0.16), transparent 55%),
-            var(--bg);
+    background: var(--bg);
     font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
 }
 
