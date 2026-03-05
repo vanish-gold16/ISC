@@ -1,5 +1,11 @@
 ﻿/* reusable right sidebar */
-.sidebar-right { min-width: 0; }
+.sidebar-right {
+    min-width: 0;
+    position: sticky;
+    top: 76px;
+    align-self: start;
+    height: fit-content;
+}
 
 .nav-card { padding: 12px; }
 

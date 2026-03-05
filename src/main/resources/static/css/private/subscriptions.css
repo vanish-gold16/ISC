@@ -154,14 +154,14 @@ button {
 }
 
 .page {
-    position: relative;
-    padding: 18px calc(320px + 18px) 24px 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    align-items: start;
+    padding: 18px 0 24px;
 }
 
 .sidebar-right {
-    position: absolute;
-    top: 18px;
-    right: 0;
     width: 320px;
 }
 
@@ -314,11 +314,11 @@ button {
 
 @media (max-width: 960px) {
     .page {
-        padding-right: 0;
+        grid-template-columns: 1fr;
+        padding: 18px 0 24px;
     }
 
     .sidebar-right {
-        position: static;
         width: auto;
         display: none;
     }

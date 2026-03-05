@@ -15,7 +15,7 @@
     display: grid;
     grid-template-columns: 320px minmax(0, 1fr);
     gap: 18px;
-    padding: 18px 0 28px;
+    padding: 0;
     font-family: "Trebuchet MS", "Candara", "Segoe UI", sans-serif;
     align-items: stretch;
     height: calc(100vh - 140px);
@@ -27,11 +27,14 @@
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: 18px;
     padding: 18px 0 28px;
+    align-items: start;
 }
 
 .messenger-layout .sidebar-right {
-    position: static;
-    width: auto;
+    position: sticky;
+    top: 76px;
+    width: 320px;
+    align-self: start;
 }
 
 .messenger-panel {
