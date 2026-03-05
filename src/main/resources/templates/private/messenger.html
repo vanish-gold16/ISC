@@ -141,6 +141,12 @@
 
         if (!conversationId || !window.SockJS || !window.Stomp) return;
 
+        if (thread && !thread.classList.contains('is-hidden')) {
+            requestAnimationFrame(() => {
+                thread.scrollTop = thread.scrollHeight;
+            });
+        }
+
         const socket = new SockJS('/ws');
         const stomp = Stomp.over(socket);
         stomp.debug = null;
