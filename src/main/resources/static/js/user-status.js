@@ -84,7 +84,7 @@
         const primary = container.querySelector('.user-status__text');
         const secondary = container.querySelector('.user-status__secondary');
         if (primary) {
-            primary.textContent = getPrimaryText(state);
+            primary.textContent = getPrimaryText(state, lastActive);
         }
         if (secondary) {
             const secondaryText = getSecondaryText(state, lastActive);
@@ -93,14 +93,14 @@
         }
     }
 
-    function getPrimaryText(state) {
+    function getPrimaryText(state, lastActive) {
         if (state === 'online') {
             return 'Online';
         }
         if (state === 'idle') {
             return 'Away';
         }
-        return 'Offline';
+        return 'Last seen at';
     }
 
     function getSecondaryText(state, lastActive) {
@@ -108,28 +108,19 @@
             return 'Active now';
         }
         if (!lastActive) {
-            return '';
+            return 'Unknown';
         }
-        const since = Date.now() - lastActive.getTime();
-        if (since < 0) {
-            return '';
-        }
-        const duration = formatDuration(since);
-        return duration === 'just now' ? 'Last seen just now' : `Last seen ${duration} ago`;
+        return formatAbsolute(lastActive);
     }
 
-    function formatDuration(milliseconds) {
-        const seconds = Math.floor(milliseconds / 1000);
-        if (seconds < 60) {
-            return 'just now';
-        }
-        if (seconds < 3600) {
-            return `${Math.floor(seconds / 60)} min`;
-        }
-        if (seconds < 86400) {
-            return `${Math.floor(seconds / 3600)} h`;
-        }
-        return `${Math.floor(seconds / 86400)} d`;
+    function formatAbsolute(date) {
+        const options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            day: 'numeric',
+            month: 'short'
+        };
+        return new Intl.DateTimeFormat(undefined, options).format(date);
     }
 
     refreshStatuses();

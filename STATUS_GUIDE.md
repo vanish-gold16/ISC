@@ -1,9 +1,6 @@
-# Java status endpoint guide
+# Java status endpoint guide (step-by-step)
 
-This project now renders a live status pill next to every profile and the author line on posts. The frontend requests user presence via `GET /api/users/statuses` and expects the following contract:
-
-1. **Request**: query parameter `userIds` with comma-separated numeric ids (e.g. `?userIds=1,2,3`).
-2. **Response**: application/json body that maps each id to a small DTO:
+The frontend loads presence pills next to every post/profile by polling `GET /api/users/statuses?userIds=1,2,3`. It expects a simple JSON map: each key is a user ID and the value is a short DTO with `state` and optionally `lastActive`. Example:
 
 ```json
 {
@@ -12,13 +9,12 @@ This project now renders a live status pill next to every profile and the author
 }
 ```
 
-- `state` should be one of `ONLINE`, `IDLE`/`AWAY`/`BUSY` (the UI treats these as `Away`), or anything else (falls back to `Offline`).
-- `lastActive` is optional but should be an ISO-8601 timestamp (UTC) when available.
+The frontend:
+1. Interprets `state` values `ONLINE`, `IDLE`/`AWAY`/`BUSY` (treated as “Away”) or anything else (`Last seen at ...`).
+2. Uses `lastActive` to format the timestamp that appears next to “Last seen at”.
+3. Contacts the endpoint every 20 seconds, so it must be quick and cache-friendly.
 
-The frontend polls this endpoint every 20 seconds, so the implementation must be fast.
-
-## Suggested Java pieces
-
+### Step 1: define the DTO/enum
 ```java
 public enum PresenceState {
     ONLINE,
@@ -29,14 +25,13 @@ public enum PresenceState {
 public record UserStatusDto(PresenceState state, Instant lastActive) {}
 ```
 
-Keep a concurrent map of `userId -> UserStatusDto` that is updated whenever the user interacts with the application:
+### Step 2: track presence
+- Keep a concurrent map between user IDs and `UserStatusDto`.
+- On sign-in/interaction set state `ONLINE` and update `lastActive`.
+- On session expiration (or if the app later supports private accounts) flip the value to `OFFLINE`.
+- Optionally run a scheduled task that demotes `ONLINE` → `IDLE` after a grace period of inactivity.
 
-- on authentication success mark the id `ONLINE` and remember `Instant.now()`;
-- on logout or session expiration mark `OFFLINE` and set the timestamp;
-- optionally, use a scheduled task to degrade `ONLINE` -> `IDLE` if no traffic arrives for a configurable grace period.
-
-Expose a controller that accepts the `userIds` parameter, resolves the subset of cached statuses, and returns them as a map. For example:
-
+### Step 3: expose the controller
 ```java
 @RestController
 @RequestMapping("/api/users")
@@ -53,12 +48,11 @@ public class UserStatusController {
     }
 }
 ```
+Return `OFFLINE` for a user only if the account explicitly prevents showing online status (private accounts you might add later); otherwise default the DTO to `ONLINE`/`IDLE` based on recent activity.
 
-`UserPresenceService#getStatuses` should return the best known status for every requested id (default to `OFFLINE` with no `lastActive` if unknown).
+### Step 4: secure the endpoint
+- Protect `/api/users/statuses` with the same authentication as the rest of the site.
+- Read `userIds` from the query string and answer only for the requested subset.
+- Always respond with `application/json` and the simple map (no envelopes).
 
-### Additional notes
-
-- Protect the endpoint with the same authentication used by the rest of the site so only signed-in users can poll statuses.
-- If you already track active websocket sessions or HTTP requests via filters, reuse that data for `lastActive` instead of duplicating state.
-- The frontend script expects the response to be a simple JSON object; do not wrap it in another envelope.
-- After implementing the service, no additional frontend changes are necessary; the new pill will update automatically.
+Once the service is wired into authentication events, the frontend updates the pill automatically—no additional frontend changes are necessary.
