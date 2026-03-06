@@ -29,13 +29,22 @@ Also a platform to meet new people (because humans apparently enjoy that).
   ![JUnit5](https://img.shie)
 ---
 
+## Security
+- Using Spring Security with SecurityConfig to guarantee secure login
+- PasswordHash using BCrypt to secure passwords
+
 ## Features ![Features](https://img.shields.io/badge/features-in%20progress-yellow)
 
 ### Friends, Subscribers and Subscriptions ![Social](https://img.shields.io/badge/module-social-purple)
-- (planned)
+- Friends statuses: PENDING (neither accepted or declined), ACCEPTER, DELCINED
+- Subscriptions and Subscribers
 
 ### Posts ![Posts](https://img.shields.io/badge/module-posts-green)
-- (planned)
-
+- Posting text, photos (planned audio or video)
+- shown on profile page or at the feed if subscribed or friends
+  
 ### Messenger ![Chat](https://img.shields.io/badge/module-messenger-orange)
-- (planned)
+- Messenger is realised with WebSocket and STOMP
+
+### Notifications ![Notification](https://img.shields/io/badge/module-notifications-yellow)
+- Receive notifications when somebody has wrote you, added/deleted from a conversation, liked or commented your post, subscribed or sent a friend request 
