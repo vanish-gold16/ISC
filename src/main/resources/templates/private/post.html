@@ -152,10 +152,20 @@
                          alt="" />
                 </div>
                 <div class="post__meta">
-                    <div class="post__name"
-                         th:text="${post.user != null ? (post.user.firstName + ' ' + post.user.lastName) : 'ISC Member'}">ISC Member</div>
-                    <div class="post__sub muted">
-                        <span th:text="${post.user != null && post.user.username != null ? '@' + post.user.username : '@user'}">@user</span>
+                    <div>
+                        <div class="post__name"
+                             th:text="${post.user != null ? (post.user.firstName + ' ' + post.user.lastName) : 'ISC Member'}">ISC Member</div>
+                        <div class="post__sub muted">
+                            <span th:text="${post.user != null && post.user.username != null ? '@' + post.user.username : '@user'}">@user</span>
+                        </div>
+                        <div class="user-status post__status-line" th:if="${post.user != null}"
+                             th:attr="data-user-id=${post.user.id}">
+                            <span class="user-status__dot" aria-hidden="true"></span>
+                            <div class="user-status__copy">
+                                <span class="user-status__text" aria-live="polite">Loading status...</span>
+                                <span class="user-status__secondary" aria-live="polite"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -366,5 +376,6 @@
         });
     })();
 </script>
+<script src="/js/user-status.js" defer></script>
 </body>
 </html>

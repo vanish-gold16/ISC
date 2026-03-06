@@ -416,6 +416,62 @@ button { font: inherit; }
     display: block;
 }
 
+.user-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.user-status__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #cbd5f5;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    flex-shrink: 0;
+}
+
+.user-status[data-status-state="online"] .user-status__dot {
+    background: #22c55e;
+    border-color: #16a34a;
+}
+
+.user-status[data-status-state="idle"] .user-status__dot {
+    background: #facc15;
+    border-color: #f59e0b;
+}
+
+.user-status[data-status-state="offline"] .user-status__dot {
+    background: #e5e7eb;
+    border-color: rgba(148, 163, 184, 0.6);
+}
+
+.user-status__copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-status__text {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.user-status__secondary {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.post__status-line {
+    margin-top: 4px;
+}
+
+.profile-status {
+    margin-top: 6px;
+}
 
 
 
