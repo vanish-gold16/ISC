@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,22 +51,6 @@ public class MessengerController {
         this.messengerService = messengerService;
         this.activityService = activityService;
     }
-
-    //  1. Отправка сообщений через HTTP или WebSocket
-    //     Сейчас кнопка “Send” в шаблоне не отправляет.
-    //     Варианты:
-    //      - сделать POST /messages/c/{id}/send (REST)
-    //      - или подключить STOMP/WebSocket в JS и слать в /app/chat/{id}
-    //  2. Unread-логика
-    //     Сейчас unread = 0 везде. Нужно хранить read/delivered:
-    //      - таблица message_status или поле last_read_at в conversation_members.
-    //  3. Последнее сообщение и время
-    //     Сейчас мы делаем запрос на каждую беседу (N+1). Лучше сделать репозиторий/SQL, который отдаёт список чатов с последним сообщением в одном запросе.
-    //  4. Безопасность/доступ
-    //     В UI проверка есть, но стоит ещё:
-    //      - запрет на доступ к /messages/c/{id}, если не участник.
-    //  5. Онлайн/статус
-    //     Сейчас всегда false. Нужны presence-данные или хотя бы timestamp последней активности.
 
     @GetMapping()
     public String messengerPage(
@@ -241,19 +226,19 @@ public class MessengerController {
             lastText = senderName + ": " + lastText;
         }
 
-        return Map.of(
-                "id", conversation.getId(),
-                "name", name,
-                "avatar", avatar,
-                "lastMessage", lastText,
-                "time", time,
-                "lastMessageAt", lastMessageAt,
-                "unread", 0,
-                "online", online,
-                "lastSeenAt", lastSeenAt,
-                "friend", false,
-                "subtitle", subtitle
-        );
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("id", conversation.getId());
+        view.put("name", name);
+        view.put("avatar", avatar);
+        view.put("lastMessage", lastText);
+        view.put("time", time);
+        view.put("lastMessageAt", lastMessageAt);
+        view.put("unread", 0);
+        view.put("online", online);
+        view.put("lastSeenAt", lastSeenAt);
+        view.put("friend", false);
+        view.put("subtitle", subtitle);
+        return view;
     }
 
     private Map<String, Object> buildActiveConversationView(Conversation conversation, User me) {
@@ -295,17 +280,17 @@ public class MessengerController {
             avatar = DEFAULT_AVATAR;
         }
 
-        return Map.of(
-                "id", conversation.getId(),
-                "name", name,
-                "avatar", avatar,
-                "lastMessageAt", lastMessageAt,
-                "subtitle", subtitle,
-                "online", online,
-                "lastSeenAt", lastSeenAt,
-                "friend", false,
-                "type", conversation.getType().name()
-        );
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("id", conversation.getId());
+        view.put("name", name);
+        view.put("avatar", avatar);
+        view.put("lastMessageAt", lastMessageAt);
+        view.put("subtitle", subtitle);
+        view.put("online", online);
+        view.put("lastSeenAt", lastSeenAt);
+        view.put("friend", false);
+        view.put("type", conversation.getType().name());
+        return view;
     }
 
     private List<Map<String, Object>> buildMessageViews(Conversation conversation, User me) {
