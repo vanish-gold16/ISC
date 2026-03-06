@@ -33,7 +33,7 @@
                    th:each="c : ${conversations}"
                    th:href="@{/messages/c/{id}(id=${c.id})}"
                    th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
-                   th:attr="data-last-ts=${c['lastMessageAt']}"
+                   th:attr="data-last-ts=${c['lastMessageAt']}, data-user-id=${c.otherUserId}, data-last-seen=${c.lastSeenAtIso}"
                    data-conversation-item>
                     <img class="conversation-avatar" th:src="${c.avatar}" alt="" />
                     <div class="conversation-body">
@@ -44,11 +44,14 @@
                         </div>
                         <p class="conversation-preview" th:text="${c.lastMessage}">Preview</p>
                         <div class="conversation-status-line">
-                            <span class="status-text" th:if="${c.online}">Online now</span>
-                            <span class="status-text"
-                                  th:if="${!c.online and c.lastSeenAt != null}"
-                                  th:text="|Last seen ${#temporals.format(c.lastSeenAt, 'MMM d, HH:mm')}|">Last seen</span>
-                            <span class="status-text" th:if="${!c.online and c.lastSeenAt == null}">Offline</span>
+                            <span class="status-text" data-presence-text>
+                                <span th:if="${c.online}">Online now</span>
+                                <span th:if="${!c.online and c.lastSeenAt != null}"
+                                      th:text="|Last seen ${#temporals.format(c.lastSeenAt, 'MMM d, HH:mm')}|">
+                                    Last seen
+                                </span>
+                                <span th:if="${!c.online and c.lastSeenAt == null}">Offline</span>
+                            </span>
                         </div>
                     </div>
                     <div class="conversation-meta">
@@ -66,18 +69,21 @@
 
         <section class="messenger-panel messenger-chat" th:if="${activeConversation != null}">
             <div class="chat-head">
-                <div class="chat-head-left">
+                <div class="chat-head-left" th:attr="data-active-user-id=${activeConversation.otherUserId}">
                     <img class="chat-avatar" th:src="${activeConversation.avatar}" alt="" />
                     <div>
                         <h2 class="chat-title" th:text="${activeConversation.name}">Active chat</h2>
                         <p class="chat-subtitle" th:text="${activeConversation.subtitle}">Subtitle</p>
                         <div class="chat-status">
                             <span class="status-dot" th:classappend="${activeConversation.online} ? ' is-online' : ''"></span>
-                            <span class="status-text" th:if="${activeConversation.online}">Online now</span>
-                            <span class="status-text"
-                                  th:if="${!activeConversation.online and activeConversation.lastSeenAt != null}"
-                                  th:text="|Last seen ${#temporals.format(activeConversation.lastSeenAt, 'MMM d, HH:mm')}|">Last seen</span>
-                            <span class="status-text" th:if="${!activeConversation.online and activeConversation.lastSeenAt == null}">Offline</span>
+                            <span class="status-text" data-active-presence-text>
+                                <span th:if="${activeConversation.online}">Online now</span>
+                                <span th:if="${!activeConversation.online and activeConversation.lastSeenAt != null}"
+                                      th:text="|Last seen ${#temporals.format(activeConversation.lastSeenAt, 'MMM d, HH:mm')}|">
+                                    Last seen
+                                </span>
+                                <span th:if="${!activeConversation.online and activeConversation.lastSeenAt == null}">Offline</span>
+                            </span>
                             <span class="friend-badge" th:if="${activeConversation.friend}">Friend</span>
                         </div>
                     </div>
@@ -165,6 +171,8 @@
         const lastActivity = new Map();
         let lastDayKey = null;
         const GAP_MINUTES = 20;
+        const PRESENCE_PING_INTERVAL = 30000;
+        let presencePingId = null;
 
         if (thread && !thread.classList.contains('is-hidden')) {
             requestAnimationFrame(() => {
@@ -174,30 +182,41 @@
         initConversationSorting();
         insertDayDividersFromMessages();
         applyMessageSpacing();
+        startPresenceHeartbeat();
 
-        if (!conversationId || !window.SockJS || !window.Stomp) return;
+        if (!window.SockJS || !window.Stomp) return;
 
         const socket = new SockJS('/ws');
         const stomp = Stomp.over(socket);
         stomp.debug = null;
 
         stomp.connect({}, () => {
-            stomp.subscribe('/topic/conversation.' + conversationId, (frame) => {
+            if (conversationId) {
+                stomp.subscribe('/topic/conversation.' + conversationId, (frame) => {
+                    if (!frame || !frame.body) return;
+                    try {
+                        const msg = JSON.parse(frame.body);
+                        const fromMe = currentUserId != null && msg && Number(msg.senderId) === currentUserId;
+                        if (fromMe) return;
+                        appendMessage(msg, false);
+                    } catch (e) {
+                        appendMessage({ body: String(frame.body || '') }, false);
+                    }
+                });
+            }
+            stomp.subscribe('/topic/presence', (frame) => {
                 if (!frame || !frame.body) return;
                 try {
-                    const msg = JSON.parse(frame.body);
-                    const fromMe = currentUserId != null && msg && Number(msg.senderId) === currentUserId;
-                    if (fromMe) return;
-                    appendMessage(msg, false);
+                    const payload = JSON.parse(frame.body);
+                    updatePresence(payload);
                 } catch (e) {
-                    appendMessage({ body: String(frame.body || '') }, false);
+                    console.error('Failed to parse presence payload', e);
                 }
             });
         });
 
-        if (!textarea || !sendBtn) return;
-
         function send() {
+            if (!conversationId || !textarea) return;
             const text = (textarea.value || '').trim();
             if (!text) return;
             stomp.send('/app/chat/' + conversationId, {}, JSON.stringify({ body: text }));
@@ -205,13 +224,23 @@
             textarea.value = '';
         }
 
-        sendBtn.addEventListener('click', send);
-        textarea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                send();
-            }
-        });
+        if (textarea && sendBtn) {
+            sendBtn.addEventListener('click', send);
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                }
+            });
+        }
+
+        window.addEventListener('beforeunload', handlePresenceUnload);
+        window.addEventListener('pagehide', handlePresenceUnload);
+
+        function handlePresenceUnload() {
+            stopPresenceHeartbeat();
+            markPresenceOffline();
+        }
 
         function appendMessage(msg, fromMe) {
             if (!thread) return;
@@ -456,6 +485,99 @@
                 return 'name:' + senderEl.textContent.trim();
             }
             return 'them';
+        }
+
+        function startPresenceHeartbeat() {
+            sendPresencePing();
+            presencePingId = window.setInterval(sendPresencePing, PRESENCE_PING_INTERVAL);
+        }
+
+        function stopPresenceHeartbeat() {
+            if (presencePingId != null) {
+                clearInterval(presencePingId);
+                presencePingId = null;
+            }
+        }
+
+        function sendPresencePing() {
+            fetch('/profile/activity/ping', { method: 'POST' }).catch(() => {});
+        }
+
+        function markPresenceOffline() {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/profile/activity/leave');
+                return;
+            }
+            fetch('/profile/activity/leave', { method: 'POST', keepalive: true }).catch(() => {});
+        }
+
+        function updatePresence(event) {
+            if (!event || !event.userId) return;
+            const userId = String(event.userId);
+            const online = Boolean(event.online);
+            const lastSeen = event.lastSeenAt || null;
+            const label = formatPresenceLabel(online, lastSeen);
+            conversationItems.forEach(item => {
+                if (item.getAttribute('data-user-id') !== userId) return;
+                const dot = item.querySelector('.status-dot');
+                if (dot) {
+                    dot.classList.toggle('is-online', online);
+                }
+                const text = item.querySelector('[data-presence-text]');
+                if (text) {
+                    text.textContent = label;
+                }
+                if (lastSeen) {
+                    item.setAttribute('data-last-seen', lastSeen);
+                } else {
+                    item.removeAttribute('data-last-seen');
+                }
+            });
+            updateActivePresence(userId, online, lastSeen, label);
+        }
+
+        function updateActivePresence(userId, online, lastSeen, label) {
+            const activeHead = document.querySelector('[data-active-user-id]');
+            if (!activeHead || activeHead.getAttribute('data-active-user-id') !== userId) {
+                return;
+            }
+            const dot = activeHead.querySelector('.status-dot');
+            if (dot) {
+                dot.classList.toggle('is-online', online);
+            }
+            const text = activeHead.querySelector('[data-active-presence-text]');
+            if (text) {
+                text.textContent = label;
+                if (lastSeen) {
+                    text.setAttribute('data-last-seen', lastSeen);
+                } else {
+                    text.removeAttribute('data-last-seen');
+                }
+            }
+        }
+
+        function formatPresenceLabel(online, lastSeen) {
+            if (online) {
+                return 'Online now';
+            }
+            if (lastSeen) {
+                const formatted = formatLastSeen(lastSeen);
+                return formatted ? 'Last seen ' + formatted : 'Offline';
+            }
+            return 'Offline';
+        }
+
+        function formatLastSeen(value) {
+            if (!value) return '';
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return '';
+            return parsed.toLocaleString('en', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
         }
     })();
 </script>

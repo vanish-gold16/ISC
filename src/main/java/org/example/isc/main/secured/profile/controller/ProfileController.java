@@ -14,6 +14,7 @@ import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.notification.NotificationService;
+import org.example.isc.main.secured.profile.ActivityService;
 import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
@@ -48,6 +49,7 @@ public class ProfileController {
     private final PostRepository postRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ProfileService profileService;
+    private final ActivityService activityService;
     private final FriendsService friendsService;
     private final NotificationService notificationService;
     private final FriendsRepository friendsRepository;
@@ -55,11 +57,12 @@ public class ProfileController {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
 
-    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService, LikeRepository likeRepository, CommentRepository commentRepository) {
+    public ProfileController(UserRepository userRepository, PostRepository postRepository, SubscriptionRepository subscriptionRepository, ProfileService profileService, ActivityService activityService, FriendsService friendsService, NotificationService notificationService, FriendsRepository friendsRepository, ImageService imageService, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.profileService = profileService;
+        this.activityService = activityService;
         this.friendsService = friendsService;
         this.notificationService = notificationService;
         this.friendsRepository = friendsRepository;
@@ -411,6 +414,23 @@ public class ProfileController {
         model.addAttribute("targetUser", target);
 
         return "private/profile/user-subscribers";
+    }
+
+    @PostMapping("/activity/ping")
+    public ResponseEntity<Void> pingActivity(Authentication authentication) {
+        activityService.touch(resolveCurrentUser(authentication));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/activity/leave")
+    public ResponseEntity<Void> leaveActivity(Authentication authentication) {
+        activityService.leave(resolveCurrentUser(authentication));
+        return ResponseEntity.ok().build();
+    }
+
+    private User resolveCurrentUser(Authentication authentication) {
+        return userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
     }
 
     private void addProfileViewAttributes(Model model, User user) {

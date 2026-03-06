@@ -186,6 +186,7 @@ public class MessengerController {
         String subtitle = "";
         boolean online = false;
         LocalDateTime lastSeenAt = null;
+        Long otherUserId = null;
 
         if (conversation.getType() == ConversationType.DIRECT) {
             other = conversationMemberRepository.findOtherUserByConversationDirect(conversation, me);
@@ -193,13 +194,14 @@ public class MessengerController {
                 name = other.getFirstName() + " " + other.getLastName();
                 subtitle = "@" + other.getUsername();
                 if (other.getProfile() != null && other.getProfile().getAvatarUrl() != null) {
-                    avatar = other.getProfile().getAvatarUrl();
-                }
-                if (other.getProfile() != null) {
-                    lastSeenAt = other.getProfile().getLastActivityAt();
-                }
-                online = activityService.online(other.getId());
+                avatar = other.getProfile().getAvatarUrl();
             }
+            if (other.getProfile() != null) {
+                lastSeenAt = other.getProfile().getLastActivityAt();
+            }
+            online = activityService.online(other.getId());
+            otherUserId = other.getId();
+        }
         }
 
         if (name == null || name.isBlank()) {
@@ -225,6 +227,7 @@ public class MessengerController {
             String senderName = lastMessage.get().getSender().getFirstName();
             lastText = senderName + ": " + lastText;
         }
+        String lastSeenAtIso = lastSeenAt == null ? null : lastSeenAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("id", conversation.getId());
@@ -238,6 +241,8 @@ public class MessengerController {
         view.put("lastSeenAt", lastSeenAt);
         view.put("friend", false);
         view.put("subtitle", subtitle);
+        view.put("otherUserId", otherUserId);
+        view.put("lastSeenAtIso", lastSeenAtIso);
         return view;
     }
 
@@ -248,6 +253,7 @@ public class MessengerController {
         String subtitle = conversation.getType() == ConversationType.GROUP ? "Group chat" : "Conversation";
         boolean online = false;
         LocalDateTime lastSeenAt = null;
+        Long otherUserId = null;
 
         Optional<Message> lastMessage = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(
                 conversation, PageRequest.of(0, 1)
@@ -267,6 +273,7 @@ public class MessengerController {
                     lastSeenAt = other.getProfile().getLastActivityAt();
                 }
                 online = activityService.online(other.getId());
+                otherUserId = other.getId();
             }
         } else if (conversation.getType() == ConversationType.GROUP) {
             int members = conversationMemberRepository.findByConversation(conversation).size();
@@ -290,6 +297,8 @@ public class MessengerController {
         view.put("lastSeenAt", lastSeenAt);
         view.put("friend", false);
         view.put("type", conversation.getType().name());
+        view.put("otherUserId", otherUserId);
+        view.put("lastSeenAtIso", lastSeenAt == null ? null : lastSeenAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return view;
     }
 
