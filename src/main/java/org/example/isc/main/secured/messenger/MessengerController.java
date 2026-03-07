@@ -131,7 +131,7 @@ public class MessengerController {
     //
     //  Это уже готово в buildConversationView и buildActiveConversationView.
     //
-    //  ———
+
     //
     //  ## Куда ещё добавить (для профиля)
     //
