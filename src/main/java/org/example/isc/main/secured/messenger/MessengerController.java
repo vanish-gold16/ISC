@@ -154,6 +154,12 @@ public class MessengerController {
         if (lastText == null || lastText.isBlank()) {
             lastText = "No messages yet";
         }
+        Long lastSenderId = lastMessage.map(Message::getSender)
+                .map(User::getId)
+                .orElse(null);
+        String lastSenderName = lastMessage.map(Message::getSender)
+                .map(User::getFirstName)
+                .orElse(null);
         String time = lastMessage.map(Message::getCreatedAt).map(this::formatTime).orElse("");
         Long lastMessageAt = lastMessage.map(Message::getCreatedAt)
                 .map(dt -> dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).orElse(0L);
@@ -170,6 +176,8 @@ public class MessengerController {
         view.put("name", name);
         view.put("avatar", avatar);
         view.put("lastMessage", lastText);
+        view.put("lastMessageSenderId", lastSenderId);
+        view.put("lastMessageSenderName", lastSenderName);
         view.put("time", time);
         view.put("lastMessageAt", lastMessageAt);
         view.put("unread", 0);

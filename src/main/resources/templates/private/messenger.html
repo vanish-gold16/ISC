@@ -42,7 +42,10 @@
                             <span class="friend-badge" th:if="${c.friend}">Friend</span>
                             <span class="status-dot" th:classappend="${c.online} ? ' is-online' : ''"></span>
                         </div>
-                        <p class="conversation-preview" th:text="${c.lastMessage}">Preview</p>
+                        <p class="conversation-preview"
+                           th:text="${c.lastMessageSenderId != null and c.lastMessageSenderId != currentUserId}
+                                    ? ${c.lastMessageSenderName} + ': ' + ${c.lastMessage}
+                                    : ${c.lastMessage}">Preview</p>
                         <div class="conversation-status-line">
                             <span class="status-text" data-presence-text
                                   th:attr="data-last-seen=${c.lastSeenAtIso}">
@@ -305,7 +308,9 @@
             applyMessageSpacing();
 
             const text = msg && msg.body ? msg.body : '';
-            updateConversationPreview(text, now);
+            const senderId = msg && msg.senderId ? msg.senderId : (fromMe ? currentUserId : null);
+            const senderName = msg && msg.senderName ? msg.senderName : null;
+            updateConversationPreview(text, now, senderId, senderName);
         }
 
         function ensureDayDivider() {
@@ -340,13 +345,19 @@
             return date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
         }
 
-        function updateConversationPreview(text, time) {
+        function updateConversationPreview(text, time, senderId, senderName) {
             const item = conversationItems.find(el => String(el.getAttribute('href') || '').includes('/' + conversationId));
             if (!item) return;
 
             const preview = item.querySelector('.conversation-preview');
             if (preview) {
-                preview.textContent = text || 'New message';
+                const cleanText = text || 'New message';
+                const fromMe = currentUserId != null && senderId != null && Number(senderId) === currentUserId;
+                if (!fromMe && senderName) {
+                    preview.textContent = `${senderName}: ${cleanText}`;
+                } else {
+                    preview.textContent = cleanText;
+                }
             }
 
             const metaTime = item.querySelector('.conversation-meta span');
