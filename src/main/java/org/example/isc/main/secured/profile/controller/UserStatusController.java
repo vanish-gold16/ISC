@@ -1,7 +1,7 @@
 package org.example.isc.main.secured.profile.controller;
 
 import org.example.isc.main.dto.UserStatusDTO;
-import org.example.isc.main.secured.profile.service.StatusService;
+import org.example.isc.main.secured.profile.service.UserStatusService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,15 +14,15 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserStatusController {
 
-    private final StatusService statusService;
+    private final UserStatusService userStatusService;
 
-    public UserStatusController(StatusService statusService) {
-        this.statusService = statusService;
+    public UserStatusController(UserStatusService userStatusService) {
+        this.userStatusService = userStatusService;
     }
 
     @GetMapping("/statuses")
     public Map<Long, UserStatusDTO> list(@RequestParam List<Long> userIds){
-        return statusService.userStatuses(userIds);
+        return userStatusService.getStatuses(userIds);
     }
 
 }
