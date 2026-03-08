@@ -172,7 +172,7 @@
         const composer = document.querySelector('.chat-composer');
         const textarea = composer ? composer.querySelector('textarea') : null;
         const sendBtn = composer ? composer.querySelector('.send-btn') : null;
-        const conversationItems = Array.from(document.querySelectorAll('[data-conversation-item]'));
+        let conversationItems = Array.from(document.querySelectorAll('[data-conversation-item]'));
         const lastActivity = new Map();
         let lastDayKey = null;
         const GAP_MINUTES = 20;
@@ -209,6 +209,15 @@
                     }
                 });
             }
+            stomp.subscribe('/user/queue/conversations', (frame) => {
+                if (!frame || !frame.body) return;
+                try {
+                    const payload = JSON.parse(frame.body);
+                    upsertConversationItem(payload);
+                } catch (e) {
+                    console.error('Failed to parse conversation payload', e);
+                }
+            });
             stomp.subscribe('/topic/presence', (frame) => {
                 if (!frame || !frame.body) return;
                 try {
@@ -369,6 +378,147 @@
             lastActivity.set(item, ts);
             item.setAttribute('data-last-ts', String(ts));
             sortConversationList();
+        }
+
+        function upsertConversationItem(data) {
+            if (!data || !data.id) return;
+            const href = '/messages/c/' + data.id;
+            let item = conversationItems.find(el => (el.getAttribute('href') || '') === href);
+            if (!item) {
+                const list = ensureConversationList();
+                item = buildConversationItem(data);
+                list.prepend(item);
+                conversationItems = Array.from(document.querySelectorAll('[data-conversation-item]'));
+            } else {
+                hydrateConversationItem(item, data);
+            }
+
+            const lastMessageAt = data.lastMessageAt ? Number(data.lastMessageAt) : null;
+            const time = lastMessageAt ? new Date(lastMessageAt) : new Date();
+            const senderId = data.lastMessageSenderId || data.senderId || null;
+            const senderName = data.lastMessageSenderName || data.senderName || null;
+            updateConversationPreview(data.lastMessage || data.message || 'New message', time, senderId, senderName);
+        }
+
+        function ensureConversationList() {
+            let list = document.querySelector('.conversation-list');
+            if (list) return list;
+            const sidebar = document.querySelector('.messenger-sidebar');
+            list = document.createElement('div');
+            list.className = 'conversation-list';
+            const empty = document.querySelector('.conversation-empty');
+            if (empty && empty.parentNode) {
+                empty.parentNode.insertBefore(list, empty);
+                empty.remove();
+            } else if (sidebar) {
+                sidebar.appendChild(list);
+            } else {
+                document.body.appendChild(list);
+            }
+            return list;
+        }
+
+        function buildConversationItem(data) {
+            const item = document.createElement('a');
+            item.className = 'conversation-item';
+            item.href = '/messages/c/' + data.id;
+            item.setAttribute('data-conversation-item', '');
+            if (data.otherUserId) {
+                item.setAttribute('data-user-id', data.otherUserId);
+            }
+            if (data.lastSeenAtIso) {
+                item.setAttribute('data-last-seen', data.lastSeenAtIso);
+            }
+
+            const avatar = document.createElement('img');
+            avatar.className = 'conversation-avatar';
+            avatar.alt = '';
+            avatar.src = data.avatar || '/images/private/profile/common-profile.png';
+
+            const body = document.createElement('div');
+            body.className = 'conversation-body';
+
+            const nameRow = document.createElement('div');
+            nameRow.className = 'conversation-name';
+            const name = document.createElement('span');
+            name.textContent = data.name || data.title || 'New chat';
+            nameRow.appendChild(name);
+            if (data.friend) {
+                const badge = document.createElement('span');
+                badge.className = 'friend-badge';
+                badge.textContent = 'Friend';
+                nameRow.appendChild(badge);
+            }
+            const dot = document.createElement('span');
+            dot.className = 'status-dot' + (data.online ? ' is-online' : '');
+            nameRow.appendChild(dot);
+
+            const preview = document.createElement('p');
+            preview.className = 'conversation-preview';
+            preview.textContent = data.lastMessage || 'New message';
+
+            const statusLine = document.createElement('div');
+            statusLine.className = 'conversation-status-line';
+            const statusText = document.createElement('span');
+            statusText.className = 'status-text';
+            statusText.setAttribute('data-presence-text', '');
+            statusText.textContent = formatPresenceLabel(!!data.online, data.lastSeenAtIso || null);
+            if (data.lastSeenAtIso) {
+                statusText.setAttribute('data-last-seen', data.lastSeenAtIso);
+            }
+            statusLine.appendChild(statusText);
+
+            body.appendChild(nameRow);
+            body.appendChild(preview);
+            body.appendChild(statusLine);
+
+            const meta = document.createElement('div');
+            meta.className = 'conversation-meta';
+            const time = document.createElement('span');
+            const lastMessageAt = data.lastMessageAt ? new Date(Number(data.lastMessageAt)) : null;
+            time.textContent = lastMessageAt
+                ? lastMessageAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : '';
+            meta.appendChild(time);
+            if (data.unread && Number(data.unread) > 0) {
+                const unread = document.createElement('span');
+                unread.className = 'conversation-unread';
+                unread.textContent = String(data.unread);
+                meta.appendChild(unread);
+            }
+
+            item.appendChild(avatar);
+            item.appendChild(body);
+            item.appendChild(meta);
+            return item;
+        }
+
+        function hydrateConversationItem(item, data) {
+            const name = item.querySelector('.conversation-name > span');
+            if (name && (data.name || data.title)) {
+                name.textContent = data.name || data.title;
+            }
+            const avatar = item.querySelector('.conversation-avatar');
+            if (avatar && data.avatar) {
+                avatar.src = data.avatar;
+            }
+            if (data.otherUserId) {
+                item.setAttribute('data-user-id', data.otherUserId);
+            }
+            if (data.lastSeenAtIso) {
+                item.setAttribute('data-last-seen', data.lastSeenAtIso);
+            }
+            const dot = item.querySelector('.status-dot');
+            if (dot) {
+                dot.classList.toggle('is-online', !!data.online);
+            }
+            const statusText = item.querySelector('[data-presence-text]');
+            if (statusText) {
+                statusText.textContent = formatPresenceLabel(!!data.online, data.lastSeenAtIso || null);
+                if (data.lastSeenAtIso) {
+                    statusText.setAttribute('data-last-seen', data.lastSeenAtIso);
+                }
+            }
         }
 
         function initConversationSorting() {
