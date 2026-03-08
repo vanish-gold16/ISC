@@ -1,5 +1,7 @@
-package org.example.isc.main.secured.profile;
+package org.example.isc.main.secured.profile.service;
 
+import org.example.isc.main.dto.UserStatusDTO;
+import org.example.isc.main.enums.PresenceStateEnum;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.profile.dto.PresenceEvent;
@@ -9,7 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,4 +75,5 @@ public class ActivityService {
         }
         return user.getProfile();
     }
+
 }

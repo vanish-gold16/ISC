@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.profile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,17 +15,19 @@ import java.time.LocalDateTime;
 public class ActivityInterceptor implements HandlerInterceptor {
 
     private final UserRepository userRepository;
+    private final ActivityService activityService;
 
-    public ActivityInterceptor(UserRepository userRepository) {
+    public ActivityInterceptor(UserRepository userRepository, ActivityService activityService) {
         this.userRepository = userRepository;
+        this.activityService = activityService;
     }
 
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())){
-            String username = authentication.getName();
-            userRepository.updateLastActivityByUsername(username, LocalDateTime.now());
-        }
+        if(request.getUserPrincipal() == null) return true;
+
+        String username = request.getUserPrincipal().getName();
+        userRepository.findByUsernameIgnoreCase(username)
+                .ifPresent(activityService::touch);
         return true;
     }
 

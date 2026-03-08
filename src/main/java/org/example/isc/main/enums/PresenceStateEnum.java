@@ -1,5 +1,5 @@
 package org.example.isc.main.enums;
 
-public enum PresenceState {
+public enum PresenceStateEnum {
     ONLINE, IDLE, OFFLINE
 }

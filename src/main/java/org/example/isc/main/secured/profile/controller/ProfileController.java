@@ -14,7 +14,7 @@ import org.example.isc.main.secured.models.Subscription;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.UserProfile;
 import org.example.isc.main.secured.notification.NotificationService;
-import org.example.isc.main.secured.profile.ActivityService;
+import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.profile.service.ProfileService;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
