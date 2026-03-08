@@ -11,6 +11,7 @@ import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.notification.NotificationService;
+import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
@@ -32,13 +33,15 @@ public class MessengerService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final MessageRepository messageRepository;
+    private final ActivityService activityService;
 
-    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, UserRepository userRepository, NotificationService notificationService, MessageRepository messageRepository) {
+    public MessengerService(ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, UserRepository userRepository, NotificationService notificationService, MessageRepository messageRepository, ActivityService activityService) {
         this.conversationRepository = conversationRepository;
         this.conversationMemberRepository = conversationMemberRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.messageRepository = messageRepository;
+        this.activityService = activityService;
     }
 
     public List<ConversationDTO> getConversations(User me){
@@ -207,6 +210,7 @@ public class MessengerService {
 
         if(conversation.getType().equals(ConversationType.DIRECT)){
             receiver = conversationMemberRepository.findOtherUserByConversationDirect(conversation, sender);
+            if(!isOnline(receiver))
             notificationService.create(
                     NotificationEnum.MESSAGE,
                     receiver,
@@ -220,6 +224,7 @@ public class MessengerService {
         || conversation.getType().equals(ConversationType.GROUP)){
             receivers = conversationMemberRepository.findOtherUsersByConversation(conversation, sender);
             for (User user : receivers) {
+                if(!isOnline(user))
                 notificationService.create(
                         NotificationEnum.MESSAGE,
                         user,
@@ -239,5 +244,9 @@ public class MessengerService {
 
     private String conversationIdData(Conversation conversation) {
         return conversation != null && conversation.getId() != null ? conversation.getId().toString() : null;
+    }
+
+    private boolean isOnline(User target){
+        return activityService.online(target.getId());
     }
 }
