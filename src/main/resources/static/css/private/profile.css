@@ -395,20 +395,20 @@ button { font: inherit; }
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: #9ca3af;
     flex-shrink: 0;
 }
 
 .user-status[data-status-state="online"] .user-status__dot {
-    background: #3b82f6;
+    background: #22c55e;
 }
 
 .user-status[data-status-state="idle"] .user-status__dot {
-    background: #3b82f6;
+    background: #9ca3af;
 }
 
 .user-status[data-status-state="offline"] .user-status__dot {
-    background: #3b82f6;
+    background: #9ca3af;
 }
 
 .user-status__copy {

@@ -36,12 +36,14 @@
             </div>
 
             <div class="profile-head">
-                    <div class="profile-avatar">
+                    <div class="profile-avatar user-status user-status--avatar"
+                         th:attr="data-user-id=${user != null ? user.id : null}">
                         <img
                                 th:src="${profileAvatarUrl} ?: '/images/private/profile/common-profile.png'"
                                 src="/images/private/profile/common-profile.png"
                                 alt=""
                         />
+                        <span class="user-status__dot" aria-hidden="true"></span>
                     </div>
 
                 <div class="profile-info">
@@ -54,6 +56,13 @@
                             </div>
 
                             <div class="profile-username muted" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
+                            <div class="profile-status user-status" th:if="${user != null}"
+                                 th:attr="data-user-id=${user.id}">
+                                <div class="user-status__copy">
+                                    <span class="user-status__text" aria-live="polite">Loading status...</span>
+                                    <span class="user-status__secondary" aria-live="polite"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="profile-actions">
@@ -365,5 +374,6 @@
         });
     })();
 </script>
+<script src="/js/user-status.js" defer></script>
 </body>
 </html>
