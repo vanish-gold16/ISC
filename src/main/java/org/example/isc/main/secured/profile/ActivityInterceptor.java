@@ -3,13 +3,10 @@ package org.example.isc.main.secured.profile;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class ActivityInterceptor implements HandlerInterceptor {

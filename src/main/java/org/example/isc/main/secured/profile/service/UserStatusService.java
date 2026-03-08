@@ -33,12 +33,15 @@ public class UserStatusService {
             UserProfile profile = user.getProfile();
             LocalDateTime lastActivity = profile == null ? null : profile.getLastActivityAt();
 
+            boolean isOnline = activityService.online(user.getId());
             PresenceStateEnum state;
-            if(activityService.online(user.getId()))
+            if (isOnline) {
                 state = PresenceStateEnum.ONLINE;
-            else if(!activityService.online((user.getId())))
+            } else if (lastActivity != null) {
                 state = PresenceStateEnum.IDLE;
-            else state = PresenceStateEnum.OFFLINE;
+            } else {
+                state = PresenceStateEnum.OFFLINE;
+            }
 
             Instant lastActivityInstant = lastActivity == null ? null
                     : lastActivity.toInstant(ZoneOffset.UTC);
