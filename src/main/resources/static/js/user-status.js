@@ -100,12 +100,18 @@
         if (state === 'idle') {
             return 'Away';
         }
+        if (!lastActive) {
+            return 'Offline';
+        }
         return 'Last seen at';
     }
 
     function getSecondaryText(state, lastActive) {
         if (state === 'online') {
             return 'Active now';
+        }
+        if (state === 'offline' && !lastActive) {
+            return '';
         }
         if (!lastActive) {
             return 'Unknown';

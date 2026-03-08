@@ -34,12 +34,14 @@
                  role="link"
                  tabindex="0"
                  th:attr="data-user-profile-url=@{/posts/{id}/to-profile(id=${p.id})}">
-                <div class="avatar">
+                <div class="avatar user-status user-status--avatar"
+                     th:attr="data-user-id=${p.user != null ? p.user.id : null}">
                     <img class="avatar__img"
                          th:src="${p.user != null and p.user.profile != null and p.user.profile.avatarUrl != null}
                                  ? ${p.user.profile.avatarUrl}
                                  : '/images/private/profile/common-profile.png'"
                          alt="" />
+                    <span class="user-status__dot" aria-hidden="true"></span>
                 </div>
                 <div class="post__meta">
                     <div>
@@ -48,14 +50,6 @@
                         <div class="post__sub muted">
                             <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
                             <img class="post__friend-badge" th:if="${p.friendPost}" src="/images/private/icons/friend-badge.png" alt="" />
-                        </div>
-                        <div class="user-status post__status-line" th:if="${p.user != null}"
-                             th:attr="data-user-id=${p.user.id}">
-                            <span class="user-status__dot" aria-hidden="true"></span>
-                            <div class="user-status__copy">
-                                <span class="user-status__text" aria-live="polite">Loading status...</span>
-                                <span class="user-status__secondary" aria-live="polite"></span>
-                            </div>
                         </div>
                     </div>
                 </div>
