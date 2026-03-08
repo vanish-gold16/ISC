@@ -78,7 +78,7 @@
                         <div class="chat-status">
                             <span class="status-dot" th:classappend="${activeConversation.online} ? ' is-online' : ''"></span>
                             <span class="status-text" data-active-presence-text
-                                  th:attr="data-last-seen=${activeConversation.lastSeenAt != null ? #temporals.format(activeConversation.lastSeenAt, 'yyyy-MM-dd''T''HH:mm:ss') : null}">
+                                  th:attr="data-last-seen=${activeConversation.lastSeenAtIso}">
                                 <span th:if="${activeConversation.online}">Online now</span>
                                 <span th:if="${!activeConversation.online and activeConversation.lastSeenAt != null}"
                                       th:text="|Last seen ${#temporals.format(activeConversation.lastSeenAt, 'MMM d, HH:mm')}|">

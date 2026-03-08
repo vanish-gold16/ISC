@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class UserStatusService {
             }
 
             Instant lastActivityInstant = lastActivity == null ? null
-                    : lastActivity.toInstant(ZoneOffset.UTC);
+                    : lastActivity.atZone(ZoneId.systemDefault()).toInstant();
             userAndStatus.put(user.getId(), new UserStatusDTO(state, lastActivityInstant));
         }
         return userAndStatus;

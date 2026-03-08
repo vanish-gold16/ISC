@@ -162,7 +162,8 @@ public class MessengerController {
             String senderName = lastMessage.get().getSender().getFirstName();
             lastText = senderName + ": " + lastText;
         }
-        String lastSeenAtIso = lastSeenAt == null ? null : lastSeenAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String lastSeenAtIso = lastSeenAt == null ? null
+                : lastSeenAt.atZone(ZoneId.systemDefault()).toInstant().toString();
 
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("id", conversation.getId());
@@ -233,7 +234,8 @@ public class MessengerController {
         view.put("friend", false);
         view.put("type", conversation.getType().name());
         view.put("otherUserId", otherUserId);
-        view.put("lastSeenAtIso", lastSeenAt == null ? null : lastSeenAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        view.put("lastSeenAtIso", lastSeenAt == null ? null
+                : lastSeenAt.atZone(ZoneId.systemDefault()).toInstant().toString());
         return view;
     }
 
