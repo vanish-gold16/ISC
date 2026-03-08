@@ -2,6 +2,7 @@ package org.example.isc.config;
 
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,9 +26,11 @@ import java.util.Set;
 public class SecurityConfig {
 
     private final UserRepository repository;
+    private final ActivityService activityService;
 
-    public SecurityConfig(UserRepository repository) {
+    public SecurityConfig(UserRepository repository, ActivityService activityService) {
         this.repository = repository;
+        this.activityService = activityService;
     }
 
     @Bean
@@ -56,7 +59,14 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/auth/login?logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            if (authentication != null) {
+                                String username = authentication.getName();
+                                repository.findByUsernameIgnoreCase(username)
+                                        .ifPresent(activityService::leave);
+                            }
+                            response.sendRedirect("/auth/login?logout");
+                        })
                         .permitAll()
                 )
                 .formLogin(form -> form

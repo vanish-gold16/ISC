@@ -35,7 +35,20 @@ public class ActivityService {
 
     public boolean online(@RequestParam Long id){
         if (activeUsers.contains(id)) {
-            return true;
+            LocalDateTime lastActivity = userRepository.findById(id)
+                    .map(User::getProfile)
+                    .map(UserProfile::getLastActivityAt)
+                    .orElse(null);
+            if (lastActivity == null) {
+                activeUsers.remove(id);
+                return false;
+            }
+            boolean stillOnline = Duration.between(lastActivity, LocalDateTime.now())
+                    .compareTo(ONLINE_THRESHOLD) <= 0;
+            if (!stillOnline) {
+                activeUsers.remove(id);
+            }
+            return stillOnline;
         }
         LocalDateTime lastActivity = userRepository.findById(id)
                 .map(User::getProfile)
