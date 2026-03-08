@@ -51,6 +51,14 @@ public class SecurityConfig {
                                 // others only after login
                                 .anyRequest().authenticated()
                 )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/logout")
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/auth/login?logout")
+                        .permitAll()
+                )
                 .formLogin(form -> form
                         // redirect to login
                         .loginPage("/auth/login")

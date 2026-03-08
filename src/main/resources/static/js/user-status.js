@@ -113,7 +113,21 @@
         if (!lastActive) {
             return 'Unknown';
         }
-        return formatAbsolute(lastActive);
+        return formatRelative(lastActive);
+    }
+
+    function formatRelative(date) {
+        const diffMs = Math.max(0, Date.now() - date.getTime());
+        const minutes = Math.floor(diffMs / 60000);
+        const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+        if (minutes < 60) {
+            return rtf.format(-Math.max(1, minutes), 'minute');
+        }
+        const hours = Math.floor(diffMs / 3600000);
+        if (hours < 24) {
+            return rtf.format(-hours, 'hour');
+        }
+        return formatAbsolute(date);
     }
 
     function formatAbsolute(date) {
