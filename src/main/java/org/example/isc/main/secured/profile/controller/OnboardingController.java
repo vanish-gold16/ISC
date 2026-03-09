@@ -103,7 +103,11 @@ public class OnboardingController {
             return fallback;
         }
 
-        String path = value.trim().replace('\\', '/');
+        String path = value.trim();
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+        path = path.replace('\\', '/');
         if (!path.startsWith(PROFILE_IMAGES_BASE) || path.contains("..")) {
             return fallback;
         }

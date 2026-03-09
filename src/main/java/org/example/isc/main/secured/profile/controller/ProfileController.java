@@ -331,7 +331,7 @@ public class ProfileController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         String url = imageService.uploadAvatar(file, me.getId());
 
-        me.getProfile().setAvatarUrl(url);
+        ensureProfile(me).setAvatarUrl(url);
         userRepository.save(me);
 
         return ResponseEntity.ok(url);
@@ -346,7 +346,7 @@ public class ProfileController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         String url = imageService.uploadCover(file, me.getId());
 
-        me.getProfile().setCoverUrl(url);
+        ensureProfile(me).setCoverUrl(url);
         userRepository.save(me);
 
         return ResponseEntity.ok(url);
@@ -499,6 +499,15 @@ public class ProfileController {
             return fallback;
         }
         return path;
+    }
+
+    private UserProfile ensureProfile(User user) {
+        if (user.getProfile() == null) {
+            UserProfile profile = new UserProfile();
+            profile.setUser(user);
+            user.setProfile(profile);
+        }
+        return user.getProfile();
     }
 
 }
