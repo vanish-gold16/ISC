@@ -33,7 +33,7 @@
                    th:each="c : ${conversations}"
                    th:href="@{/messages/c/{id}(id=${c.id})}"
                    th:classappend="${activeConversation != null and activeConversation.id == c.id} ? ' is-active' : ''"
-                   th:attr="data-last-ts=${c['lastMessageAt']}, data-user-id=${c.otherUserId}, data-last-seen=${c.lastSeenAtIso}"
+                   th:attr="data-last-ts=${c['lastMessageAt']}, data-user-id=${c.otherUserId}, data-last-seen=${c.lastSeenAtIso}, data-conversation-id=${c.id}, data-unread-count=${c.unread}"
                    data-conversation-item>
                     <img class="conversation-avatar" th:src="${c.avatar}" alt="" />
                     <div class="conversation-body">
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div class="conversation-meta">
-                        <span th:text="${c.time}">Now</span>
+                        <span class="conversation-time" th:text="${c.time}">Now</span>
                         <span class="conversation-unread" th:if="${c.unread > 0}"
                               th:text="${c.unread}">1</span>
                     </div>
@@ -168,6 +168,7 @@
         const GAP_MINUTES = 20;
         const PRESENCE_PING_INTERVAL = 30000;
         let presencePingId = null;
+        const messagesUnreadBadge = document.querySelector('[data-messages-unread-badge]');
 
         if (thread && !thread.classList.contains('is-hidden')) {
             requestAnimationFrame(() => {
@@ -182,9 +183,11 @@
         }
 
         initConversationSorting();
+        initUnreadState();
         insertDayDividersFromMessages();
         applyMessageSpacing();
         startPresenceHeartbeat();
+        clearActiveConversationUnread();
 
         if (!window.SockJS || !window.Stomp) return;
 
@@ -367,7 +370,7 @@
                 }
             }
 
-            const metaTime = item.querySelector('.conversation-meta span');
+            const metaTime = item.querySelector('.conversation-time');
             if (metaTime) {
                 metaTime.textContent = formatRelativeTime(time);
             }
@@ -395,6 +398,16 @@
             const time = lastMessageAt ? new Date(lastMessageAt) : new Date();
             const senderId = data.lastMessageSenderId || data.senderId || null;
             const senderName = data.lastMessageSenderName || data.senderName || null;
+            const isActiveConversation = conversationId != null && String(data.id) === String(conversationId);
+            if (isActiveConversation) {
+                setConversationUnread(item, 0);
+            } else if (senderId == null || currentUserId == null || Number(senderId) !== currentUserId) {
+                const incomingUnread = Number(data.unread);
+                const nextUnread = Number.isFinite(incomingUnread) && incomingUnread > 0
+                    ? Math.max(getConversationUnread(item) + 1, incomingUnread)
+                    : getConversationUnread(item) + 1;
+                setConversationUnread(item, nextUnread);
+            }
             updateConversationPreview(data.lastMessage || data.message || 'New message', time, senderId, senderName);
         }
 
@@ -416,11 +429,20 @@
             return list;
         }
 
+        function bindConversationItem(item) {
+            if (!item || item.dataset.unreadBound === 'true') return;
+            item.dataset.unreadBound = 'true';
+            item.addEventListener('click', () => {
+                setConversationUnread(item, 0);
+            });
+        }
+
         function buildConversationItem(data) {
             const item = document.createElement('a');
             item.className = 'conversation-item';
             item.href = '/messages/c/' + data.id;
             item.setAttribute('data-conversation-item', '');
+            item.setAttribute('data-conversation-id', String(data.id));
             if (data.otherUserId) {
                 item.setAttribute('data-user-id', data.otherUserId);
             }
@@ -473,6 +495,7 @@
             const meta = document.createElement('div');
             meta.className = 'conversation-meta';
             const time = document.createElement('span');
+            time.className = 'conversation-time';
             const lastMessageAt = data.lastMessageAt ? new Date(Number(data.lastMessageAt)) : null;
             time.textContent = lastMessageAt
                 ? formatRelativeTime(lastMessageAt)
@@ -488,6 +511,7 @@
             item.appendChild(avatar);
             item.appendChild(body);
             item.appendChild(meta);
+            bindConversationItem(item);
             return item;
         }
 
@@ -496,6 +520,7 @@
             if (name && (data.name || data.title)) {
                 name.textContent = data.name || data.title;
             }
+            item.setAttribute('data-conversation-id', String(data.id));
             const avatar = item.querySelector('.conversation-avatar');
             if (avatar && data.avatar) {
                 avatar.src = data.avatar;
@@ -542,7 +567,7 @@
                 const raw = item.getAttribute('data-last-ts');
                 const ts = raw ? Number(raw) : null;
                 if (!ts) return;
-                const metaTime = item.querySelector('.conversation-meta span');
+                const metaTime = item.querySelector('.conversation-time');
                 if (metaTime) {
                     metaTime.textContent = formatRelativeTime(new Date(ts));
                 }
@@ -559,6 +584,64 @@
                 lastActivity.set(item, Number.isFinite(ts) ? ts : 0);
             });
             sortConversationList();
+        }
+
+        function initUnreadState() {
+            conversationItems.forEach(item => {
+                const unreadEl = item.querySelector('.conversation-unread');
+                const unread = unreadEl ? Number(unreadEl.textContent || '0') : Number(item.getAttribute('data-unread-count') || '0');
+                item.setAttribute('data-unread-count', Number.isFinite(unread) && unread > 0 ? String(unread) : '0');
+            });
+            refreshUnreadBadge();
+        }
+
+        function getConversationUnread(item) {
+            if (!item) return 0;
+            const unread = Number(item.getAttribute('data-unread-count') || '0');
+            return Number.isFinite(unread) && unread > 0 ? unread : 0;
+        }
+
+        function setConversationUnread(item, count) {
+            if (!item) return;
+            const normalized = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+            item.setAttribute('data-unread-count', String(normalized));
+            let badge = item.querySelector('.conversation-unread');
+            if (normalized <= 0) {
+                if (badge) {
+                    badge.remove();
+                }
+                refreshUnreadBadge();
+                return;
+            }
+            if (!badge) {
+                const meta = item.querySelector('.conversation-meta');
+                if (!meta) return;
+                badge = document.createElement('span');
+                badge.className = 'conversation-unread';
+                meta.appendChild(badge);
+            }
+            badge.textContent = normalized > 99 ? '99+' : String(normalized);
+            refreshUnreadBadge();
+        }
+
+        function refreshUnreadBadge() {
+            if (!messagesUnreadBadge) return;
+            const totalUnread = conversationItems.reduce((sum, item) => sum + getConversationUnread(item), 0);
+            if (totalUnread > 0) {
+                messagesUnreadBadge.hidden = false;
+                messagesUnreadBadge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
+            } else {
+                messagesUnreadBadge.hidden = true;
+                messagesUnreadBadge.textContent = '0';
+            }
+        }
+
+        function clearActiveConversationUnread() {
+            if (!conversationId) return;
+            const activeItem = conversationItems.find(item => String(item.getAttribute('data-conversation-id') || '') === String(conversationId));
+            if (activeItem) {
+                setConversationUnread(activeItem, 0);
+            }
         }
 
         function sortConversationList() {
@@ -802,6 +885,7 @@
         }
 
         refreshPresenceLabels();
+        conversationItems.forEach(bindConversationItem);
     })();
 </script>
 </body>

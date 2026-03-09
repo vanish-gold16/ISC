@@ -30,6 +30,7 @@
                th:classappend="${active}=='messages' ? ' is-active' : ''">
                 <img class="nav__icon" th:src="@{/images/private/sidebar-icons/messages.png}" src="/images/private/sidebar-icons/messages.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Messages</span>
+                <span class="nav__badge" data-messages-unread-badge hidden>0</span>
                 </a>
 
             <a class="nav__item"
