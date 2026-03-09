@@ -75,6 +75,15 @@ public class MessengerService {
         conversationMemberRepository.save(new  ConversationMember(
                 currentConversation, target, ConversationRole.MEMBER, LocalDateTime.now(), null
         ));
+
+        ConversationMember memberMe = conversationMemberRepository.findByConversationAndUser(currentConversation, me)
+                .orElseThrow(() -> new IllegalStateException("Conversation member not found: " + me.getUsername()));
+        ConversationMember memberTarget = conversationMemberRepository.findByConversationAndUser(currentConversation, target)
+                .orElseThrow(() -> new IllegalStateException("Conversation member not found: " + target.getUsername()));
+
+        memberMe.setLastReadAt(LocalDateTime.now());
+        memberTarget.setLastReadAt(LocalDateTime.now());
+
         return toDTO(currentConversation);
     }
 
