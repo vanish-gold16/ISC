@@ -1,58 +1,122 @@
-# Java status endpoint guide (step-by-step)
+Для непрочитанных сообщений я бы делал не через отдельную таблицу message_read, а через lastReadAt у участника диалога. Для твоего проекта это самый простой и нормальный вариант.
 
-The frontend loads presence pills next to every post/profile by polling `GET /api/users/statuses?userIds=1,2,3`. It expects a simple JSON map: each key is a user ID and the value is a short DTO with `state` and optionally `lastActive`. Example:
+1. Добавь поле lastReadAt в conversation_members.                                                                                                                                 
+   Сейчас в модели участника чата его нет: ConversationMember.java:17.                                                                                                            
+   Нужно добавить:
 
-```json
-{
-  "1": { "state": "ONLINE", "lastActive": "2024-12-03T15:04:05Z" },
-  "2": { "state": "OFFLINE", "lastActive": "2024-12-03T14:58:00Z" }
-}
-```
+- поле LocalDateTime lastReadAt
+- @Column(name = "last_read_at")
+- геттер/сеттер
 
-The frontend:
-1. Interprets `state` values `ONLINE`, `IDLE`/`AWAY`/`BUSY` (treated as “Away”) or anything else (`Last seen at ...`).
-2. Uses `lastActive` to format the timestamp that appears next to “Last seen at”.
-3. Contacts the endpoint every 20 seconds, so it must be quick and cache-friendly.
+И в БД миграцию:
 
-### Step 1: define the DTO/enum
-```java
-public enum PresenceState {
-    ONLINE,
-    IDLE,
-    OFFLINE
-}
+alter table conversation_members add column if not exists last_read_at timestamp;
 
-public record UserStatusDto(PresenceState state, Instant lastActive) {}
-```
+2. При создании нового участника сразу инициализируй lastReadAt.                                                                                                                  
+   Сейчас новые ConversationMember создаются в MessengerService.java:72.                                                                                                          
+   Логика:
 
-### Step 2: track presence
-- Keep a concurrent map between user IDs and `UserStatusDto`.
-- On sign-in/interaction set state `ONLINE` and update `lastActive`.
-- On session expiration (or if the app later supports private accounts) flip the value to `OFFLINE`.
-- Optionally run a scheduled task that demotes `ONLINE` → `IDLE` after a grace period of inactivity.
+- если создаётся новый direct/group/chat без сообщений, можно ставить lastReadAt = now()
+- чтобы пустой чат не считался непрочитанным
 
-### Step 3: expose the controller
-```java
-@RestController
-@RequestMapping("/api/users")
-public class UserStatusController {
-    private final UserPresenceService presenceService;
+3. Сделай репозиторные методы для подсчёта непрочитанных сообщений.                                                                                                               
+   Сейчас MessageRepository.java:9 умеет только брать список сообщений.                                                                                                           
+   Добавь метод вида:
 
-    public UserStatusController(UserPresenceService presenceService) {
-        this.presenceService = presenceService;
-    }
+- count unread for one conversation:
+  countByConversationAndSenderIdNotAndDeletedAtIsNullAndCreatedAtAfter(...)
+- и, если нужно, суммарный count по всем чатам пользователя через ConversationMember
 
-    @GetMapping("/statuses")
-    public Map<Long, UserStatusDto> list(@RequestParam List<Long> userIds) {
-        return presenceService.getStatuses(userIds);
-    }
-}
-```
-Return `OFFLINE` for a user only if the account explicitly prevents showing online status (private accounts you might add later); otherwise default the DTO to `ONLINE`/`IDLE` based on recent activity.
+Смысл подсчёта такой:
 
-### Step 4: secure the endpoint
-- Protect `/api/users/statuses` with the same authentication as the rest of the site.
-- Read `userIds` from the query string and answer only for the requested subset.
-- Always respond with `application/json` and the simple map (no envelopes).
+- сообщение непрочитано, если
+- оно не моё
+- не удалено
+- createdAt > member.lastReadAt
+- если lastReadAt == null, считаем все чужие сообщения непрочитанными
 
-Once the service is wired into authentication events, the frontend updates the pill automatically—no additional frontend changes are necessary.
+4. Добавь метод markConversationRead(...).                                                                                                                                        
+   Лучше в MessengerService.                                                                                                                                                      
+   Логика:
+
+- найти ConversationMember по (conversation, me)
+- поставить lastReadAt = now()
+- сохранить
+
+Это будет центральная точка, через которую чат помечается прочитанным.
+
+5. Вызывай markConversationRead(...) при открытии чата.                                                                                                                           
+   Сейчас при заходе в чат вызывается conversationPage(...) в MessengerController.java:81, но ничего не помечается прочитанным.                                                   
+   Нужно:
+
+- после проверки membership
+- вызвать messengerService.markConversationRead(conversation, me)
+
+Именно это даст реальное “зашёл в диалог -> счётчик обнулился”.
+
+6. Подставь реальный unread в список диалогов.                                                                                                                                    
+   Сейчас в MessengerController.java:183 у тебя жёстко стоит:
+
+view.put("unread", 0);
+
+Тут нужно:
+
+- получить ConversationMember текущего пользователя
+- посчитать unread через MessageRepository
+- положить реальное число в view.put("unread", unreadCount)
+
+После этого сервер начнёт отдавать правильные бейджи в messenger.html.
+
+7. Оставь фронт как есть, он уже почти готов.                                                                                                                                     
+   В messenger.html:34 у тебя уже есть:
+
+- data-unread-count
+- локальный бейдж .conversation-unread
+- суммарный бейдж [data-messages-unread-badge]
+
+То есть фронтенд уже умеет:
+
+- показать unread по каждому диалогу
+- показать общий count
+- обнулить активный чат локально
+
+Проблема сейчас только в том, что бэк не хранит и не возвращает реальное значение.
+
+8. Поправь WebSocket-пейлоад, чтобы он присылал не временную 1, а актуальное значение.                                                                                            
+   Сейчас ChatWebSocketController.java:139 всегда шлёт:
+
+payload.put("unread", 1);
+
+Это годится только как визуальный хак.                                                                                                                                            
+Нужно:
+
+- после сохранения сообщения посчитать unread для конкретного получателя
+- отправить именно это число
+
+Тогда при нескольких непрочитанных сообщениях цифра не будет ломаться после обновлений/нескольких входящих подряд.
+
+9. Если хочешь бейдж непрочитанных сообщений не только на странице мессенджера, добавь глобальный ModelAttribute.                                                                 
+   Сейчас бейдж в правом сайдбаре есть только как пустой span: right-sidebar.html:28.                                                                                             
+   Но он заполняется JS из messenger.html, а на остальных страницах этот JS не работает.                                                                                          
+   Если нужен глобальный счётчик по всему сайту:
+
+- добавь @ModelAttribute("unreadMessages")
+- считай сумму unread по всем разговорам
+- выводи её в right-sidebar.html через Thymeleaf, как у уведомлений
+
+10. Минимальный сценарий проверки.                                                                                                                                                
+    После реализации проверь так:
+
+- пользователь A пишет B два сообщения
+- у B в списке диалогов unread = 2
+- у B общий бейдж сообщений тоже 2
+- B открывает /messages/c/{id}
+- lastReadAt обновляется
+- unread для этого чата становится 0
+- общий бейдж уменьшается
+
+Коротко: у тебя фронт под unread messages уже заготовлен, но на бэке сейчас нет персистентной точки чтения. Ключевая доработка одна: conversation_members.last_read_at + подсчёт  
+unread относительно него.
+
+Если хочешь, следующим сообщением я могу уже собрать тебе это в виде конкретного чек-листа по файлам “что именно править в каком классе и каким методом”.
+

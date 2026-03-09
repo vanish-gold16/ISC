@@ -26,6 +26,9 @@ public class ConversationMember {
     @Column(name = "conversation_role", nullable = false)
     private ConversationRole conversationRole;
 
+    @Column(name = "last_read_at")
+    private LocalDateTime lastReadAt;
+
     private LocalDateTime joinedDate;
     private LocalDateTime mutedUntil;
 
@@ -40,6 +43,13 @@ public class ConversationMember {
     public ConversationMember() {
     }
 
+    public LocalDateTime getLastReadAt() {
+        return lastReadAt;
+    }
+
+    public void setLastReadAt(LocalDateTime lastReadAt) {
+        this.lastReadAt = lastReadAt;
+    }
 
     public Long getId() {
         return id;
