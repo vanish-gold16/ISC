@@ -69,26 +69,28 @@ public class ChatWebSocketController {
         User target;
         if(!conversation.getType().equals(ConversationType.DIRECT)) {
             targets = conversationMemberRepository.findOtherUsersByConversation(conversation, user);
-            for (User u : targets) {
-                brokerMessagingTemplate.convertAndSendToUser(
-                        u.getUsername(),
-                        "/queue/conversations",
-                        buildConversationPayload(conversation, user, u, saved)
-                );
-            }
-        }
-        else {
+        } else {
             target = conversationMemberRepository.findOtherUserByConversationDirect(conversation, user);
-            brokerMessagingTemplate.convertAndSendToUser(
-                    target.getUsername(),
-                    "/queue/conversations",
-                    buildConversationPayload(conversation, user, target, saved)
-            );
+            if (target != null) {
+                targets.add(target);
+            }
         }
 
         MessageDTO dto = MessageDTO.from(saved);
 
         brokerMessagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), dto);
+
+        for (User u : targets) {
+            try {
+                brokerMessagingTemplate.convertAndSendToUser(
+                        u.getUsername(),
+                        "/queue/conversations",
+                        buildConversationPayload(conversation, user, u, saved)
+                );
+            } catch (Exception ignored) {
+                // Avoid blocking message delivery if sidebar update fails.
+            }
+        }
 
         user.getProfile().setLastActivityAt(LocalDateTime.now());
         userRepository.save(user);

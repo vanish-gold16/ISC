@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="/css/private/home.css" />
     <link rel="stylesheet" href="/css/private/messenger.css" />
 
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
 </head>
 
 <body th:attr="data-conversation-id=${activeConversationId},data-current-user-id=${currentUserId}">
@@ -49,12 +49,7 @@
                         <div class="conversation-status-line">
                             <span class="status-text" data-presence-text
                                   th:attr="data-last-seen=${c.lastSeenAtIso}">
-                                <span th:if="${c.online}">Online now</span>
-                                <span th:if="${!c.online and c.lastSeenAt != null}"
-                                      th:text="|Last seen ${#temporals.format(c.lastSeenAt, 'MMM d, HH:mm')}|">
-                                    Last seen
-                                </span>
-                                <span th:if="${!c.online and c.lastSeenAt == null}">Offline</span>
+                                Offline
                             </span>
                         </div>
                     </div>
@@ -82,12 +77,7 @@
                             <span class="status-dot" th:classappend="${activeConversation.online} ? ' is-online' : ''"></span>
                             <span class="status-text" data-active-presence-text
                                   th:attr="data-last-seen=${activeConversation.lastSeenAtIso}">
-                                <span th:if="${activeConversation.online}">Online now</span>
-                                <span th:if="${!activeConversation.online and activeConversation.lastSeenAt != null}"
-                                      th:text="|Last seen ${#temporals.format(activeConversation.lastSeenAt, 'MMM d, HH:mm')}|">
-                                    Last seen
-                                </span>
-                                <span th:if="${!activeConversation.online and activeConversation.lastSeenAt == null}">Offline</span>
+                                Offline
                             </span>
                             <span class="friend-badge" th:if="${activeConversation.friend}">Friend</span>
                         </div>
@@ -164,7 +154,7 @@
 <script>
     (function () {
         const body = document.body;
-        const conversationId = body ? body.getAttribute('data-conversation-id') : null;
+        let conversationId = body ? body.getAttribute('data-conversation-id') : null;
         const currentUserIdRaw = body ? body.getAttribute('data-current-user-id') : null;
         const currentUserId = currentUserIdRaw ? Number(currentUserIdRaw) : null;
         const thread = document.getElementById('chat-thread');
@@ -184,6 +174,13 @@
                 thread.scrollTop = thread.scrollHeight;
             });
         }
+        if (!conversationId || conversationId === 'null' || conversationId === 'undefined') {
+            const match = (window.location.pathname || '').match(/\/messages\/c\/(\d+)/);
+            if (match) {
+                conversationId = match[1];
+            }
+        }
+
         initConversationSorting();
         insertDayDividersFromMessages();
         applyMessageSpacing();
@@ -230,9 +227,10 @@
         });
 
         function send() {
-            if (!conversationId || !textarea) return;
+            if (!conversationId || conversationId === 'null' || conversationId === 'undefined' || !textarea) return;
             const text = (textarea.value || '').trim();
             if (!text) return;
+            if (!stomp) return;
             stomp.send('/app/chat/' + conversationId, {}, JSON.stringify({ body: text }));
             appendMessage({ body: text, senderId: currentUserId }, true);
             textarea.value = '';
@@ -317,9 +315,9 @@
             applyMessageSpacing();
 
             const text = msg && msg.body ? msg.body : '';
-            const senderId = msg && msg.senderId ? msg.senderId : (fromMe ? currentUserId : null);
+            const previewSenderId = msg && msg.senderId ? msg.senderId : (fromMe ? currentUserId : null);
             const senderName = msg && msg.senderName ? msg.senderName : null;
-            updateConversationPreview(text, now, senderId, senderName);
+            updateConversationPreview(text, now, previewSenderId, senderName);
         }
 
         function ensureDayDivider() {
@@ -371,7 +369,7 @@
 
             const metaTime = item.querySelector('.conversation-meta span');
             if (metaTime) {
-                metaTime.textContent = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                metaTime.textContent = formatRelativeTime(time);
             }
 
             const ts = time.getTime();
@@ -477,7 +475,7 @@
             const time = document.createElement('span');
             const lastMessageAt = data.lastMessageAt ? new Date(Number(data.lastMessageAt)) : null;
             time.textContent = lastMessageAt
-                ? lastMessageAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                ? formatRelativeTime(lastMessageAt)
                 : '';
             meta.appendChild(time);
             if (data.unread && Number(data.unread) > 0) {
@@ -520,6 +518,38 @@
                 }
             }
         }
+
+        function formatRelativeTime(date) {
+            if (!date) return '';
+            const diffMs = Math.max(0, Date.now() - date.getTime());
+            const minutes = Math.floor(diffMs / 60000);
+            const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+            if (minutes < 60) {
+                return rtf.format(-Math.max(1, minutes), 'minute');
+            }
+            const hours = Math.floor(diffMs / 3600000);
+            if (hours < 24) {
+                return rtf.format(-hours, 'hour');
+            }
+            return new Intl.DateTimeFormat(undefined, {
+                day: '2-digit',
+                month: 'short'
+            }).format(date);
+        }
+
+        function refreshConversationTimes() {
+            conversationItems.forEach(item => {
+                const raw = item.getAttribute('data-last-ts');
+                const ts = raw ? Number(raw) : null;
+                if (!ts) return;
+                const metaTime = item.querySelector('.conversation-meta span');
+                if (metaTime) {
+                    metaTime.textContent = formatRelativeTime(new Date(ts));
+                }
+            });
+        }
+
+        refreshConversationTimes();
 
         function initConversationSorting() {
             if (!conversationItems.length) return;
