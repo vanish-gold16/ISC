@@ -1,50 +1,191 @@
-# ISC - International Student Community ![Status](https://img.shields.io/badge/status-in%20development-blue) ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+# ISC - International Student Community
 
-Worldwide community for students. The main goal is to **receive and give help** to other students about many topics.  
-Also a platform to meet new people (because humans apparently enjoy that).
+![Status](https://img.shields.io/badge/status-in%20development-blue)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=white)
+
+ISC (International Student Community) is a platform for students from all over the world.  
+Its main purpose is to help students **find support, share knowledge, and connect with others**.
+
+The project combines social features, messaging, notifications, and student-oriented interaction in one place.
 
 ---
 
-## Tech Stack ![Tech](https://img.shields.io/badge/stack-Java%20%7C%20Spring%20%7C%20Postgres-0b7285)
+## Overview
 
-- 
-  ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
-  ![Maven](https://img.shields.io/badge/Maven-3.9+-C71A36?logo=apachemaven&logoColor=white)
+ISC is designed as a community platform where students can:
 
-- 
-  ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)
+- ask for and offer help on different topics
+- build connections with other students
+- share posts and updates
+- chat in real time
+- receive notifications
 
-- 
-  ![Hibernate](https://img.shields.io/badge/Hibernate-ORM-59666C?logo=hibernate&logoColor=white)
-  ![JPA](https://img.shields.io/badge/JPA-Specification-2D2D2D)
+In short, it is a student community hub.
 
-- 
-  ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=white)
+---
 
-- 
-  ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?logo=openapiinitiative&logoColor=white)
-  ![Swagger](https://img.shields.io/badge/Swagger-UI-85EA2D?logo=swagger&logoColor=black)
+## Tech Stack
 
-- **Testing**
-  ![JUnit5](https://img.shie)
+- **Java 21**
+- **Maven 3.9+**
+- **Spring Boot 4**
+- **Spring Security**
+- **Hibernate / JPA**
+- **PostgreSQL**
+- **WebSocket + STOMP**
+- **OpenAPI 3 / Swagger UI**
+- **JUnit 5**
+
 ---
 
 ## Security
-- Using Spring Security with SecurityConfig to guarantee secure login
-- PasswordHash using BCrypt to secure passwords
 
-## Features ![Features](https://img.shields.io/badge/features-in%20progress-yellow)
+The application uses **Spring Security** to handle authentication and access control.
 
-### Friends, Subscribers and Subscriptions ![Social](https://img.shields.io/badge/module-social-purple)
-- Friends statuses: PENDING (neither accepted or declined), ACCEPTER, DELCINED
-- Subscriptions and Subscribers
+- Secure login and authorization flow
+- Password hashing with **BCrypt**
+- Centralized security configuration via `SecurityConfig`
 
-### Posts ![Posts](https://img.shields.io/badge/module-posts-green)
-- Posting text, photos (planned audio or video)
-- shown on profile page or at the feed if subscribed or friends
-  
-### Messenger ![Chat](https://img.shields.io/badge/module-messenger-orange)
-- Messenger is realised with WebSocket and STOMP
+---
 
-### Notifications ![Notification](https://img.shields/io/badge/module-notifications-yellow)
-- Receive notifications when somebody has wrote you, added/deleted from a conversation, liked or commented your post, subscribed or sent a friend request 
+## Features
+
+### Social System
+- Friend requests with statuses:
+  - `PENDING`
+  - `ACCEPTED`
+  - `DECLINED`
+- Subscriptions and subscribers
+- Basic user-to-user social interactions
+
+### Posts
+- Create text posts
+- Upload photos
+- Audio and video support is planned
+- Posts can appear on a profile page or in the feed based on friendships and subscriptions
+
+### Messenger
+- Implemented with **WebSocket** and **STOMP**
+- Real-time messaging
+- Direct chats
+- Group conversations
+- Channels
+
+### Notifications
+Users receive notifications when someone:
+
+- sends a message
+- adds or removes them from a conversation
+- likes or comments on a post
+- subscribes to their profile
+- sends a friend request
+
+### User Status
+- `ONLINE`
+- `IDLE`
+- `OFFLINE`
+
+User status is displayed in profiles and in the messenger.
+
+### OpusCore
+A planned rating platform for:
+
+- music
+- games
+- films
+
+It is intended to provide a more thoughtful scoring system focused on meaningful criteria.
+
+---
+
+## Project Status
+
+The project is currently **in development**.
+
+Some core modules are already implemented, while others are being improved or are still planned.
+
+### Current focus
+- improving existing social features
+- extending messaging and notifications
+- polishing API structure
+- preparing additional platform modules such as **OpusCore**
+
+---
+
+## Getting Started
+
+### Requirements
+
+Make sure you have installed:
+
+- **Java 21**
+- **Maven 3.9+**
+- **PostgreSQL**
+- an IDE such as **IntelliJ IDEA**
+
+---
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/isc.git
+cd isc
+```
+### 2. Configure the database
+
+Create a PostgreSQL database, for example:
+
+```bash
+CREATE DATABASE isc_db;
+```
+
+Then configure your database connection in application.properties or application.yml.
+
+Example:
+
+```bash
+spring.datasource.url=jdbc:postgresql://localhost:5432/isc_db
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+```
+
+### 3. Build the project
+
+```bash
+mvn clean install
+```
+
+### 4. Run the application
+
+```bash
+mvn spring-boot:run
+```
+
+Or run the main Spring Boot class directly from your IDE.
+
+## Possible Future Improvements
+
+- media support for audio and video posts
+
+- better recommendation/feed logic
+
+- richer profile customization
+
+- moderation tools
+
+- expanded OpusCore rating system
+
+- internationalization / multilingual support
+
+## Author
+
+Developed as a personal backend project focused on building a real student community platform with modern Java and Spring technologies.
