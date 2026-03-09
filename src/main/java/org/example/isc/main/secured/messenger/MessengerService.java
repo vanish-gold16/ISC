@@ -251,6 +251,14 @@ public class MessengerService {
         return message;
     }
 
+    public void markConversationRead(Conversation conversation, User user){
+        ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, user)
+                .orElseThrow(() -> new IllegalStateException("Conversation member not found: " + user.getUsername()));
+
+        member.setLastReadAt(LocalDateTime.now());
+        conversationMemberRepository.save(member);
+    }
+
     private String conversationIdData(Conversation conversation) {
         return conversation != null && conversation.getId() != null ? conversation.getId().toString() : null;
     }

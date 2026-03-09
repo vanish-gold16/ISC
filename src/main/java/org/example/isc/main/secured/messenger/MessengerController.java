@@ -92,6 +92,7 @@ public class MessengerController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found: " + id);
         }
         populateModel(model, me, conversation);
+        messengerService.markConversationRead(conversation, me);
         return "/private/messenger";
     }
 
