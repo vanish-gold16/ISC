@@ -144,19 +144,27 @@ Create a PostgreSQL database, for example:
 CREATE DATABASE isc_db;
 ```
 
-Then configure your database connection in application.properties or application.yml.
+Create a local secrets file in the project root:
+
+```bash
+Copy-Item .env.properties.example .env.properties
+```
+
+Then put your real database and Cloudinary credentials into `.env.properties`.
 
 Example:
 
-```bash
-spring.datasource.url=jdbc:postgresql://localhost:5432/isc_db
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+```properties
+DB_URL=jdbc:postgresql://localhost:5432/isc_db
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
+
+`application.properties` reads these values automatically, and `.env.properties` is ignored by git.
 
 ### 3. Build the project
 
