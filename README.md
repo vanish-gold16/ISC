@@ -144,13 +144,7 @@ Create a PostgreSQL database, for example:
 CREATE DATABASE isc_db;
 ```
 
-Create a local secrets file in the project root:
-
-```bash
-Copy-Item .env.properties.example .env.properties
-```
-
-Then put your real database and Cloudinary credentials into `.env.properties`.
+Edit the provided `.env.properties` in the project root and fill in your real credentials.
 
 Example:
 
@@ -162,6 +156,7 @@ DB_PASSWORD=your_password
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+APP_SECRET=your-app-secret
 ```
 
 `application.properties` reads these values automatically, and `.env.properties` is ignored by git.
