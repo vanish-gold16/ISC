@@ -27,79 +27,95 @@ public class OpusCoreCriteriaCatalog {
                 1L,
                 "Structure / Rhythm",
                 "not done yet",
-                17,
+                14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 2L,
                 "Rhymes / Figures",
                 "not done yet",
-                15,
+                14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 3L,
                 "Realisation",
                 "not done yet",
-                15,
+                14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 4L,
                 "Individuality / Charisma",
                 "not done yet",
-                15,
+                14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 5L,
+                "Relevance",
+                "not done yet",
+                14,
+                5
+        )));
+        criteria.add((new CriterionDTO(
+                6L,
                 "Vibe",
                 "not done yet",
                 30,
                 5
-        )))
+        )));
 
+    }
+
+    //TODO
+    private void putMovies(){
+        criteriaByType.put(ArtTypeEnum.MOVIE, new ArrayList<>());
+    }
+
+    private void putShows(){
+        criteriaByType.put(ArtTypeEnum.SHOW, new ArrayList<>());
     }
 
     private void putGames(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(
-                1L,
+                7L,
                 "Own experience",
                 "(not done yet)",
                 25,
                 5
         ));
         criteria.add(new CriterionDTO(
-                2L,
+                8L,
                 "Narrative and Directing",
                 "(not done yet)",
                 20,
                 5
         ));
         criteria.add(new CriterionDTO(
-                3L,
+                9L,
                 "Gameplay",
                 "(not done yet)",
                 20,
                 5
         ));
         criteria.add(new CriterionDTO(
-                4L,
+                10L,
                 "Characters",
                 "(not done yet)",
                 15,
                 5
         ));
         criteria.add(new CriterionDTO(
-                5L,
+                11L,
                 "Audiovisuals",
                 "(not done yet)",
                 15,
                 5
         ));
         criteria.add(new CriterionDTO(
-                6L,
+                12L,
                 "Technical",
                 "(not done yet)",
                 5,
@@ -108,9 +124,13 @@ public class OpusCoreCriteriaCatalog {
 
         criteriaByType.put(ArtTypeEnum.GAME, criteria);
     }
-    //TODO
-    private void putMovies(){
-        criteriaByType.put(ArtTypeEnum.MOVIE, new ArrayList<>());
+
+    private void putAnime(){
+        criteriaByType.put(ArtTypeEnum.ANIME, new ArrayList<>());
+    }
+
+    private void putManga(){
+        criteriaByType.put(ArtTypeEnum.MANGA, new ArrayList<>());
     }
 
     public Map<ArtTypeEnum, List<CriterionDTO>> getCriteriaByType() {
