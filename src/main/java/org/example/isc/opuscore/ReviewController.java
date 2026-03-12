@@ -6,6 +6,7 @@ import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.models.Criterion;
+import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.models.ReviewCriterion;
 import org.example.isc.opuscore.repositories.CriterionRepository;
@@ -31,21 +32,23 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final ReviewRepository reviewRepository;
     private final CriterionRepository criterionRepository;
+    private final OpusCoreCriteriaCatalog criteria;
 
     public ReviewController(
             UserRepository userRepository,
             ReviewService reviewService,
             ReviewRepository reviewRepository,
-            CriterionRepository criterionRepository
+            CriterionRepository criterionRepository, OpusCoreCriteriaCatalog criteria
     ) {
         this.userRepository = userRepository;
         this.reviewService = reviewService;
         this.reviewRepository = reviewRepository;
         this.criterionRepository = criterionRepository;
+        this.criteria = criteria;
     }
 
     @GetMapping("/new-review")
-    public String getNewPost(Authentication authentication, Model model){
+    public String getNewReview(Authentication authentication, Model model){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
@@ -72,6 +75,7 @@ public class ReviewController {
         }
 
         model.addAttribute("form", form);
+        model.addAttribute("criteriaByType", criteria);
 
         return "/opuscore/new-post";
     }
@@ -86,7 +90,7 @@ public class ReviewController {
     ){
         if (bindingResult.hasErrors()) {
             model.addAttribute("form", form);
-            return getNewPost(authentication, model);
+            return getNewReview(authentication, model);
         }
 
         Long review = 0L;
@@ -96,7 +100,7 @@ public class ReviewController {
         } catch (IllegalArgumentException | IOException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("form", form);
-            return getNewPost(authentication, model);
+            return getNewReview(authentication, model);
         }
         model.addAttribute("POST_NEW_REVIEW", true);
 
