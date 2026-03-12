@@ -242,7 +242,8 @@
 .input--textarea {
     height: auto;
     padding: 12px 14px;
-    resize: vertical;
+    resize: none;
+    overflow-y: auto;
 }
 
 .input--tall {
