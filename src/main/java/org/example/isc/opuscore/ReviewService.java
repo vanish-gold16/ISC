@@ -56,9 +56,18 @@ public class ReviewService {
                 form.getBody(),
                 form.getCriteria()
         );
-//        if (review.getCriteriaScores() != null) {
-//            review.getCriteriaScores().forEach(reviewCriterion -> reviewCriterion.setReview(review));
-//        }
+        if (review.getCriteriaScores() != null) {
+            review.getCriteriaScores().forEach(reviewCriterion -> {
+                reviewCriterion.setReview(review);
+                if (reviewCriterion.getCriterionId() == null) {
+                    throw new IllegalArgumentException("Criterion id is missing");
+                }
+                var dto = criteriaCatalog.getById(reviewCriterion.getCriterionId());
+                reviewCriterion.setName(dto.getName());
+                reviewCriterion.setDescription(dto.getDescription());
+                reviewCriterion.setWeight(dto.getWeight());
+            });
+        }
         review.setValue(countScore(review));
         review.setPhotoUrl(photoUrl);
 
@@ -69,12 +78,16 @@ public class ReviewService {
     private int countScore(Review review){
         int score = 0;
 
+        if (review.getCriteriaScores() == null) {
+            return score;
+        }
+
         for (int i = 0; i < review.getCriteriaScores().size(); i++) {
             ReviewCriterion criterion = review.getCriteriaScores().get(i);
-            if (criterion == null || criterion.getId() == null) {
+            if (criterion == null || criterion.getCriterionId() == null) {
                 throw new IllegalArgumentException("Criterion id is missing");
             }
-            int weight = criteriaCatalog.getWeightById(criterion.getId());
+            int weight = criteriaCatalog.getWeightById(criterion.getCriterionId());
             score += criterion.getScore() * weight;
         }
 
