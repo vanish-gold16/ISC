@@ -315,18 +315,38 @@
 }
 
 .criteria-slider {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     height: 6px;
     position: relative;
     top: auto;
     left: auto;
     transform: none;
-    background: rgba(255, 255, 255, 0.08);
+    background: transparent;
     border-radius: 100px;
-    accent-color: var(--slider-color, #7c9cff);
     cursor: pointer;
     display: block;
     margin: 0;
+}
+
+.criteria-slider-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    --slider-percent: 50%;
+}
+
+.criteria-slider-star {
+    position: absolute;
+    left: var(--slider-percent);
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    background: url('/images/private/icons/criteria_star.png') center / contain no-repeat;
+    pointer-events: none;
+    z-index: 2;
 }
 
 .criteria-slider::-webkit-slider-runnable-track {
@@ -342,16 +362,16 @@
     height: 28px;
     border: 0;
     border-radius: 0;
-    background: url('/images/private/icons/criteria_star.png') center / contain no-repeat;
+    background: transparent;
     box-shadow: none;
     margin-top: -11px;
     transition: transform 150ms ease, box-shadow 150ms ease;
     cursor: pointer;
+    opacity: 0;
 }
 
-.criteria-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+.criteria-slider-wrap:hover .criteria-slider-star {
+    transform: translate(-50%, -50%) scale(1.2);
 }
 
 .criteria-slider::-moz-range-track {
@@ -361,13 +381,15 @@
 }
 
 .criteria-slider::-moz-range-thumb {
+    appearance: none;
     width: 28px;
     height: 28px;
     border: 0;
     border-radius: 0;
-    background: url('/images/private/icons/criteria_star.png') center / contain no-repeat;
+    background: transparent;
     box-shadow: none;
     cursor: pointer;
+    opacity: 0;
 }
 
 .criteria-slider::-moz-range-progress {

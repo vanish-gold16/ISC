@@ -241,10 +241,22 @@
                     </div>
                 </div>
                 <input type="hidden" name="criteria[${index}].criterionId" value="${criterion.id}">
-                <input class="criteria-slider" type="range" min="0" max="10" step="1"
-                       name="criteria[${index}].score" value="${score}" data-weight="${weight}" />
+                <div class="criteria-slider-wrap">
+                    <input class="criteria-slider" type="range" min="0" max="10" step="1"
+                           name="criteria[${index}].score" value="${score}" data-weight="${weight}" />
+                    <span class="criteria-slider-star" aria-hidden="true"></span>
+                </div>
             `;
             return card;
+        }
+
+        function updateSliderVisual(slider) {
+            if (!slider) return;
+            const min = Number(slider.min || 0);
+            const max = Number(slider.max || 10);
+            const value = Number(slider.value || 0);
+            const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+            slider.closest('.criteria-slider-wrap')?.style.setProperty('--slider-percent', `${percent}%`);
         }
 
         function updateTotal() {
@@ -253,6 +265,7 @@
             sliders.forEach((slider) => {
                 const weight = Number(slider.dataset.weight || 1);
                 total += Number(slider.value) * weight;
+                updateSliderVisual(slider);
             });
             const normalizedTotal = Math.round(total / 10);
             totalField.value = normalizedTotal;
