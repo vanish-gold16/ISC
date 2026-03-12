@@ -65,7 +65,7 @@ public class OpusCoreCriteriaCatalog {
                 30,
                 5
         )));
-
+        criteriaByType.put(ArtTypeEnum.MUSIC, criteria);
     }
 
     //TODO
