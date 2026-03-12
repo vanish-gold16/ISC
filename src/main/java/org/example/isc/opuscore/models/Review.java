@@ -35,4 +35,88 @@ public class Review {
     @Column(name = "value", nullable = false)
     private Long value;
 
+    public Review() {
+    }
+
+    // non review
+    public Review(ArtTypeEnum type, Boolean isReview, String artName, Long value) {
+        this.type = type;
+        this.isReview = isReview;
+        this.artName = artName;
+        this.value = value;
+    }
+
+    public Review(ArtTypeEnum type, Boolean isReview, String artName, String artDescription, String title, String body, Long value) {
+        this.type = type;
+        this.isReview = isReview;
+        this.artName = artName;
+        this.artDescription = artDescription;
+        this.title = title;
+        this.body = body;
+        this.value = value;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public ArtTypeEnum getType() {
+        return type;
+    }
+
+    public void setType(ArtTypeEnum type) {
+        this.type = type;
+    }
+
+    public Boolean getReview() {
+        return isReview;
+    }
+
+    public void setReview(Boolean review) {
+        isReview = review;
+    }
+
+    public String getArtName() {
+        return artName;
+    }
+
+    public void setArtName(String artName) {
+        this.artName = artName;
+    }
+
+    public String getArtDescription() {
+        return artDescription;
+    }
+
+    public void setArtDescription(String artDescription) {
+        this.artDescription = artDescription;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public Long getValue() {
+        return value;
+    }
+
+    public void setValue(Long value) {
+        this.value = value;
+    }
 }
