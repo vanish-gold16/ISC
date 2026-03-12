@@ -28,9 +28,15 @@
             <a class="nav__item"
                th:href="@{/messages}"
                th:classappend="${active}=='messages' ? ' is-active' : ''">
-                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/messages.png}" src="/images/private/sidebar-icons/messages.png" alt="" aria-hidden="true" />
+                <span class="nav__icon-wrap">
+                    <img class="nav__icon" th:src="@{/images/private/sidebar-icons/messages.png}" src="/images/private/sidebar-icons/messages.png" alt="" aria-hidden="true" />
+                    <span class="nav__badge"
+                          data-messages-unread-badge
+                          th:with="messagesUnread=${unreadMessages != null ? unreadMessages : 0}"
+                          th:text="${messagesUnread > 99 ? '99+' : messagesUnread}"
+                          th:attr="data-server-unread=${messagesUnread},hidden=${messagesUnread > 0} ? null : 'hidden'">0</span>
+                </span>
                 <span class="nav__label">Messages</span>
-                <span class="nav__badge" data-messages-unread-badge hidden>0</span>
                 </a>
 
             <a class="nav__item"
@@ -41,5 +47,52 @@
                 </a>
         </nav>
     </div>
+    <script>
+        (function () {
+            const badge = document.querySelector('[data-messages-unread-badge]');
+            if (!badge) return;
+
+            const STORAGE_KEY = 'isc.messagesUnreadCount';
+
+            function normalizeCount(value) {
+                const count = Number(value);
+                return Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+            }
+
+            function render(count) {
+                const normalized = normalizeCount(count);
+                if (normalized > 0) {
+                    badge.hidden = false;
+                    badge.textContent = normalized > 99 ? '99+' : String(normalized);
+                } else {
+                    badge.hidden = true;
+                    badge.textContent = '0';
+                }
+            }
+
+            const serverUnread = normalizeCount(badge.getAttribute('data-server-unread'));
+            if (serverUnread > 0) {
+                try {
+                    window.localStorage.setItem(STORAGE_KEY, String(serverUnread));
+                } catch (e) {
+                    // Ignore storage access issues and keep the server-rendered value.
+                }
+                render(serverUnread);
+                return;
+            }
+
+            try {
+                render(window.localStorage.getItem(STORAGE_KEY));
+            } catch (e) {
+                render(0);
+            }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === STORAGE_KEY) {
+                    render(event.newValue);
+                }
+            });
+        })();
+    </script>
 </aside>
 

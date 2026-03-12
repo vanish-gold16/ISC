@@ -167,6 +167,7 @@
         let lastDayKey = null;
         const GAP_MINUTES = 20;
         const PRESENCE_PING_INTERVAL = 30000;
+        const UNREAD_STORAGE_KEY = 'isc.messagesUnreadCount';
         let presencePingId = null;
         const messagesUnreadBadge = document.querySelector('[data-messages-unread-badge]');
 
@@ -625,14 +626,26 @@
         }
 
         function refreshUnreadBadge() {
-            if (!messagesUnreadBadge) return;
             const totalUnread = conversationItems.reduce((sum, item) => sum + getConversationUnread(item), 0);
+            syncUnreadStorage(totalUnread);
+            if (!messagesUnreadBadge) return;
             if (totalUnread > 0) {
                 messagesUnreadBadge.hidden = false;
                 messagesUnreadBadge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
             } else {
                 messagesUnreadBadge.hidden = true;
                 messagesUnreadBadge.textContent = '0';
+            }
+        }
+
+        function syncUnreadStorage(totalUnread) {
+            try {
+                window.localStorage.setItem(
+                    UNREAD_STORAGE_KEY,
+                    String(Number.isFinite(totalUnread) && totalUnread > 0 ? Math.floor(totalUnread) : 0)
+                );
+            } catch (e) {
+                // Ignore storage access issues.
             }
         }
 
