@@ -14,9 +14,17 @@ public class ReviewCriterion {
     @JoinColumn(name = "review")
     private Review review;
 
-    @ManyToOne
-    @JoinColumn(name = "criterion")
-    private Criterion criterion;
+    @Transient
+    private Long criterionId;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "weight")
+    private int weight;
 
     @Column(name = "value")
     private int score;
@@ -37,12 +45,36 @@ public class ReviewCriterion {
         this.review = review;
     }
 
-    public Criterion getCriterion() {
-        return criterion;
+    public Long getCriterionId() {
+        return criterionId;
     }
 
-    public void setCriterion(Criterion criterion) {
-        this.criterion = criterion;
+    public void setCriterionId(Long criterionId) {
+        this.criterionId = criterionId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
     public int getScore() {

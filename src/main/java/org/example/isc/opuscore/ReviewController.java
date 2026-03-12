@@ -5,12 +5,7 @@ import jakarta.validation.Valid;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
-import org.example.isc.opuscore.models.Criterion;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
-import org.example.isc.opuscore.models.Review;
-import org.example.isc.opuscore.models.ReviewCriterion;
-import org.example.isc.opuscore.repositories.CriterionRepository;
-import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -20,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
 
 @Controller
 @RequestMapping("/opuscore")
@@ -30,21 +24,16 @@ public class ReviewController {
 
     private final Logger log = LoggerFactory.getLogger(ReviewController.class);
     private final ReviewService reviewService;
-    private final ReviewRepository reviewRepository;
-    private final CriterionRepository criterionRepository;
-    private final OpusCoreCriteriaCatalog criteria;
+    private final OpusCoreCriteriaCatalog criteriaCatalog;
 
     public ReviewController(
             UserRepository userRepository,
             ReviewService reviewService,
-            ReviewRepository reviewRepository,
-            CriterionRepository criterionRepository, OpusCoreCriteriaCatalog criteria
+            OpusCoreCriteriaCatalog criteriaCatalog
     ) {
         this.userRepository = userRepository;
         this.reviewService = reviewService;
-        this.reviewRepository = reviewRepository;
-        this.criterionRepository = criterionRepository;
-        this.criteria = criteria;
+        this.criteriaCatalog = criteriaCatalog;
     }
 
     @GetMapping("/new-review")
@@ -59,23 +48,12 @@ public class ReviewController {
             form = new NewReviewDTO();
         }
 
-        if (form.getCriteria() == null || form.getCriteria().isEmpty()) {
-            // finding by the ArtTypeEnum
-            List<Criterion> criteria = criterionRepository.findAll();
-            form.setCriteria(criteria.stream().map(criterion -> {
-                ReviewCriterion reviewCriterion = new ReviewCriterion();
-                reviewCriterion.setCriterion(criterion);
-                reviewCriterion.setScore(5);
-                return reviewCriterion;
-            }).toList());
-        }
-
         if (form.getValue() == null) {
             form.setValue(0L);
         }
 
         model.addAttribute("form", form);
-        model.addAttribute("criteriaByType", criteria);
+        model.addAttribute("criteriaByType", criteriaCatalog.getCriteriaByType());
 
         return "/opuscore/new-post";
     }
@@ -106,20 +84,7 @@ public class ReviewController {
 
         log.info("Review created");
 
-        addModelAttributes(model, form, review);
-
         return "redirect:/opuscore/{id}";
-    }
-
-    private void addModelAttributes(Model model, NewReviewDTO form, Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalStateException("Review not found: " + reviewId));
-        List<ReviewCriterion> criteriaScores = review.getCriteriaScores();
-        for (int i = 0; i < criteriaScores.size(); i++) {
-            model.addAttribute("criterionName", criteriaScores.get(i).getCriterion().getName());
-            model.addAttribute("criterionDescription", criteriaScores.get(i).getCriterion().getDescription());
-            model.addAttribute("score", review.getValue());
-        }
     }
 
 }

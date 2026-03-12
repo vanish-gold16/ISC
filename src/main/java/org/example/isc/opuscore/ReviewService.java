@@ -5,7 +5,7 @@ import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
-import org.example.isc.opuscore.models.Criterion;
+import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.models.ReviewCriterion;
 import org.example.isc.opuscore.repositories.ReviewRepository;
@@ -20,11 +20,18 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ImageService imageService;
     private final ReviewRepository reviewRepository;
+    private final OpusCoreCriteriaCatalog criteriaCatalog;
 
-    public ReviewService(UserRepository userRepository, ImageService imageService, ReviewRepository reviewRepository) {
+    public ReviewService(
+            UserRepository userRepository,
+            ImageService imageService,
+            ReviewRepository reviewRepository,
+            OpusCoreCriteriaCatalog criteriaCatalog
+    ) {
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.reviewRepository = reviewRepository;
+        this.criteriaCatalog = criteriaCatalog;
     }
 
     @Transactional
@@ -49,6 +56,9 @@ public class ReviewService {
                 form.getBody(),
                 form.getCriteria()
         );
+//        if (review.getCriteriaScores() != null) {
+//            review.getCriteriaScores().forEach(reviewCriterion -> reviewCriterion.setReview(review));
+//        }
         review.setValue(countScore(review));
         review.setPhotoUrl(photoUrl);
 
@@ -61,8 +71,11 @@ public class ReviewService {
 
         for (int i = 0; i < review.getCriteriaScores().size(); i++) {
             ReviewCriterion criterion = review.getCriteriaScores().get(i);
-            Criterion currentCriterion = criterion.getCriterion();
-            score += (int) (criterion.getScore()*currentCriterion.getWeight());
+            if (criterion == null || criterion.getId() == null) {
+                throw new IllegalArgumentException("Criterion id is missing");
+            }
+            int weight = criteriaCatalog.getWeightById(criterion.getId());
+            score += criterion.getScore() * weight;
         }
 
         return score;
