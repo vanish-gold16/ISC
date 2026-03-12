@@ -21,6 +21,46 @@ public class OpusCoreCriteriaCatalog {
 
     }
 
+    public void putMusic(){
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add((new CriterionDTO(
+                1L,
+                "Structure / Rhythm",
+                "not done yet",
+                17,
+                5
+        )));
+        criteria.add((new CriterionDTO(
+                2L,
+                "Rhymes / Figures",
+                "not done yet",
+                15,
+                5
+        )));
+        criteria.add((new CriterionDTO(
+                3L,
+                "Realisation",
+                "not done yet",
+                15,
+                5
+        )));
+        criteria.add((new CriterionDTO(
+                4L,
+                "Individuality / Charisma",
+                "not done yet",
+                15,
+                5
+        )));
+        criteria.add((new CriterionDTO(
+                5L,
+                "Vibe",
+                "not done yet",
+                30,
+                5
+        )))
+
+    }
+
     private void putGames(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(

@@ -380,7 +380,7 @@ button { font: inherit; cursor: pointer; }
     transition: width 0.05s ease;
 }
 
-input[type="range"] {
+.slider-wrap input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
     position: absolute;
@@ -394,6 +394,14 @@ input[type="range"] {
     cursor: pointer;
     border: none;
     margin: 0;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+    border: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
