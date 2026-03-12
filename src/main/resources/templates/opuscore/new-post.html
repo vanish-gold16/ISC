@@ -45,68 +45,87 @@
         <form class="new-review__form" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-            <div class="field-grid">
-                <div class="field">
-                    <label for="artType">Type</label>
-                    <select id="artType" class="input" th:field="*{artType}">
-                        <option value="" disabled selected>Select a type</option>
-                        <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
-                                th:value="${t}"
-                                th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
-                    </select>
-                    <p class="field__error" th:if="${#fields.hasErrors('artType')}" th:errors="*{artType}">Type error</p>
-                </div>
-
-                <div class="field field--switch">
-                    <label for="review">Is it a full review?</label>
-                    <div class="switch">
-                        <input id="review" type="checkbox" th:field="*{review}" />
-                        <span class="switch__track"></span>
+            <div class="form-grid">
+                <div class="cover-column">
+                    <label class="cover-label">Cover</label>
+                    <div class="cover-uploader" id="cover-uploader">
+                        <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" />
+                        <div class="cover-drop" id="cover-drop">
+                            <div class="cover-drop__inner">
+                                <span class="cover-drop__icon">+</span>
+                                <span class="cover-drop__title">Drop cover here</span>
+                                <span class="cover-drop__hint">or click to upload</span>
+                            </div>
+                        </div>
+                        <div class="cover-preview" id="cover-preview" hidden>
+                            <img id="cover-preview-img" alt="Cover preview" />
+                            <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
+                                <img src="/images/private/icons/delete.png" alt="" />
+                            </button>
+                        </div>
                     </div>
-                    <p class="field__hint">Turn on for long-form review, off for short rating.</p>
-                    <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
-                </div>
-            </div>
-
-            <div class="field">
-                <label for="name">Work name</label>
-                <input id="name" class="input" type="text" th:field="*{name}" placeholder="Title of the work" maxlength="100" />
-                <p class="field__error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</p>
-            </div>
-
-            <div class="field">
-                <label for="description">Short description</label>
-                <textarea id="description" class="input input--textarea" rows="3" th:field="*{description}" placeholder="Genre, vibe, or quick context" maxlength="300"></textarea>
-                <p class="field__hint">Max 300 characters.</p>
-                <p class="field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
-            </div>
-
-            <div class="field">
-                <label for="title">Review headline</label>
-                <input id="title" class="input" type="text" th:field="*{title}" placeholder="Your verdict in one line" maxlength="50" />
-                <p class="field__error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</p>
-            </div>
-
-            <div class="field">
-                <label for="body">Review body</label>
-                <textarea id="body" class="input input--textarea input--tall" rows="8" th:field="*{body}" placeholder="Write your review..." maxlength="2000"></textarea>
-                <p class="field__hint">Max 2000 characters.</p>
-                <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
-            </div>
-
-            <div class="field-grid">
-                <div class="field">
-                    <label for="value">Score</label>
-                    <input id="value" class="input" type="number" min="1" max="100" step="1" th:field="*{value}" placeholder="0-100" />
-                    <p class="field__hint">Choose a score from 1 to 100.</p>
-                    <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
-                </div>
-
-                <div class="field">
-                    <label for="image">Cover image</label>
-                    <input id="image" class="input input--file" type="file" th:field="*{image}" accept="image/*" />
-                    <p class="field__hint">JPG/PNG/WEBP, up to 5MB.</p>
+                    <p class="field__hint">Vertical cover preferred.</p>
                     <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
+                </div>
+
+                <div class="fields-column">
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="artType">Type</label>
+                            <select id="artType" class="input" th:field="*{artType}">
+                                <option value="" disabled selected>Select a type</option>
+                                <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
+                                        th:value="${t}"
+                                        th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
+                            </select>
+                            <p class="field__error" th:if="${#fields.hasErrors('artType')}" th:errors="*{artType}">Type error</p>
+                        </div>
+
+                        <div class="field field--switch">
+                            <label for="review">Is it a full review?</label>
+                            <div class="switch">
+                                <input id="review" type="checkbox" th:field="*{review}" />
+                                <span class="switch__track"></span>
+                            </div>
+                            <p class="field__hint">Turn on for long-form review, off for short rating.</p>
+                            <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="name">Work name</label>
+                        <input id="name" class="input" type="text" th:field="*{name}" placeholder="Title of the work" maxlength="100" />
+                        <p class="field__error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Short description</label>
+                        <textarea id="description" class="input input--textarea" rows="3" th:field="*{description}" placeholder="Genre, vibe, or quick context" maxlength="300"></textarea>
+                        <p class="field__hint">Max 300 characters.</p>
+                        <p class="field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="title">Review headline</label>
+                        <input id="title" class="input" type="text" th:field="*{title}" placeholder="Your verdict in one line" maxlength="50" />
+                        <p class="field__error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="body">Review body</label>
+                        <textarea id="body" class="input input--textarea input--tall" rows="8" th:field="*{body}" placeholder="Write your review..." maxlength="2000"></textarea>
+                        <p class="field__hint">Max 2000 characters.</p>
+                        <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
+                    </div>
+
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="value">Score</label>
+                            <input id="value" class="input" type="number" min="1" max="100" step="1" th:field="*{value}" placeholder="0-100" />
+                            <p class="field__hint">Choose a score from 1 to 100.</p>
+                            <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -119,6 +138,67 @@
         </form>
     </section>
 </main>
+
+<script>
+    (function () {
+        const input = document.getElementById('image');
+        const drop = document.getElementById('cover-drop');
+        const preview = document.getElementById('cover-preview');
+        const previewImg = document.getElementById('cover-preview-img');
+        const remove = document.getElementById('cover-remove');
+
+        if (!input || !drop || !preview || !previewImg || !remove) return;
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = String(e.target.result || '');
+                preview.hidden = false;
+                drop.hidden = true;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0];
+            if (!file) {
+                preview.hidden = true;
+                drop.hidden = false;
+                return;
+            }
+            showPreview(file);
+        });
+
+        remove.addEventListener('click', () => {
+            input.value = '';
+            preview.hidden = true;
+            drop.hidden = false;
+        });
+
+        ['dragenter', 'dragover'].forEach((evt) => {
+            drop.addEventListener(evt, (e) => {
+                e.preventDefault();
+                drop.classList.add('is-dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach((evt) => {
+            drop.addEventListener(evt, (e) => {
+                e.preventDefault();
+                drop.classList.remove('is-dragover');
+            });
+        });
+
+        drop.addEventListener('drop', (e) => {
+            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (!file) return;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            showPreview(file);
+        });
+    })();
+</script>
 
 </body>
 </html>
