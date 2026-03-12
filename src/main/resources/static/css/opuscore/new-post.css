@@ -338,13 +338,13 @@
 .criteria-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--slider-color, #7c9cff);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    margin-top: -7px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+    background: url('/images/private/icons/criteria_star.png') center / contain no-repeat;
+    box-shadow: none;
+    margin-top: -11px;
     transition: transform 150ms ease, box-shadow 150ms ease;
     cursor: pointer;
 }
@@ -361,12 +361,12 @@
 }
 
 .criteria-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--slider-color, #7c9cff);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+    background: url('/images/private/icons/criteria_star.png') center / contain no-repeat;
+    box-shadow: none;
     cursor: pointer;
 }
 
