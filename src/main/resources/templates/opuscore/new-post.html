@@ -44,6 +44,7 @@
 
         <form class="new-review__form" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
 
             <div class="form-grid">
                 <div class="cover-column">
@@ -126,15 +127,13 @@
                         <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
                     </div>
 
-                    <div class="field-grid">
-                        <div class="field">
-                            <label for="value">Total score</label>
-                            <input id="value" class="input" type="number" min="0" max="100" step="1" th:field="*{value}" placeholder="0-100" readonly />
-                            <p class="field__hint">Calculated from the criteria sliders.</p>
-                            <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
-                        </div>
-                    </div>
+                    <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
                 </div>
+            </div>
+
+            <div class="score-dock" aria-live="polite" aria-atomic="true">
+                <div class="score-dock__label">Total score</div>
+                <div class="score-dock__value"><span id="value-display" th:text="*{value} ?: 0">0</span><span class="score-dock__max">/100</span></div>
             </div>
 
             <div class="form-actions">
@@ -220,8 +219,9 @@
         const grid = document.getElementById('criteria-grid');
         const emptyState = document.getElementById('criteria-empty');
         const totalField = document.getElementById('value');
+        const totalDisplay = document.getElementById('value-display');
 
-        if (!typeSelect || !grid || !emptyState || !totalField) return;
+        if (!typeSelect || !grid || !emptyState || !totalField || !totalDisplay) return;
 
         function buildCriteriaCard(criterion, index) {
             const score = typeof criterion.defaultScore === 'number' ? criterion.defaultScore : 5;
@@ -254,7 +254,9 @@
                 const weight = Number(slider.dataset.weight || 1);
                 total += Number(slider.value) * weight;
             });
-            totalField.value = Math.round(total);
+            const normalizedTotal = Math.round(total / 10);
+            totalField.value = normalizedTotal;
+            totalDisplay.textContent = normalizedTotal;
         }
 
         function renderCriteria(type) {
