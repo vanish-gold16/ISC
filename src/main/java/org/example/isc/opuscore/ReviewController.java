@@ -5,8 +5,10 @@ import jakarta.validation.Valid;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
+import org.example.isc.opuscore.models.Criterion;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.models.ReviewCriterion;
+import org.example.isc.opuscore.repositories.CriterionRepository;
 import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +30,18 @@ public class ReviewController {
     private final Logger log = LoggerFactory.getLogger(ReviewController.class);
     private final ReviewService reviewService;
     private final ReviewRepository reviewRepository;
+    private final CriterionRepository criterionRepository;
 
-    public ReviewController(UserRepository userRepository, ReviewService reviewService, ReviewRepository reviewRepository) {
+    public ReviewController(
+            UserRepository userRepository,
+            ReviewService reviewService,
+            ReviewRepository reviewRepository,
+            CriterionRepository criterionRepository
+    ) {
         this.userRepository = userRepository;
         this.reviewService = reviewService;
         this.reviewRepository = reviewRepository;
+        this.criterionRepository = criterionRepository;
     }
 
     @GetMapping("/new-review")
@@ -42,9 +51,27 @@ public class ReviewController {
 
         model.addAttribute("title", "New post");
         model.addAttribute("user", me);
-        if(!model.containsAttribute("form")){
-            model.addAttribute("form", new NewReviewDTO());
+        NewReviewDTO form = (NewReviewDTO) model.asMap().get("form");
+        if (form == null) {
+            form = new NewReviewDTO();
         }
+
+        if (form.getCriteria() == null || form.getCriteria().isEmpty()) {
+            // finding by the ArtTypeEnum
+            List<Criterion> criteria = criterionRepository.findAll();
+            form.setCriteria(criteria.stream().map(criterion -> {
+                ReviewCriterion reviewCriterion = new ReviewCriterion();
+                reviewCriterion.setCriterion(criterion);
+                reviewCriterion.setScore(5);
+                return reviewCriterion;
+            }).toList());
+        }
+
+        if (form.getValue() == null) {
+            form.setValue(0L);
+        }
+
+        model.addAttribute("form", form);
 
         return "/opuscore/new-post";
     }
@@ -57,7 +84,10 @@ public class ReviewController {
             Model model,
             Authentication authentication
     ){
-        if(bindingResult.hasErrors()) return getNewPost(authentication, model);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("form", form);
+            return getNewPost(authentication, model);
+        }
 
         Long review = 0L;
 
@@ -65,9 +95,12 @@ public class ReviewController {
             review = reviewService.newReview(authentication, form);
         } catch (IllegalArgumentException | IOException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("form", form);
             return getNewPost(authentication, model);
         }
         model.addAttribute("POST_NEW_REVIEW", true);
+
+        log.info("Review created");
 
         addModelAttributes(model, form, review);
 

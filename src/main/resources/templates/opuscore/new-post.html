@@ -118,11 +118,19 @@
                         <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
                     </div>
 
+                    <div class="criteria-section">
+                        <div class="criteria-section__title">Criteria</div>
+                        <p class="criteria-section__hint">Select a type to load criteria. Scores are 0–10.</p>
+                        <div class="criteria-grid" id="criteria-grid"></div>
+                        <div class="criteria-empty" id="criteria-empty" hidden>No criteria for the selected type yet.</div>
+                        <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
+                    </div>
+
                     <div class="field-grid">
                         <div class="field">
-                            <label for="value">Score</label>
-                            <input id="value" class="input" type="number" min="1" max="100" step="1" th:field="*{value}" placeholder="0-100" />
-                            <p class="field__hint">Choose a score from 1 to 100.</p>
+                            <label for="value">Total score</label>
+                            <input id="value" class="input" type="number" min="0" max="100" step="1" th:field="*{value}" placeholder="0-100" readonly />
+                            <p class="field__hint">Calculated from the criteria sliders.</p>
                             <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
                         </div>
                     </div>
@@ -146,6 +154,7 @@
         const preview = document.getElementById('cover-preview');
         const previewImg = document.getElementById('cover-preview-img');
         const remove = document.getElementById('cover-remove');
+        const uploader = document.getElementById('cover-uploader');
 
         if (!input || !drop || !preview || !previewImg || !remove) return;
 
@@ -155,6 +164,7 @@
                 previewImg.src = String(e.target.result || '');
                 preview.hidden = false;
                 drop.hidden = true;
+                uploader.classList.add('has-preview');
             };
             reader.readAsDataURL(file);
         }
@@ -164,6 +174,7 @@
             if (!file) {
                 preview.hidden = true;
                 drop.hidden = false;
+                uploader.classList.remove('has-preview');
                 return;
             }
             showPreview(file);
@@ -173,6 +184,8 @@
             input.value = '';
             preview.hidden = true;
             drop.hidden = false;
+            previewImg.src = '';
+            uploader.classList.remove('has-preview');
         });
 
         ['dragenter', 'dragover'].forEach((evt) => {
@@ -197,6 +210,79 @@
             input.files = dt.files;
             showPreview(file);
         });
+    })();
+</script>
+
+<script th:inline="javascript">
+    (function () {
+        const criteriaByType = /*[[${criteriaByType}]]*/ {};
+        const typeSelect = document.getElementById('artType');
+        const grid = document.getElementById('criteria-grid');
+        const emptyState = document.getElementById('criteria-empty');
+        const totalField = document.getElementById('value');
+
+        if (!typeSelect || !grid || !emptyState || !totalField) return;
+
+        function buildCriteriaCard(criterion, index) {
+            const score = typeof criterion.defaultScore === 'number' ? criterion.defaultScore : 5;
+            const weight = typeof criterion.weight === 'number' ? criterion.weight : 1;
+
+            const card = document.createElement('div');
+            card.className = 'criteria-card';
+            card.innerHTML = `
+                <div class="criteria-header">
+                    <div>
+                        <div class="criteria-name">${criterion.name || 'Criterion'}</div>
+                        <div class="criteria-desc">${criterion.description || ''}</div>
+                    </div>
+                    <div class="criteria-score">
+                        <span class="criteria-score__value" data-score>${score}</span>
+                        <span class="criteria-score__max">/10</span>
+                    </div>
+                </div>
+                <input type="hidden" name="criteria[${index}].criterion.id" value="${criterion.id}">
+                <input class="criteria-slider" type="range" min="0" max="10" step="1"
+                       name="criteria[${index}].score" value="${score}" data-weight="${weight}" />
+            `;
+            return card;
+        }
+
+        function updateTotal() {
+            const sliders = grid.querySelectorAll('.criteria-slider');
+            let total = 0;
+            sliders.forEach((slider) => {
+                const weight = Number(slider.dataset.weight || 1);
+                total += Number(slider.value) * weight;
+            });
+            totalField.value = Math.round(total);
+        }
+
+        function renderCriteria(type) {
+            const list = criteriaByType && typeSelect.value ? criteriaByType[type] : [];
+            grid.innerHTML = '';
+            if (!list || list.length === 0) {
+                emptyState.hidden = false;
+                updateTotal();
+                return;
+            }
+
+            emptyState.hidden = true;
+            list.forEach((criterion, index) => {
+                grid.appendChild(buildCriteriaCard(criterion, index));
+            });
+            updateTotal();
+        }
+
+        grid.addEventListener('input', (event) => {
+            const target = event.target;
+            if (!target || !target.classList.contains('criteria-slider')) return;
+            const valueEl = target.closest('.criteria-card')?.querySelector('[data-score]');
+            if (valueEl) valueEl.textContent = target.value;
+            updateTotal();
+        });
+
+        typeSelect.addEventListener('change', () => renderCriteria(typeSelect.value));
+        renderCriteria(typeSelect.value);
     })();
 </script>
 
