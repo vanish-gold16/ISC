@@ -94,4 +94,22 @@ public class ImageService {
                 );
         return (String) uploadResult.get("secure_url");
     }
+
+    public String uploadReviewImage(MultipartFile photo, Long userId) throws IOException {
+        if (!Objects.requireNonNull(photo.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("Only images allowed");
+        }
+
+        if (photo.getSize() > 5_000_000) {
+            throw new IllegalArgumentException("File too large");
+        }
+        Map uploadResult = cloudinary.uploader().upload(
+                photo.getBytes(),
+                Map.of("folder", "reviews",
+                        "public_id", "post_" + userId,
+                        "overwrite", true,
+                        "resourse_type", "image")
+        );
+        return  (String) uploadResult.get("secure_url");
+    }
 }

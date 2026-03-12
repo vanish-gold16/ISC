@@ -3,6 +3,8 @@ package org.example.isc.opuscore.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
+import org.example.isc.opuscore.enums.ReviewStatusEnum;
+import org.springframework.web.multipart.MultipartFile;
 
 public class NewReviewDTO {
 
@@ -28,6 +30,8 @@ public class NewReviewDTO {
     @NotNull
     @Size(max = 100)
     private Long value;
+
+    private MultipartFile image;
 
     public NewReviewDTO() {
     }

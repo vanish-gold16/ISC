@@ -2,6 +2,7 @@ package org.example.isc.opuscore.models;
 
 import jakarta.persistence.*;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
+import org.example.isc.opuscore.enums.ReviewStatusEnum;
 
 import java.util.List;
 
@@ -35,6 +36,13 @@ public class Review {
     @Column(name = "value", nullable = false)
     private Long value;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReviewStatusEnum status;
+
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     public Review() {
     }
 
@@ -54,6 +62,22 @@ public class Review {
         this.title = title;
         this.body = body;
         this.value = value;
+    }
+
+    public ReviewStatusEnum getStatus() {
+        return status;
+    }
+
+    public void setStatus(ReviewStatusEnum status) {
+        this.status = status;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 
     public Long getId() {
