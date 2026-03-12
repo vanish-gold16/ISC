@@ -16,9 +16,12 @@ public class OpusCoreCriteriaCatalog {
 
     public OpusCoreCriteriaCatalog() {
         criteriaByType = new HashMap<>();
+        putMusic();
         putGames();
         putMovies();
-
+        putShows();
+        putAnime();
+        putManga();
     }
 
     public void putMusic(){
