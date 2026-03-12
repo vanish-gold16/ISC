@@ -13,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @Controller
 @RequestMapping("/opuscore")
 public class ReviewController {
@@ -49,11 +51,15 @@ public class ReviewController {
             Model model,
             Authentication authentication
     ){
-        if(bindingResult.hasErrors()) return "/opuscore/new-post";
+        if(bindingResult.hasErrors()) return getNewPost(authentication, model);
 
         try{
-            reviewService.newReview();
+            reviewService.newReview(authentication, form);
+        } catch (IllegalArgumentException | IOException e) {
+            model.addAttribute("error", e.getMessage());
+            return getNewPost(authentication, model);
         }
+        model.addAttribute("POST_NEW_REVIEW", true);
 
         return "redirect:/opuscore/{id}";
     }
