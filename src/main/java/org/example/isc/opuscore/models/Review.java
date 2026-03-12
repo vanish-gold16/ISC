@@ -34,7 +34,7 @@ public class Review {
     private String body;
 
     @Column(name = "value", nullable = false)
-    private Long value;
+    private int value;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -43,25 +43,36 @@ public class Review {
     @Column(name = "photo_url")
     private String photoUrl;
 
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewCriterion> criteriaScores;
+
     public Review() {
     }
 
     // non review
-    public Review(ArtTypeEnum type, Boolean isReview, String artName, Long value) {
+    public Review(ArtTypeEnum type, Boolean isReview, String artName, List<ReviewCriterion> criteriaScores) {
         this.type = type;
         this.isReview = isReview;
         this.artName = artName;
-        this.value = value;
+        this.criteriaScores = criteriaScores;
     }
 
-    public Review(ArtTypeEnum type, Boolean isReview, String artName, String artDescription, String title, String body, Long value) {
+    public Review(ArtTypeEnum type, Boolean isReview, String artName, String artDescription, String title, String body, List<ReviewCriterion> criteriaScores) {
         this.type = type;
         this.isReview = isReview;
         this.artName = artName;
         this.artDescription = artDescription;
         this.title = title;
         this.body = body;
-        this.value = value;
+        this.criteriaScores = criteriaScores;
+    }
+
+    public List<ReviewCriterion> getCriteriaScores() {
+        return criteriaScores;
+    }
+
+    public void setCriteriaScores(List<ReviewCriterion> criteriaScores) {
+        this.criteriaScores = criteriaScores;
     }
 
     public ReviewStatusEnum getStatus() {
@@ -136,11 +147,11 @@ public class Review {
         this.body = body;
     }
 
-    public Long getValue() {
+    public int getValue() {
         return value;
     }
 
-    public void setValue(Long value) {
+    public void setValue(int value) {
         this.value = value;
     }
 }

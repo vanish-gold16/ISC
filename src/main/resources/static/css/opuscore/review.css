@@ -1,0 +1,233 @@
+.review-page {
+    padding: 48px 0 80px;
+}
+
+.review-hero {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+    margin-bottom: 32px;
+    animation: fadeUp 0.4s ease both;
+}
+
+.review-cover {
+    width: 220px;
+    height: 320px;
+    border-radius: var(--r);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.review-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.review-cover__placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+}
+
+.review-info {
+    padding-top: 6px;
+}
+
+.review-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(108, 142, 255, 0.25);
+    background: rgba(108, 142, 255, 0.12);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.review-tag .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.review-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 40px;
+    line-height: 1.1;
+    margin: 12px 0 10px;
+}
+
+.review-desc {
+    color: var(--text-2);
+    max-width: 600px;
+}
+
+.review-score {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 18px;
+}
+
+.review-score__value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 60px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.review-score__max {
+    font-size: 20px;
+    color: var(--muted);
+}
+
+.review-score__label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: 6px;
+}
+
+.review-meta {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
+    max-width: 420px;
+}
+
+.meta-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.meta-value {
+    font-weight: 600;
+}
+
+.review-body {
+    display: grid;
+    gap: 24px;
+    animation: fadeUp 0.4s ease 0.1s both;
+}
+
+.review-section {
+    padding: 22px 24px;
+    border-radius: var(--r);
+    border: 1px solid var(--border);
+    background: var(--panel);
+}
+
+.section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+}
+
+.criteria-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.criteria-card {
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0f1117;
+}
+
+.criteria-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.criteria-name {
+    font-weight: 600;
+}
+
+.criteria-desc {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.criteria-score {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.criteria-score__value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.criteria-score__max {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.criteria-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.criteria-bar__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+
+.criteria-empty {
+    color: var(--muted);
+}
+
+@media (max-width: 860px) {
+    .review-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .review-cover {
+        width: 100%;
+        height: 360px;
+    }
+}
+
+@media (max-width: 640px) {
+    .review-page {
+        padding: 32px 0 60px;
+    }
+
+    .review-title {
+        font-size: 32px;
+    }
+}

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+    <title th:text="${review != null && review.artName != null} ? ${'OpusCore | ' + review.artName} : 'OpusCore | Review'">OpusCore | Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="/css/opuscore/main.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/review.css}" href="/css/opuscore/review.css" />
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar__inner container">
+        <a class="brand" href="/opuscore">
+            <span class="brand__logo-stack">
+                <img class="brand__logo-img"
+                     th:src="@{/images/brand/logo-submark.png}"
+                     src="/images/brand/logo-submark.png"
+                     alt="" />
+            </span>
+            <span class="brand__text">OpusCore</span>
+            <span class="brand__sub">beta</span>
+        </a>
+        <div class="topbar__actions">
+            <a class="btn" href="/opuscore">← Back</a>
+        </div>
+    </div>
+</header>
+
+<main class="container page review-page">
+    <section class="review-hero">
+        <div class="review-cover">
+            <img th:if="${review != null && review.photoUrl != null}" th:src="${review.photoUrl}" alt="Cover" />
+            <div th:if="${review == null || review.photoUrl == null}" class="review-cover__placeholder">
+                <span>NO COVER</span>
+            </div>
+        </div>
+
+        <div class="review-info">
+            <div class="review-tag">
+                <span class="dot"></span>
+                <span th:text="${review != null && review.type != null} ? ${review.type} : 'ART'">ART</span>
+            </div>
+            <h1 class="review-title" th:text="${review != null && review.artName != null} ? ${review.artName} : 'Untitled Work'">Untitled Work</h1>
+            <p class="review-desc" th:text="${review != null && review.artDescription != null} ? ${review.artDescription} : 'Short description about the work.'">Short description about the work.</p>
+
+            <div class="review-score">
+                <span class="review-score__value" th:text="${avgScore != null} ? ${avgScore} : '—'">—</span>
+                <span class="review-score__max">/10</span>
+                <span class="review-score__label">avg score</span>
+            </div>
+
+            <div class="review-meta">
+                <div>
+                    <span class="meta-label">Review title</span>
+                    <span class="meta-value" th:text="${review != null && review.title != null} ? ${review.title} : 'No title yet'">No title yet</span>
+                </div>
+                <div>
+                    <span class="meta-label">Overall score</span>
+                    <span class="meta-value" th:text="${review != null && review.value != null} ? ${review.value} : '—'">—</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="review-body">
+        <div class="review-section">
+            <div class="section-title">Review</div>
+            <p th:text="${review != null && review.body != null} ? ${review.body} : 'No review text yet.'">No review text yet.</p>
+        </div>
+
+        <div class="review-section">
+            <div class="section-title">Criteria scores</div>
+            <div class="criteria-grid" th:if="${criteriaScores != null}">
+                <div class="criteria-card" th:each="c : ${criteriaScores}">
+                    <div class="criteria-header">
+                        <div>
+                            <div class="criteria-name" th:text="${c.criterionName} ?: 'Criterion'">Criterion</div>
+                            <div class="criteria-desc" th:text="${c.criterionDescription} ?: 'Description'">Description</div>
+                        </div>
+                        <div class="criteria-score">
+                            <span class="criteria-score__value" th:text="${c.score} ?: '0'">0</span>
+                            <span class="criteria-score__max">/10</span>
+                        </div>
+                    </div>
+                    <div class="criteria-bar">
+                        <div class="criteria-bar__fill" th:style="${'width:' + ((c.score != null ? c.score : 0) * 10) + '%'}"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="criteria-empty" th:if="${criteriaScores == null}">No criteria set yet.</div>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

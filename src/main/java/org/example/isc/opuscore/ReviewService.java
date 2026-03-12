@@ -5,7 +5,9 @@ import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
+import org.example.isc.opuscore.models.Criterion;
 import org.example.isc.opuscore.models.Review;
+import org.example.isc.opuscore.models.ReviewCriterion;
 import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -26,7 +28,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public void newReview(
+    public Long newReview(
             Authentication authentication,
             NewReviewDTO form
     ) throws IOException {
@@ -45,11 +47,24 @@ public class ReviewService {
                 form.getDescription(),
                 form.getTitle(),
                 form.getBody(),
-                form.getValue()
+                form.getCriteria()
         );
+        review.setValue(countScore(review));
         review.setPhotoUrl(photoUrl);
 
         reviewRepository.save(review);
+        return review.getId();
     }
 
+    private int countScore(Review review){
+        int score = 0;
+
+        for (int i = 0; i < review.getCriteriaScores().size(); i++) {
+            ReviewCriterion criterion = review.getCriteriaScores().get(i);
+            Criterion currentCriterion = criterion.getCriterion();
+            score += (int) (criterion.getScore()*currentCriterion.getWeight());
+        }
+
+        return score;
+    }
 }

@@ -4,7 +4,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
+import org.example.isc.opuscore.models.ReviewCriterion;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public class NewReviewDTO {
 
@@ -32,6 +35,17 @@ public class NewReviewDTO {
     private Long value;
 
     private MultipartFile image;
+
+    @NotNull
+    private List<ReviewCriterion> criteria;
+
+    public List<ReviewCriterion> getCriteria() {
+        return criteria;
+    }
+
+    public void setCriteria(List<ReviewCriterion> criteria) {
+        this.criteria = criteria;
+    }
 
     public MultipartFile getImage() {
         return image;
