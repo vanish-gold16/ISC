@@ -25,6 +25,10 @@ public class Day {
     @Column(name = "day_enum")
     private DayOfWeek dayOfWeek;
 
+    @OneToOne
+    @JoinColumn(name = "day_subject")
+    private DaySubject daySubject;
+
     public Day() {
     }
 
@@ -63,5 +67,13 @@ public class Day {
 
     public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
+    }
+
+    public DaySubject getDaySubject() {
+        return daySubject;
+    }
+
+    public void setDaySubject(DaySubject daySubject) {
+        this.daySubject = daySubject;
     }
 }

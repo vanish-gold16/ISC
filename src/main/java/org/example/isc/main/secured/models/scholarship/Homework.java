@@ -21,6 +21,10 @@ public class Homework {
     @Column(name = "status")
     private HomeworkStatusEnum status;
 
+    @ManyToOne
+    @JoinColumn(name = "day_subject")
+    private DaySubject daySubject;
+
     public Homework() {
     }
 
@@ -51,5 +55,13 @@ public class Homework {
 
     public void setStatus(HomeworkStatusEnum status) {
         this.status = status;
+    }
+
+    public DaySubject getDaySubject() {
+        return daySubject;
+    }
+
+    public void setDaySubject(DaySubject daySubject) {
+        this.daySubject = daySubject;
     }
 }

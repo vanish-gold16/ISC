@@ -4,6 +4,7 @@ package org.example.isc.main.secured.models.users;
 import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.enums.converter.RoleEnumConverter;
+import org.example.isc.main.secured.models.scholarship.Schedule;
 
 import java.time.LocalDate;
 
@@ -36,6 +37,9 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile profile;
+
+    @OneToOne
+    private Schedule schedule;
 
     @Column(name = "createdAt")
     private LocalDate date;
@@ -116,4 +120,11 @@ public class User {
         this.username = username;
     }
 
+    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
+    }
 }

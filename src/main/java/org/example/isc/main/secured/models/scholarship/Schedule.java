@@ -16,6 +16,7 @@ public class Schedule {
     @OneToMany
     @JoinColumn(name = "days")
     private List<Day> days;
+
     // subject - day - schedule - class - school
 
     public Schedule() {
