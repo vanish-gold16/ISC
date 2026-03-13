@@ -63,11 +63,4 @@ public class Subject {
         this.teachers = teachers;
     }
 
-    public List<Homework> getHomeworks() {
-        return homeworks;
-    }
-
-    public void setHomeworks(List<Homework> homeworks) {
-        this.homeworks = homeworks;
-    }
 }

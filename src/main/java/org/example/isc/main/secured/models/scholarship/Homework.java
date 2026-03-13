@@ -21,6 +21,9 @@ public class Homework {
     @Column(name = "status")
     private HomeworkStatusEnum status;
 
+    public Homework() {
+    }
+
     public Homework(Subject subject, HomeworkStatusEnum status) {
         this.subject = subject;
         this.status = status;
@@ -48,13 +51,5 @@ public class Homework {
 
     public void setStatus(HomeworkStatusEnum status) {
         this.status = status;
-    }
-
-    public List<Homework> getHomeworks() {
-        return homeworks;
-    }
-
-    public void setHomeworks(List<Homework> homeworks) {
-        this.homeworks = homeworks;
     }
 }
