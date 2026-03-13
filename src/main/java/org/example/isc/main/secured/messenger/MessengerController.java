@@ -122,13 +122,14 @@ public class MessengerController {
                 conversation, me
         ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
 
-        Long unreadCount = 0L;
-        if(member.getLastReadAt() == null){
+        Long unreadCount;
+        if (member.getLastReadAt() == null) {
             unreadCount = messageRepository.countUnreadMessagesNoReadAt(conversation, me);
+        } else {
+            unreadCount = messageRepository.countUnreadMessagesAfter(
+                    conversation, me, member.getLastReadAt()
+            );
         }
-        unreadCount = messageRepository.countUnreadMessagesAfter(
-                conversation, me, member.getLastReadAt()
-        );
 
         String name = conversation.getTitle();
         String avatar = conversation.getAvatarUrl();

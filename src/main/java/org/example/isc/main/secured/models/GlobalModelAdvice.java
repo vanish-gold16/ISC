@@ -75,7 +75,7 @@ public class GlobalModelAdvice {
     @ModelAttribute("unreadMessages")
     public long unreadMessages(Authentication authentication){
         long total = 0;
-        if(authentication == null || !authentication.isAuthenticated()) return total;
+        if (authentication == null || !authentication.isAuthenticated()) return total;
         try{
             User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                     .orElseThrow(() -> new IllegalStateException("Logged-in user not found: "));
@@ -84,7 +84,11 @@ public class GlobalModelAdvice {
                 ConversationMember member = conversationMemberRepository.findByConversationAndUser(
                         conversations.get(i), me
                 ).orElseThrow(() -> new IllegalStateException("User not found: "));
-                total++;
+                if (member.getLastReadAt() == null) {
+                    total += messageRepository.countUnreadMessagesNoReadAt(conversations.get(i), me);
+                } else {
+                    total += messageRepository.countUnreadMessagesAfter(conversations.get(i), me, member.getLastReadAt());
+                }
             }
         } catch (Exception e){
             return 0;
