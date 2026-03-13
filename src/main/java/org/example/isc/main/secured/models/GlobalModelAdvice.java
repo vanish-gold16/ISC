@@ -85,9 +85,9 @@ public class GlobalModelAdvice {
                         conversations.get(i), me
                 ).orElseThrow(() -> new IllegalStateException("User not found: "));
                 if (member.getLastReadAt() == null) {
-                    total += messageRepository.countUnreadMessagesNoReadAt(conversations.get(i), me);
+                    total += messageRepository.countUnreadMessagesNoReadAt(conversations.get(i), me.getId());
                 } else {
-                    total += messageRepository.countUnreadMessagesAfter(conversations.get(i), me, member.getLastReadAt());
+                    total += messageRepository.countUnreadMessagesAfter(conversations.get(i), me.getId(), member.getLastReadAt());
                 }
             }
         } catch (Exception e){

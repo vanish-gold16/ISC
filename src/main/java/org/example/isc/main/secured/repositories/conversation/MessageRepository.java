@@ -1,8 +1,6 @@
 package org.example.isc.main.secured.repositories.conversation;
 
-import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
-import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,23 +22,23 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
       from Message m
       where m.conversation = :conversation
         and m.deletedAt is null
-        and m.sender <> :me
+        and m.sender.id <> :userId
   """)
     Long countUnreadMessagesNoReadAt(
             @Param("conversation") Conversation conversation,
-            @Param("me") User user);
+            @Param("userId") Long userId);
 
     @Query("""
       select count(m)
       from Message m
       where m.conversation = :conversation
         and m.deletedAt is null
-        and m.sender <> :me
+        and m.sender.id <> :userId
         and m.createdAt > :lastReadAt
   """)
     Long countUnreadMessagesAfter(
             @Param("conversation") Conversation conversation,
-            @Param("me") User user,
+            @Param("userId") Long userId,
             @Param("lastReadAt") LocalDateTime lastReadAt);
 
 }

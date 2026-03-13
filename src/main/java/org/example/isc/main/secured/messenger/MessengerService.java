@@ -273,7 +273,7 @@ public class MessengerService {
     public Long countUnread(Conversation conversation, User recipient) {
         ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, recipient)
                 .orElseThrow(() -> new IllegalStateException("User is not in this conversation: " + conversation.getTitle()));
-        if(member.getLastReadAt() == null) return messageRepository.countUnreadMessagesNoReadAt(conversation, recipient);
-        return messageRepository.countUnreadMessagesAfter(conversation, recipient, member.getLastReadAt());
+        if(member.getLastReadAt() == null) return messageRepository.countUnreadMessagesNoReadAt(conversation, recipient.getId());
+        return messageRepository.countUnreadMessagesAfter(conversation, recipient.getId(), member.getLastReadAt());
     }
 }

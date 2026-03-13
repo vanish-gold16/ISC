@@ -124,10 +124,10 @@ public class MessengerController {
 
         Long unreadCount;
         if (member.getLastReadAt() == null) {
-            unreadCount = messageRepository.countUnreadMessagesNoReadAt(conversation, me);
+            unreadCount = messageRepository.countUnreadMessagesNoReadAt(conversation, me.getId());
         } else {
             unreadCount = messageRepository.countUnreadMessagesAfter(
-                    conversation, me, member.getLastReadAt()
+                    conversation, me.getId(), member.getLastReadAt()
             );
         }
 
