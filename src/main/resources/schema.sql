@@ -1,3 +1,11 @@
+CREATE TABLE IF NOT EXISTS schedules (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT UNIQUE,
+    CONSTRAINT fk_schedules_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+@@
+
 DO $$
 DECLARE
     constraint_name TEXT;

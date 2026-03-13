@@ -38,7 +38,7 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile profile;
 
-    @OneToOne
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Schedule schedule;
 
     @Column(name = "createdAt")

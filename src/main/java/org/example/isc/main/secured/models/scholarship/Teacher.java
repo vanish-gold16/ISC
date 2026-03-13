@@ -15,8 +15,7 @@ public class Teacher {
     @Column(name = "full_name")
     private String fullName;
 
-    @ManyToMany
-    @JoinColumn(name = "subjects")
+    @ManyToMany(mappedBy = "teachers")
     private List<Subject> subjects;
 
     @Column(name = "age")

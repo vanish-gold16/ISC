@@ -19,7 +19,11 @@ public class Subject {
     private String description;
 
     @ManyToMany
-    @JoinColumn(name = "teacher")
+    @JoinTable(
+            name = "subject_teachers",
+            joinColumns = @JoinColumn(name = "subject_id"),
+            inverseJoinColumns = @JoinColumn(name = "teacher_id")
+    )
     private List<Teacher> teachers;
 
     public Subject() {

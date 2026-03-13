@@ -15,7 +15,7 @@ public class Schedule {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user")
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
 
     @OneToMany
@@ -28,6 +28,7 @@ public class Schedule {
     }
 
     public Schedule(User user, List<Day> days) {
+        this.user = user;
         this.days = days;
     }
 
