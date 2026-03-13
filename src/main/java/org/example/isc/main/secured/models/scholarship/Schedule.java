@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import org.example.isc.main.secured.models.users.User;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,10 @@ public class Schedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne
+    @JoinColumn(name = "user")
+    private User user;
+
     @OneToMany
     @JoinColumn(name = "days")
     private List<Day> days;
@@ -22,7 +27,7 @@ public class Schedule {
     public Schedule() {
     }
 
-    public Schedule(List<Day> days) {
+    public Schedule(User user, List<Day> days) {
         this.days = days;
     }
 
@@ -32,6 +37,14 @@ public class Schedule {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public List<Day> getDays() {
