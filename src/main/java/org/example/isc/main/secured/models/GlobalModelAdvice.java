@@ -1,7 +1,12 @@
 package org.example.isc.main.secured.models;
 
+import org.example.isc.main.secured.models.messenger.Conversation;
+import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
+import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
+import org.example.isc.main.secured.repositories.conversation.MessageRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,11 +22,17 @@ public class GlobalModelAdvice {
 
     private final UserRepository userRepository;
     private final NotificationsRepository notificationsRepository;
+    private final MessageRepository messageRepository;
+    private final ConversationMemberRepository conversationMemberRepository;
+    private final ConversationRepository conversationRepository;
 
 
-    public GlobalModelAdvice(UserRepository userRepository, NotificationsRepository notificationsRepository) {
+    public GlobalModelAdvice(UserRepository userRepository, NotificationsRepository notificationsRepository, MessageRepository messageRepository, ConversationMemberRepository conversationMemberRepository, ConversationRepository conversationRepository) {
         this.userRepository = userRepository;
         this.notificationsRepository = notificationsRepository;
+        this.messageRepository = messageRepository;
+        this.conversationMemberRepository = conversationMemberRepository;
+        this.conversationRepository = conversationRepository;
     }
 
     @ModelAttribute("userAvatarUrl")
@@ -58,6 +69,22 @@ public class GlobalModelAdvice {
                     .orElse(Collections.emptyList());
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    @ModelAttribute("unreadMessages")
+    public long unreadNotifications(Authentication authentication){
+        if(authentication == null || !authentication.isAuthenticated()) return 0;
+        try{
+            User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                    .orElseThrow(() -> new IllegalStateException("Logged-in user not found: "))
+            List<Conversation> conversations = conversationRepository.findByMember(me);
+            for (int i = 0; i < conversations.size(); i++) {
+                ConversationMember member = conversationMemberRepository.findByConversationAndUser(
+                        conversations.get(i), me
+                )
+                return messageRepository.countUnreadMessages(conversations.get(i), me, member.getLastReadAt())
+            }
         }
     }
 
