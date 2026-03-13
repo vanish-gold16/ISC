@@ -84,6 +84,9 @@ public class MessengerService {
         memberMe.setLastReadAt(LocalDateTime.now());
         memberTarget.setLastReadAt(LocalDateTime.now());
 
+        conversationMemberRepository.save(memberMe);
+        conversationMemberRepository.save(memberTarget);
+
         return toDTO(currentConversation);
     }
 
