@@ -1,9 +1,8 @@
 package org.example.isc.main.secured.search;
 
 import org.example.isc.main.secured.friends.service.FriendsService;
-import org.example.isc.main.secured.models.Friends;
-import org.example.isc.main.secured.models.Subscription;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Subscription;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.http.ResponseEntity;

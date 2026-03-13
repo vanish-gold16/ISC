@@ -1,7 +1,7 @@
 package org.example.isc.main.secured.repositories.conversation;
 
 import org.example.isc.main.enums.conversation.ConversationType;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

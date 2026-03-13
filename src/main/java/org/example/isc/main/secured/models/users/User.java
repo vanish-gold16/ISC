@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.models;
+package org.example.isc.main.secured.models.users;
 
 
 import jakarta.persistence.*;
@@ -6,8 +6,6 @@ import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.enums.converter.RoleEnumConverter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name="users")

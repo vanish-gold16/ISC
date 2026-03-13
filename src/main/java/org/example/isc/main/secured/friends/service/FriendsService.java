@@ -1,12 +1,10 @@
 package org.example.isc.main.secured.friends.service;
 
 import jakarta.transaction.Transactional;
-import org.example.isc.main.dto.FriendRequest;
 import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
-import org.example.isc.main.secured.models.Friends;
-import org.example.isc.main.secured.models.Subscription;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Friends;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;

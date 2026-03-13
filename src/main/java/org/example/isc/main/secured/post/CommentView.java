@@ -1,7 +1,5 @@
 package org.example.isc.main.secured.post;
 
-import org.example.isc.main.secured.models.Comment;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

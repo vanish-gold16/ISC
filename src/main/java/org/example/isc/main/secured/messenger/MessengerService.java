@@ -1,25 +1,22 @@
 package org.example.isc.main.secured.messenger;
 
 import org.example.isc.main.dto.messenger.ConversationDTO;
-import org.example.isc.main.dto.messenger.MessagePayload;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.enums.conversation.ConversationRole;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.enums.conversation.MessageType;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.profile.service.ActivityService;
-import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
 import org.example.isc.main.secured.repositories.conversation.MessageRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;

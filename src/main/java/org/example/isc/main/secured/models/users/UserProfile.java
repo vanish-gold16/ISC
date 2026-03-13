@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.models;
+package org.example.isc.main.secured.models.users;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -8,7 +8,6 @@ import org.example.isc.main.enums.converter.CountryEnumConverter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "profiles")

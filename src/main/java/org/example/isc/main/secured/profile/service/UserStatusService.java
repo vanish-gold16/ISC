@@ -2,8 +2,8 @@ package org.example.isc.main.secured.profile.service;
 
 import org.example.isc.main.dto.UserStatusDTO;
 import org.example.isc.main.enums.PresenceStateEnum;
-import org.example.isc.main.secured.models.User;
-import org.example.isc.main.secured.models.UserProfile;
+import org.example.isc.main.secured.models.users.User;
+import org.example.isc.main.secured.models.users.UserProfile;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 

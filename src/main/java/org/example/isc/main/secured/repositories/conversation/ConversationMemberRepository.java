@@ -1,6 +1,6 @@
 package org.example.isc.main.secured.repositories.conversation;
 
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.springframework.data.jpa.repository.JpaRepository;

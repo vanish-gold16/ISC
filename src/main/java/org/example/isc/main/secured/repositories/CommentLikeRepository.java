@@ -1,8 +1,8 @@
 package org.example.isc.main.secured.repositories;
 
-import org.example.isc.main.secured.models.Comment;
-import org.example.isc.main.secured.models.CommentLike;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Comment;
+import org.example.isc.main.secured.models.users.CommentLike;
+import org.example.isc.main.secured.models.users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {

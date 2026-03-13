@@ -5,7 +5,7 @@ import org.example.isc.main.dto.messenger.MessageDTO;
 import org.example.isc.main.dto.messenger.MessagePayload;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.enums.conversation.MessageType;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.profile.service.ActivityService;

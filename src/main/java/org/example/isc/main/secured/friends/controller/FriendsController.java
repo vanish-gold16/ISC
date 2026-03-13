@@ -1,7 +1,7 @@
 package org.example.isc.main.secured.friends.controller;
 
 import org.example.isc.main.secured.friends.service.FriendsService;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;

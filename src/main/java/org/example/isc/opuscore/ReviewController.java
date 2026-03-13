@@ -2,7 +2,7 @@ package org.example.isc.opuscore;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;

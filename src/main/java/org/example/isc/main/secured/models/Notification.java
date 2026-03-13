@@ -2,6 +2,7 @@ package org.example.isc.main.secured.models;
 
 import jakarta.persistence.*;
 import org.example.isc.main.enums.NotificationEnum;
+import org.example.isc.main.secured.models.users.User;
 
 import java.time.LocalDateTime;
 

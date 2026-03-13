@@ -1,9 +1,8 @@
 package org.example.isc.main.secured.repositories;
 
 import org.example.isc.main.enums.FriendsStatusEnum;
-import org.example.isc.main.enums.NotificationEnum;
-import org.example.isc.main.secured.models.Friends;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Friends;
+import org.example.isc.main.secured.models.users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

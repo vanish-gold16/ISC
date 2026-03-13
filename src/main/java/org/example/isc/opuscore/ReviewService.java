@@ -2,7 +2,7 @@ package org.example.isc.opuscore;
 
 import jakarta.transaction.Transactional;
 import org.example.isc.cloudinary.ImageService;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;

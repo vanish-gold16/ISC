@@ -2,8 +2,8 @@ package org.example.isc.main.secured.notification;
 
 import org.example.isc.main.secured.friends.service.FriendsService;
 import org.example.isc.main.secured.models.Notification;
-import org.example.isc.main.secured.models.Post;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Post;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.PostRepository;
 import org.example.isc.main.secured.repositories.NotificationsRepository;
 import org.example.isc.main.secured.repositories.SubscriptionRepository;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

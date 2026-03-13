@@ -1,7 +1,7 @@
 package org.example.isc.main.secured.messenger;
 
 import org.example.isc.main.enums.conversation.ConversationType;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;

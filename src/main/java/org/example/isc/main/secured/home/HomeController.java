@@ -2,7 +2,7 @@ package org.example.isc.main.secured.home;
 
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

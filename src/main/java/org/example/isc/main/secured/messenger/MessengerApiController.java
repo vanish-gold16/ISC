@@ -5,7 +5,7 @@ import org.example.isc.main.dto.messenger.CreateDirectRequest;
 import org.example.isc.main.dto.messenger.CreateGroupRequest;
 import org.example.isc.main.dto.messenger.MessageDTO;
 import org.example.isc.main.enums.conversation.ConversationType;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
 import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.repositories.UserRepository;

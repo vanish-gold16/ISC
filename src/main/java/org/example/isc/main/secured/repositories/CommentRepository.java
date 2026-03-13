@@ -1,6 +1,6 @@
 package org.example.isc.main.secured.repositories;
 
-import org.example.isc.main.secured.models.Comment;
+import org.example.isc.main.secured.models.users.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

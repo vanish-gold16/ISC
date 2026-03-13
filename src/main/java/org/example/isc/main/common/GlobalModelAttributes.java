@@ -1,6 +1,6 @@
 package org.example.isc.main.common;
 
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.models.Notification;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.UserRepository;

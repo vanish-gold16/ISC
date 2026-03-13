@@ -1,6 +1,6 @@
 package org.example.isc.main.secured.repositories;
 
-import org.example.isc.main.secured.models.Post;
+import org.example.isc.main.secured.models.users.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

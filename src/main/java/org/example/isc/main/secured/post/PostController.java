@@ -6,9 +6,8 @@ import org.example.isc.main.dto.NewCommentForm;
 import org.example.isc.main.dto.NewPostForm;
 import org.example.isc.main.enums.FriendsStatusEnum;
 import org.example.isc.main.enums.NotificationEnum;
-import org.example.isc.main.secured.models.*;
+import org.example.isc.main.secured.models.users.*;
 import org.example.isc.main.secured.notification.NotificationService;
-import org.example.isc.main.secured.post.CommentView;
 import org.example.isc.main.secured.repositories.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

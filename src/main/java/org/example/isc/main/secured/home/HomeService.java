@@ -1,9 +1,9 @@
 package org.example.isc.main.secured.home;
 
 import org.example.isc.main.enums.FriendsStatusEnum;
-import org.example.isc.main.secured.models.Friends;
-import org.example.isc.main.secured.models.Post;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.Friends;
+import org.example.isc.main.secured.models.users.Post;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.FriendsRepository;
 import org.example.isc.main.secured.repositories.LikeRepository;
 import org.example.isc.main.secured.repositories.CommentRepository;

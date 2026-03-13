@@ -2,7 +2,7 @@ package org.example.isc.main.common.service;
 
 import org.example.isc.main.dto.RegistrationRequest;
 import org.example.isc.main.enums.RoleEnum;
-import org.example.isc.main.secured.models.User;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

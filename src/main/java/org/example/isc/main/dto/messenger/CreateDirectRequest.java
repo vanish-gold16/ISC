@@ -1,7 +1,6 @@
 package org.example.isc.main.dto.messenger;
 
 import jakarta.validation.constraints.NotNull;
-import org.example.isc.main.secured.models.User;
 
 public class CreateDirectRequest {
 
