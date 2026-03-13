@@ -86,42 +86,42 @@ public class OpusCoreCriteriaCatalog {
                 7L,
                 "Own experience",
                 "(not done yet)",
-                25,
+                24,
                 5
         ));
         criteria.add(new CriterionDTO(
                 8L,
                 "Narrative and Directing",
                 "(not done yet)",
-                20,
+                19,
                 5
         ));
         criteria.add(new CriterionDTO(
                 9L,
                 "Gameplay",
                 "(not done yet)",
-                20,
+                19,
                 5
         ));
         criteria.add(new CriterionDTO(
                 10L,
                 "Characters",
                 "(not done yet)",
-                15,
+                14,
                 5
         ));
         criteria.add(new CriterionDTO(
                 11L,
                 "Audiovisuals",
                 "(not done yet)",
-                15,
+                14,
                 5
         ));
         criteria.add(new CriterionDTO(
                 12L,
                 "Technical",
                 "(not done yet)",
-                5,
+                10,
                 5
         ));
 
