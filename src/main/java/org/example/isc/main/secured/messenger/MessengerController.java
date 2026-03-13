@@ -122,7 +122,11 @@ public class MessengerController {
                 conversation, me
         ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
 
-        Long unreadCount = messageRepository.countUnreadMessages(
+        Long unreadCount = 0L;
+        if(member.getLastReadAt() == null){
+            unreadCount = messageRepository.countUnreadMessagesNoReadAt(conversation, me);
+        }
+        unreadCount = messageRepository.countUnreadMessagesAfter(
                 conversation, me, member.getLastReadAt()
         );
 

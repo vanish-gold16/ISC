@@ -20,15 +20,27 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Long countByConversationNotAndDeletedAtIsNullAndCreatedAtAfter(Conversation conversation, LocalDateTime deletedAt, LocalDateTime createdAtAfter);
 
     @Query("""
-            select count(m)
-                 from Message m
-                 where m.conversation = :conversation
-                   and m.deletedAt is null
-                   and m.sender <> :me
-                   and (:lastReadAt is null or m.createdAt > :lastReadAt)
-            """)
-    Long countUnreadMessages(
+      select count(m)
+      from Message m
+      where m.conversation = :conversation
+        and m.deletedAt is null
+        and m.sender <> :me
+  """)
+    Long countUnreadMessagesNoReadAt(
+            @Param("conversation") Conversation conversation,
+            @Param("me") User user);
+
+    @Query("""
+      select count(m)
+      from Message m
+      where m.conversation = :conversation
+        and m.deletedAt is null
+        and m.sender <> :me
+        and m.createdAt > :lastReadAt
+  """)
+    Long countUnreadMessagesAfter(
             @Param("conversation") Conversation conversation,
             @Param("me") User user,
             @Param("lastReadAt") LocalDateTime lastReadAt);
+
 }

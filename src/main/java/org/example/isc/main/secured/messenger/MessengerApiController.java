@@ -169,7 +169,7 @@ public class MessengerApiController {
             Authentication authentication
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()))
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         Conversation conversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
 

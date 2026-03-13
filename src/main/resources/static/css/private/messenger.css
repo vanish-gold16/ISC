@@ -6,8 +6,8 @@
     --msg-muted: #64748b;
     --msg-accent: #0ea5a4;
     --msg-accent-soft: rgba(14, 165, 164, 0.15);
-    --msg-warm: #f97316;
-    --msg-warm-soft: rgba(249, 115, 22, 0.12);
+    --msg-warm: #ef4444;
+    --msg-warm-soft: rgba(239, 68, 68, 0.12);
 }
 
 .messenger-page {
