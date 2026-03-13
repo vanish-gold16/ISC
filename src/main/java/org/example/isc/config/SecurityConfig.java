@@ -89,6 +89,11 @@ public class SecurityConfig {
                         })
                         .failureUrl("/auth/login?error=true")
                         .permitAll()
+                )
+                .rememberMe(remember -> remember
+                        .key("very-secret-key")
+                        .tokenValiditySeconds(60 * 60 * 24 * 30)
+                        .rememberMeParameter("remember-me")
                 );
         return http.build();
     }
