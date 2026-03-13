@@ -73,7 +73,7 @@ public class GlobalModelAdvice {
     }
 
     @ModelAttribute("unreadMessages")
-    public long unreadNotifications(Authentication authentication){
+    public long unreadMessages(Authentication authentication){
         if(authentication == null || !authentication.isAuthenticated()) return 0;
         try{
             User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
@@ -82,9 +82,11 @@ public class GlobalModelAdvice {
             for (int i = 0; i < conversations.size(); i++) {
                 ConversationMember member = conversationMemberRepository.findByConversationAndUser(
                         conversations.get(i), me
-                )
-                return messageRepository.countUnreadMessages(conversations.get(i), me, member.getLastReadAt())
+                ).orElseThrow(() -> new IllegalStateException("User not found: "));
+                return messageRepository.countUnreadMessages(conversations.get(i), me, member.getLastReadAt());
             }
+        } catch (Exception e){
+            return 0;
         }
     }
 

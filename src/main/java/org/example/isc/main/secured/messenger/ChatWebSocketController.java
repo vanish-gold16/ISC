@@ -12,6 +12,7 @@ import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationMemberRepository;
 import org.example.isc.main.secured.repositories.conversation.ConversationRepository;
+import org.example.isc.main.secured.repositories.conversation.MessageRepository;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -38,8 +39,9 @@ public class ChatWebSocketController {
     private final SimpMessagingTemplate brokerMessagingTemplate;
     private final ConversationMemberRepository conversationMemberRepository;
     private final ActivityService activityService;
+    private final MessageRepository messageRepository;
 
-    public ChatWebSocketController(UserService userService, UserRepository userRepository, ConversationRepository conversationRepository, MessengerService messengerService, SimpMessagingTemplate brokerMessagingTemplate, ConversationMemberRepository conversationMemberRepository, ActivityService activityService) {
+    public ChatWebSocketController(UserService userService, UserRepository userRepository, ConversationRepository conversationRepository, MessengerService messengerService, SimpMessagingTemplate brokerMessagingTemplate, ConversationMemberRepository conversationMemberRepository, ActivityService activityService, MessageRepository messageRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
@@ -47,6 +49,7 @@ public class ChatWebSocketController {
         this.brokerMessagingTemplate = brokerMessagingTemplate;
         this.conversationMemberRepository = conversationMemberRepository;
         this.activityService = activityService;
+        this.messageRepository = messageRepository;
     }
 
     @MessageMapping("/chat/{id}")
@@ -106,6 +109,7 @@ public class ChatWebSocketController {
         boolean online = false;
         String lastSeenAtIso = null;
         Long otherUserId = null;
+        Long unread = messengerService.countUnread(conversation, recipient);
 
         if (conversation.getType() == ConversationType.DIRECT) {
             name = sender.getFirstName() + " " + sender.getLastName();
@@ -136,7 +140,7 @@ public class ChatWebSocketController {
                 .toEpochMilli());
         payload.put("lastMessageSenderId", sender.getId());
         payload.put("lastMessageSenderName", sender.getFirstName());
-        payload.put("unread", 1);
+        payload.put("unread", unread);
 
         return payload;
     }

@@ -266,4 +266,10 @@ public class MessengerService {
     private boolean isOnline(User target){
         return activityService.online(target.getId());
     }
+
+    public Long countUnread(Conversation conversation, User recipient) {
+        ConversationMember member = conversationMemberRepository.findByConversationAndUser(conversation, recipient)
+                .orElseThrow(() -> new IllegalStateException("User is not in this conversation: " + conversation.getTitle()));
+        return messageRepository.countUnreadMessages(conversation, recipient, member.getLastReadAt());
+    }
 }
