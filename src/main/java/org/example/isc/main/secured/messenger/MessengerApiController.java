@@ -163,4 +163,22 @@ public class MessengerApiController {
         return ResponseEntity.ok(messengerService.deleteUser(currentConversation, target, authentication));
     }
 
+    @PostMapping("{id}/read")
+    public ResponseEntity<Void> readConversation(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()))
+        Conversation conversation = conversationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Conversation not found: " + id));
+
+        if(!conversationMemberRepository.existsByConversationAndUser(conversation, me)){
+            return ResponseEntity.notFound().build();
+        }
+        messengerService.markConversationRead(conversation, me);
+
+        return ResponseEntity.ok().build();
+    }
+
 }
