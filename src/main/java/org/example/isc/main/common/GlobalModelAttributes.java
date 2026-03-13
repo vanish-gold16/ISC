@@ -51,6 +51,6 @@ public class GlobalModelAttributes {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        return notificationService.list(me, 5);
+        return notificationService.listUnread(me, 5);
     }
 }

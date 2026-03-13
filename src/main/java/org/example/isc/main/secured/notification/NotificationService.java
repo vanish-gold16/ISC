@@ -51,6 +51,11 @@ public class NotificationService {
         return notificationsRepository.findByReceiverWithSender(receiver, pageable);
     }
 
+    public List<Notification> listUnread(User receiver, int limit){
+        Pageable pageable = PageRequest.of(0, limit);
+        return notificationsRepository.findUnreadByReceiverWithSender(receiver, pageable);
+    }
+
     public long unreadCount(User receiver){
         return notificationsRepository.countByReceiverAndReadAtIsNull(receiver);
     }

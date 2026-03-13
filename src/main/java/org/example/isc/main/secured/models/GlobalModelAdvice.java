@@ -65,7 +65,7 @@ public class GlobalModelAdvice {
         if (authentication == null || !authentication.isAuthenticated()) return Collections.emptyList();
         try {
             return userRepository.findByUsernameIgnoreCase(authentication.getName())
-                    .map(user -> notificationsRepository.findByReceiverWithSender(user, PageRequest.of(0, 5)))
+                    .map(user -> notificationsRepository.findUnreadByReceiverWithSender(user, PageRequest.of(0, 5)))
                     .orElse(Collections.emptyList());
         } catch (Exception e) {
             return Collections.emptyList();

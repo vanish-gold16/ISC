@@ -22,6 +22,16 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
         """)
     List<Notification> findByReceiverWithSender(@Param("receiver") User receiver, Pageable pageable);
 
+    @Query("""
+        SELECT n FROM Notification n
+        LEFT JOIN FETCH n.sender s
+        LEFT JOIN FETCH s.profile
+        WHERE n.receiver = :receiver
+          AND n.readAt IS NULL
+        ORDER BY n.createdAt DESC
+        """)
+    List<Notification> findUnreadByReceiverWithSender(@Param("receiver") User receiver, Pageable pageable);
+
     long countByReceiverAndReadAtIsNull(User receiver);
 
     @Modifying
