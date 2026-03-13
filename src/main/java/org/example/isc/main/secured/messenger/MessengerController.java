@@ -3,6 +3,7 @@ package org.example.isc.main.secured.messenger;
 import org.example.isc.main.enums.conversation.ConversationType;
 import org.example.isc.main.secured.models.User;
 import org.example.isc.main.secured.models.messenger.Conversation;
+import org.example.isc.main.secured.models.messenger.ConversationMember;
 import org.example.isc.main.secured.models.messenger.Message;
 import org.example.isc.main.secured.profile.service.ActivityService;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -117,6 +118,14 @@ public class MessengerController {
 
     private Map<String, Object> buildConversationView(Conversation conversation, User me) {
         User other = null;
+        ConversationMember member = conversationMemberRepository.findByConversationAndUser(
+                conversation, me
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+
+        Long unreadCount = messageRepository.countUnreadMessages(
+                conversation, me, member.getLastReadAt()
+        );
+
         String name = conversation.getTitle();
         String avatar = conversation.getAvatarUrl();
         String subtitle = "";
@@ -188,6 +197,7 @@ public class MessengerController {
         view.put("subtitle", subtitle);
         view.put("otherUserId", otherUserId);
         view.put("lastSeenAtIso", lastSeenAtIso);
+        view.put("unread", unreadCount);
         return view;
     }
 
