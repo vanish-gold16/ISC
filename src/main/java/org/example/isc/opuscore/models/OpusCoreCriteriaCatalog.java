@@ -26,13 +26,13 @@ public class OpusCoreCriteriaCatalog {
 
     public void putMusic(){
         List<CriterionDTO> criteria = new ArrayList<>();
-        criteria.add((new CriterionDTO(
+        criteria.add(new CriterionDTO(
                 1L,
                 "Structure / Rhythm",
                 "not done yet",
                 14,
                 5
-        )));
+        ));
         criteria.add((new CriterionDTO(
                 2L,
                 "Rhymes / Figures",
@@ -82,58 +82,158 @@ public class OpusCoreCriteriaCatalog {
 
     private void putGames(){
         List<CriterionDTO> criteria = new ArrayList<>();
+
         criteria.add(new CriterionDTO(
                 7L,
-                "Own experience",
-                "(not done yet)",
-                24,
-                5
-        ));
-        criteria.add(new CriterionDTO(
-                8L,
                 "Narrative and Directing",
                 "(not done yet)",
                 19,
                 5
         ));
         criteria.add(new CriterionDTO(
-                9L,
+                8L,
                 "Gameplay",
                 "(not done yet)",
                 19,
                 5
         ));
         criteria.add(new CriterionDTO(
-                10L,
+                9L,
                 "Characters",
                 "(not done yet)",
                 14,
                 5
         ));
         criteria.add(new CriterionDTO(
-                11L,
+                10L,
                 "Audiovisuals",
                 "(not done yet)",
                 14,
                 5
         ));
         criteria.add(new CriterionDTO(
-                12L,
+                11L,
                 "Technical",
                 "(not done yet)",
                 10,
                 5
         ));
-
+        criteria.add(new CriterionDTO(
+                12L,
+                "Own experience",
+                "(not done yet)",
+                24,
+                5
+        ));
         criteriaByType.put(ArtTypeEnum.GAME, criteria);
     }
 
     private void putAnime(){
-        criteriaByType.put(ArtTypeEnum.ANIME, new ArrayList<>());
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add(new CriterionDTO(
+                13L,
+                "Plot",
+                "not done yet",
+                20,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                14L,
+                "Characters",
+                "(not done yet)",
+                15,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                15L,
+                "World realism",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                14L,
+                "Visual style",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                15L,
+                "Ideologic",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                16L,
+                "Emotional impact",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                17L,
+                "Own experience",
+                "(not done yet)",
+                25,
+                5
+        ));
+        criteriaByType.put(ArtTypeEnum.ANIME, criteria);
     }
 
     private void putManga(){
-        criteriaByType.put(ArtTypeEnum.MANGA, new ArrayList<>());
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add(new CriterionDTO(
+                13L,
+                "Plot",
+                "not done yet",
+                20,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                14L,
+                "Characters",
+                "(not done yet)",
+                15,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                15L,
+                "World realism",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                14L,
+                "Visual style",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                15L,
+                "Ideologic",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                16L,
+                "Emotional impact",
+                "(not done yet)",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                17L,
+                "Own experience",
+                "(not done yet)",
+                25,
+                5
+        ));
+        criteriaByType.put(ArtTypeEnum.MANGA, criteria);
     }
 
     public Map<ArtTypeEnum, List<CriterionDTO>> getCriteriaByType() {
