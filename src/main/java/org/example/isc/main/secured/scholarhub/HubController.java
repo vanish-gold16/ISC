@@ -38,7 +38,7 @@ public class HubController {
             hubService.createSchedule(authentication);
         }
 
-        model.addAttribute("title", "ScholarHub")
+        model.addAttribute("title", "ScholarHub");
         model.addAttribute("user", me);
 
         //hubService.loadHub(authentication);

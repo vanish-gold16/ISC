@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 public class HubService {
 
     public ResponseEntity<Void> loadHub(Authentication authentication) {
-
+        return ResponseEntity.ok().build();
     }
 
     public ResponseEntity<Void> createSchedule(Authentication authentication) {
 
 
-
+        return ResponseEntity.ok().build();
     }
 }
