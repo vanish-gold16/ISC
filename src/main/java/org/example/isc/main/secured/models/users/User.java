@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.enums.converter.RoleEnumConverter;
 import org.example.isc.main.secured.models.scholarship.Schedule;
+import org.example.isc.main.secured.models.scholarship.Subject;
+
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -35,10 +38,13 @@ public class User {
     @Convert(converter = RoleEnumConverter.class)
     private RoleEnum role;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserProfile profile;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Subject> subject;
+
+    @OneToOne(mappedBy = "user")
     private Schedule schedule;
 
     @Column(name = "createdAt")
@@ -126,5 +132,13 @@ public class User {
 
     public void setSchedule(Schedule schedule) {
         this.schedule = schedule;
+    }
+
+    public List<Subject> getSubject() {
+        return subject;
+    }
+
+    public void setSubject(List<Subject> subject) {
+        this.subject = subject;
     }
 }

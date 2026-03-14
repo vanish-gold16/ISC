@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import org.example.isc.main.secured.models.users.User;
 
 import java.util.List;
 
@@ -18,6 +19,10 @@ public class Subject {
     @Column(name = "description")
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user")
+    private User user;
+
     @ManyToMany
     @JoinTable(
             name = "subject_teachers",
@@ -29,9 +34,10 @@ public class Subject {
     public Subject() {
     }
 
-    public Subject(String name, String description, List<Teacher> teachers) {
+    public Subject(String name, String description, User user, List<Teacher> teachers) {
         this.name = name;
         this.description = description;
+        this.user = user;
         this.teachers = teachers;
     }
 
@@ -67,4 +73,11 @@ public class Subject {
         this.teachers = teachers;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
