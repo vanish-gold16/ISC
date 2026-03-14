@@ -176,15 +176,140 @@
     </article>
 </template>
 
+<div class="subject-modal hidden" id="subject-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-subject-modal></div>
+    <div class="subject-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
+        <div class="subject-modal__head">
+            <div>
+                <p class="subject-modal__eyebrow">Add subject</p>
+                <h3 id="subject-modal-title">Select existing or create new</h3>
+            </div>
+            <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-modal>x</button>
+        </div>
+
+        <div class="subject-modal__body">
+            <label class="subject-modal__field">
+                <span>Subject name</span>
+                <input class="input" id="subject-search-input" type="text" placeholder="Start typing a subject name" autocomplete="off" />
+            </label>
+
+            <div class="subject-modal__section">
+                <div class="subject-modal__section-head">
+                    <h4>Existing subjects</h4>
+                    <span class="muted" id="subject-results-count">0 found</span>
+                </div>
+                <div class="subject-modal__results" id="subject-results"></div>
+            </div>
+
+            <div class="subject-modal__section">
+                <div class="subject-modal__section-head">
+                    <h4>Create new</h4>
+                </div>
+                <div class="subject-modal__create">
+                    <p class="muted" id="subject-create-copy">
+                        Enter a name above to create a new subject for this schedule.
+                    </p>
+                    <button class="btn btn--primary" type="button" id="create-subject-button" disabled>Create subject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
         const slots = Array.from(document.querySelectorAll('.lesson-slot'));
-        const chips = Array.from(document.querySelectorAll('.subject-chip'));
         const payloadInput = document.getElementById('schedulePayload');
         const template = document.getElementById('lesson-card-template');
         const clearButton = document.querySelector('[data-action="clear-week"]');
+        const subjectModal = document.getElementById('subject-modal');
+        const subjectSearchInput = document.getElementById('subject-search-input');
+        const subjectResults = document.getElementById('subject-results');
+        const subjectResultsCount = document.getElementById('subject-results-count');
+        const subjectCreateCopy = document.getElementById('subject-create-copy');
+        const createSubjectButton = document.getElementById('create-subject-button');
+        const closeModalTriggers = Array.from(document.querySelectorAll('[data-close-subject-modal]'));
         let activeSlot = null;
         let draggedCard = null;
+        let selectedSubjectName = '';
+        const subjectLibrary = [
+            { name: 'Mathematics', color: 'subject-card--math' },
+            { name: 'English', color: 'subject-card--english' },
+            { name: 'Programming', color: 'subject-card--coding' },
+            { name: 'Physics', color: 'subject-card--physics' },
+            { name: 'Design', color: 'subject-card--design' },
+            { name: 'History', color: 'subject-card--history' }
+        ];
+
+        function normalizeSubjectName(value) {
+            return String(value || '').trim().replace(/\s+/g, ' ');
+        }
+
+        function buildSubjectColor(name) {
+            const normalized = normalizeSubjectName(name).toLowerCase();
+            const existing = subjectLibrary.find((item) => item.name.toLowerCase() === normalized);
+            if (existing) {
+                return existing.color;
+            }
+            return 'subject-card--math';
+        }
+
+        function openSubjectModal(slot) {
+            activeSlot = slot;
+            selectedSubjectName = '';
+            subjectModal.classList.remove('hidden');
+            subjectModal.setAttribute('aria-hidden', 'false');
+            subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
+            subjectResultsCount.textContent = 'Type to search';
+            subjectSearchInput.value = '';
+            createSubjectButton.disabled = true;
+            subjectCreateCopy.textContent = 'Enter a name above to create a new subject for this schedule.';
+            window.setTimeout(() => subjectSearchInput.focus(), 0);
+        }
+
+        function closeSubjectModal() {
+            subjectModal.classList.add('hidden');
+            subjectModal.setAttribute('aria-hidden', 'true');
+            selectedSubjectName = '';
+        }
+
+        function renderSubjectResults(query) {
+            const normalizedQuery = normalizeSubjectName(query).toLowerCase();
+            if (!normalizedQuery) {
+                subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
+                subjectResultsCount.textContent = 'Type to search';
+                return;
+            }
+            const items = subjectLibrary.filter((item) => item.name.toLowerCase().includes(normalizedQuery));
+            subjectResults.innerHTML = '';
+            subjectResultsCount.textContent = items.length + ' found';
+
+            if (!items.length) {
+                const empty = document.createElement('p');
+                empty.className = 'subject-modal__empty muted';
+                empty.textContent = 'No existing subjects match this name yet.';
+                subjectResults.appendChild(empty);
+                return;
+            }
+
+            items.forEach((item) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'subject-result';
+                button.textContent = item.name;
+                button.addEventListener('click', () => {
+                    if (!activeSlot) return;
+                    renderCard(activeSlot, {
+                        name: item.name,
+                        color: item.color
+                    });
+                    activeSlot.classList.remove('lesson-slot--selected');
+                    activeSlot = null;
+                    closeSubjectModal();
+                });
+                subjectResults.appendChild(button);
+            });
+        }
 
         function createEmptyState(slot) {
             slot.classList.remove('lesson-slot--filled', 'lesson-slot--selected');
@@ -201,11 +326,9 @@
             const card = fragment.querySelector('.subject-card');
             card.classList.add(data.color);
             card.dataset.subjectName = data.name;
-            card.dataset.teacher = data.teacher;
-            card.dataset.room = data.room;
             card.querySelector('.subject-card__name').textContent = data.name;
-            card.querySelector('.subject-card__teacher').textContent = data.teacher;
-            card.querySelector('.subject-card__room').textContent = data.room;
+            card.querySelector('.subject-card__teacher').textContent = 'Custom subject';
+            card.querySelector('.subject-card__room').textContent = 'No room';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
             slot.innerHTML = '';
             slot.appendChild(fragment);
@@ -250,7 +373,7 @@
                 if (event.target.closest('.slot-create') || !slot.querySelector('.subject-card')) {
                     slots.forEach((item) => item.classList.remove('lesson-slot--selected'));
                     slot.classList.add('lesson-slot--selected');
-                    activeSlot = slot;
+                    openSubjectModal(slot);
                 }
             });
 
@@ -300,18 +423,34 @@
             slots.forEach((slot) => slot.classList.remove('lesson-slot--drop-target'));
         });
 
-        chips.forEach((chip) => {
-            chip.addEventListener('click', () => {
-                if (!activeSlot) return;
-                renderCard(activeSlot, {
-                    name: chip.dataset.subjectName,
-                    teacher: chip.dataset.teacher,
-                    room: chip.dataset.room,
-                    color: chip.dataset.color
+        subjectSearchInput.addEventListener('input', () => {
+            selectedSubjectName = normalizeSubjectName(subjectSearchInput.value);
+            renderSubjectResults(selectedSubjectName);
+            createSubjectButton.disabled = selectedSubjectName.length === 0;
+            subjectCreateCopy.textContent = selectedSubjectName
+                ? 'Create "' + selectedSubjectName + '" and insert it into the selected lesson slot.'
+                : 'Enter a name above to create a new subject for this schedule.';
+        });
+
+        createSubjectButton.addEventListener('click', () => {
+            const subjectName = normalizeSubjectName(subjectSearchInput.value);
+            if (!subjectName || !activeSlot) return;
+
+            const exists = subjectLibrary.some((item) => item.name.toLowerCase() === subjectName.toLowerCase());
+            if (!exists) {
+                subjectLibrary.unshift({
+                    name: subjectName,
+                    color: buildSubjectColor(subjectName)
                 });
-                activeSlot.classList.remove('lesson-slot--selected');
-                activeSlot = null;
+            }
+
+            renderCard(activeSlot, {
+                name: subjectName,
+                color: buildSubjectColor(subjectName)
             });
+            activeSlot.classList.remove('lesson-slot--selected');
+            activeSlot = null;
+            closeSubjectModal();
         });
 
         if (clearButton) {
@@ -321,6 +460,26 @@
                 syncPayload();
             });
         }
+
+        closeModalTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', () => {
+                if (activeSlot) {
+                    activeSlot.classList.remove('lesson-slot--selected');
+                }
+                activeSlot = null;
+                closeSubjectModal();
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !subjectModal.classList.contains('hidden')) {
+                if (activeSlot) {
+                    activeSlot.classList.remove('lesson-slot--selected');
+                }
+                activeSlot = null;
+                closeSubjectModal();
+            }
+        });
 
         syncPayload();
     })();
