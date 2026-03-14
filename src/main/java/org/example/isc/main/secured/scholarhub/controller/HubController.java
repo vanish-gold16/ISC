@@ -1,9 +1,10 @@
-package org.example.isc.main.secured.scholarhub;
+package org.example.isc.main.secured.scholarhub.controller;
 
 import org.example.isc.main.secured.models.scholarship.Schedule;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
+import org.example.isc.main.secured.scholarhub.HubService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

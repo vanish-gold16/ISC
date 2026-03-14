@@ -3,6 +3,8 @@ package org.example.isc.main.dto.scholarship;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public class NewSubjectDTO {
 
     @NotNull
@@ -15,7 +17,7 @@ public class NewSubjectDTO {
     @NotNull
     private Long userId;
 
-    private Long teacherId;
+    private List<Long> teacherId;
 
     public String getShortName() {
         return shortName;
@@ -41,11 +43,11 @@ public class NewSubjectDTO {
         this.userId = userId;
     }
 
-    public Long getTeacherId() {
+    public List<Long> getTeacherId() {
         return teacherId;
     }
 
-    public void setTeacherId(Long teacherId) {
+    public void setTeacherId(List<Long> teacherId) {
         this.teacherId = teacherId;
     }
 }
