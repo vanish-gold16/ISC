@@ -19,7 +19,7 @@ public class Day {
 
     @OneToMany
     @JoinColumn(name = "subjects")
-    private List<Subject> subjects;
+    private List<DaySubject> subjects;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_enum")
@@ -32,9 +32,10 @@ public class Day {
     public Day() {
     }
 
-    public Day(Schedule schedule, List<Subject> subjects, DayOfWeek dayOfWeek) {
+    public Day(Schedule schedule, List<DaySubject> subjects, DayOfWeek dayOfWeek) {
         this.schedule = schedule;
         this.subjects = subjects;
+        this.dayOfWeek = dayOfWeek;
     }
 
     public Long getId() {
@@ -53,11 +54,11 @@ public class Day {
         this.schedule = schedule;
     }
 
-    public List<Subject> getSubjects() {
+    public List<DaySubject> getSubjects() {
         return subjects;
     }
 
-    public void setSubjects(List<Subject> subjects) {
+    public void setSubjects(List<DaySubject> subjects) {
         this.subjects = subjects;
     }
 

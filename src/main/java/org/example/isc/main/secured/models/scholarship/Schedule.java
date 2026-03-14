@@ -18,8 +18,7 @@ public class Schedule {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
-    @OneToMany
-    @JoinColumn(name = "days")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Day> days;
 
     // subject - day - schedule - class - school

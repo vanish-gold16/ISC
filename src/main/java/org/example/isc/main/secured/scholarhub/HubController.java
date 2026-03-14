@@ -34,17 +34,25 @@ public class HubController {
         Schedule currentSchedule = schedulesRepository.findByUser(me);
 
         if(currentSchedule == null){
-
-            hubService.createSchedule(authentication);
+            return "redirect:/scholar-hub/schedule/new";
         }
 
         model.addAttribute("title", "ScholarHub");
         model.addAttribute("user", me);
-
-        //hubService.loadHub(authentication);
-
+        model.addAttribute("schedule", currentSchedule);
 
         return "/private/scholar-hub";
+    }
+
+    @GetMapping("/schedule/new")
+    private String getNewSchedule(
+            Authentication authentication,
+            Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+
     }
 
 }

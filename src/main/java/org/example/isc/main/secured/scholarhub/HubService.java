@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.scholarhub;
 
+import org.example.isc.main.secured.models.users.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ public class HubService {
         return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity<Void> createSchedule(Authentication authentication) {
+    public void createSchedule(User user, NewScheduleForm form) {
 
 
         return ResponseEntity.ok().build();

@@ -11,13 +11,13 @@ public class DaySubject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "day")
     private Day day;
 
-    @OneToMany
+    @ManyToOne
     @JoinColumn(name = "subjects")
-    private List<Subject> subjects;
+    private Subject subject;
 
     @OneToMany
     @JoinColumn(name = "homeworks")
@@ -26,9 +26,9 @@ public class DaySubject {
     public DaySubject() {
     }
 
-    public DaySubject(Day day, List<Subject> subjects, List<Homework> homeworks) {
+    public DaySubject(Day day, Subject subject, List<Homework> homeworks) {
         this.day = day;
-        this.subjects = subjects;
+        this.subject = subject;
         this.homeworks = homeworks;
     }
 
@@ -48,12 +48,12 @@ public class DaySubject {
         this.day = day;
     }
 
-    public List<Subject> getSubjects() {
-        return subjects;
+    public Subject getSubject() {
+        return subject;
     }
 
-    public void setSubjects(List<Subject> subjects) {
-        this.subjects = subjects;
+    public void setSubject(Subject subject) {
+        this.subject = subject;
     }
 
     public List<Homework> getHomeworks() {

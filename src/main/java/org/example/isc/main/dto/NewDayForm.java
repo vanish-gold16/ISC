@@ -10,27 +10,27 @@ import java.util.List;
 public class NewDayForm {
 
     @NotNull
-    private Schedule schedule;
+    private Long scheduleId;
 
-    private List<Subject> subjects;
+    private List<Long> subjectIds;
 
     @NotNull
     private DayOfWeek dayOfWeek;
 
-    public Schedule getSchedule() {
-        return schedule;
+    public Long getScheduleId() {
+        return scheduleId;
     }
 
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
+    public void setScheduleId(Long scheduleId) {
+        this.scheduleId = scheduleId;
     }
 
-    public List<Subject> getSubjects() {
-        return subjects;
+    public List<Long> getSubjectIds() {
+        return subjectIds;
     }
 
-    public void setSubjects(List<Subject> subjects) {
-        this.subjects = subjects;
+    public void setSubjectIds(List<Long> subjectIds) {
+        this.subjectIds = subjectIds;
     }
 
     public DayOfWeek getDayOfWeek() {
