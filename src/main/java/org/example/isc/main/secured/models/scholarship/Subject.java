@@ -13,11 +13,11 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "short_name", nullable = false)
+    private String shortName;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "full_name")
+    private String fullName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user")
@@ -34,9 +34,9 @@ public class Subject {
     public Subject() {
     }
 
-    public Subject(String name, String description, User user, List<Teacher> teachers) {
-        this.name = name;
-        this.description = description;
+    public Subject(String shortName, String fullName, User user, List<Teacher> teachers) {
+        this.shortName = shortName;
+        this.fullName = fullName;
         this.user = user;
         this.teachers = teachers;
     }
@@ -49,20 +49,20 @@ public class Subject {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getShortName() {
+        return shortName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
-    public String getDescription() {
-        return description;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public List<Teacher> getTeachers() {

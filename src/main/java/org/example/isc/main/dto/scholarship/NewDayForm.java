@@ -1,8 +1,6 @@
-package org.example.isc.main.dto;
+package org.example.isc.main.dto.scholarship;
 
 import jakarta.validation.constraints.NotNull;
-import org.example.isc.main.secured.models.scholarship.Schedule;
-import org.example.isc.main.secured.models.scholarship.Subject;
 
 import java.time.DayOfWeek;
 import java.util.List;
