@@ -12,9 +12,7 @@ public class HubService {
         return ResponseEntity.ok().build();
     }
 
-    public void createSchedule(User user, NewScheduleForm form) {
+    private void setup(Authentication authentication, NewScheduleForm form){
 
-
-        return ResponseEntity.ok().build();
     }
 }

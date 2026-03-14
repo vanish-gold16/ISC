@@ -28,13 +28,13 @@ public class HubController {
     public String getHub(
             Authentication authentication,
             Model model
-    ){
+    ) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
         Schedule currentSchedule = schedulesRepository.findByUser(me);
 
-        if(currentSchedule == null){
-            return "redirect:/scholar-hub/schedule/new";
+        if (currentSchedule == null) {
+            return "redirect:/scholar-hub/schedule/setup";
         }
 
         model.addAttribute("title", "ScholarHub");
@@ -44,15 +44,18 @@ public class HubController {
         return "/private/scholar-hub";
     }
 
-    @GetMapping("/schedule/new")
-    private String getNewSchedule(
+    @GetMapping("/schedule/setup")
+    public String getSetup(
             Authentication authentication,
             Model model
-    ){
+    ) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
+        model.addAttribute("title", "Schedule setup");
+        model.addAttribute("user", me);
 
+        return "/private/scholar-hub-setup";
     }
 
 }
