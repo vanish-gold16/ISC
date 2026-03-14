@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+
+    <title th:text="${title} ?: 'ISC | Schedule setup'">ISC | Schedule setup</title>
+
+    <link rel="stylesheet" href="/css/private/scholar-hub-setup.css" />
+</head>
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container setup-page">
+    <div class="setup-shell">
+        <section class="setup-main">
+            <section class="setup-hero">
+                <div>
+                    <p class="setup-hero__eyebrow">ScholarHub setup</p>
+                    <h1>Build your weekly schedule in one place</h1>
+                    <p class="muted setup-hero__text">
+                        Start with the full working week, add subjects into any lesson slot, then drag cards to reorder them.
+                        This layout is simpler than the classic school matrix, scales better on mobile, and is easier to edit later.
+                    </p>
+                </div>
+
+                <div class="setup-hero__actions">
+                    <button class="btn btn--ghost" type="button" data-action="clear-week">Clear week</button>
+                    <button class="btn btn--primary" type="button">Save schedule</button>
+                </div>
+            </section>
+
+            <section class="setup-layout">
+                <aside class="library card">
+                    <div class="library__head">
+                        <div>
+                            <p class="library__eyebrow">Subject library</p>
+                            <h2>Existing subjects</h2>
+                        </div>
+                        <button class="btn btn--ghost btn--sm" type="button">Add new</button>
+                    </div>
+
+                    <p class="muted">
+                        Click a plus in the week, then choose a subject here. Cards can be dragged between slots after that.
+                    </p>
+
+                    <div class="library__search">
+                        <input class="input" type="search" placeholder="Search subject or teacher" />
+                    </div>
+
+                    <div class="library__list" id="subject-library">
+                        <button class="subject-chip" type="button" data-subject-name="Mathematics" data-teacher="Mr. Parker" data-room="B-12" data-color="subject-card--math">
+                            <span class="subject-chip__name">Mathematics</span>
+                            <span class="subject-chip__meta">Mr. Parker / B-12</span>
+                        </button>
+                        <button class="subject-chip" type="button" data-subject-name="English" data-teacher="Ms. Carter" data-room="A-05" data-color="subject-card--english">
+                            <span class="subject-chip__name">English</span>
+                            <span class="subject-chip__meta">Ms. Carter / A-05</span>
+                        </button>
+                        <button class="subject-chip" type="button" data-subject-name="Programming" data-teacher="Dr. Nelson" data-room="Lab-2" data-color="subject-card--coding">
+                            <span class="subject-chip__name">Programming</span>
+                            <span class="subject-chip__meta">Dr. Nelson / Lab-2</span>
+                        </button>
+                        <button class="subject-chip" type="button" data-subject-name="Physics" data-teacher="Mrs. Hall" data-room="C-16" data-color="subject-card--physics">
+                            <span class="subject-chip__name">Physics</span>
+                            <span class="subject-chip__meta">Mrs. Hall / C-16</span>
+                        </button>
+                        <button class="subject-chip" type="button" data-subject-name="Design" data-teacher="Ms. Brooks" data-room="Studio" data-color="subject-card--design">
+                            <span class="subject-chip__name">Design</span>
+                            <span class="subject-chip__meta">Ms. Brooks / Studio</span>
+                        </button>
+                        <button class="subject-chip" type="button" data-subject-name="History" data-teacher="Mr. Wade" data-room="D-08" data-color="subject-card--history">
+                            <span class="subject-chip__name">History</span>
+                            <span class="subject-chip__meta">Mr. Wade / D-08</span>
+                        </button>
+                    </div>
+
+                    <div class="tips">
+                        <h3>Recommended backend flow</h3>
+                        <ul>
+                            <li>`GET /scholar-hub` checks for schedule and redirects to `/scholar-hub/schedule/setup` if missing.</li>
+                            <li>The setup page edits the whole week in one payload, not day-by-day drafts.</li>
+                            <li>On save, backend creates `Schedule -> Day -> DaySubject` in one transaction.</li>
+                            <li>Reordering on the client only changes `lessonOrder` before submit.</li>
+                        </ul>
+                    </div>
+                </aside>
+
+                <section class="planner">
+                    <div class="planner__toolbar card">
+                        <div>
+                            <p class="planner__eyebrow">Week builder</p>
+                            <h2>Monday to Friday</h2>
+                        </div>
+                        <div class="planner__legend">
+                            <span><i class="legend-dot legend-dot--active"></i> Selected slot</span>
+                            <span><i class="legend-dot legend-dot--filled"></i> Filled lesson</span>
+                            <span><i class="legend-dot legend-dot--empty"></i> Empty slot</span>
+                        </div>
+                    </div>
+
+                    <form class="week-grid" method="post" action="#" id="schedule-setup-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="schedulePayload" id="schedulePayload" />
+
+                <article class="day-column card" data-day="MONDAY">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label">Mon</p>
+                            <h3>Monday</h3>
+                        </div>
+                        <span class="day-column__count">7 slots</span>
+                    </header>
+                    <div class="day-column__slots">
+                        <div class="lesson-slot" data-day="MONDAY" data-order="1"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="2"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="3"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="4"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="5"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="6"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="7"></div>
+                    </div>
+                </article>
+
+                <article class="day-column card" data-day="TUESDAY">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label">Tue</p>
+                            <h3>Tuesday</h3>
+                        </div>
+                        <span class="day-column__count">7 slots</span>
+                    </header>
+                    <div class="day-column__slots">
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="1"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="2"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="3"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="4"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="5"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="6"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="7"></div>
+                    </div>
+                </article>
+
+                <article class="day-column card" data-day="WEDNESDAY">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label">Wed</p>
+                            <h3>Wednesday</h3>
+                        </div>
+                        <span class="day-column__count">7 slots</span>
+                    </header>
+                    <div class="day-column__slots">
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="1"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="2"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="3"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="4"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="5"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="6"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="7"></div>
+                    </div>
+                </article>
+
+                <article class="day-column card" data-day="THURSDAY">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label">Thu</p>
+                            <h3>Thursday</h3>
+                        </div>
+                        <span class="day-column__count">7 slots</span>
+                    </header>
+                    <div class="day-column__slots">
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="1"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="2"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="3"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="4"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="5"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="6"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="7"></div>
+                    </div>
+                </article>
+
+                <article class="day-column card" data-day="FRIDAY">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label">Fri</p>
+                            <h3>Friday</h3>
+                        </div>
+                        <span class="day-column__count">7 slots</span>
+                    </header>
+                    <div class="day-column__slots">
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="1"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="2"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="3"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="4"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="5"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="6"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="7"></div>
+                    </div>
+                </article>
+                    </form>
+                </section>
+            </section>
+        </section>
+
+        <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('scholarhub')}"></aside>
+    </div>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+
+<template id="lesson-card-template">
+    <article class="subject-card" draggable="true">
+        <div class="subject-card__top">
+            <span class="subject-card__drag" aria-hidden="true">::</span>
+            <button class="subject-card__remove" type="button" aria-label="Remove lesson">x</button>
+        </div>
+        <div class="subject-card__content">
+            <p class="subject-card__name">Subject</p>
+            <p class="subject-card__teacher">Teacher</p>
+            <div class="subject-card__footer">
+                <span class="subject-card__room">Room</span>
+                <span class="subject-card__slot">Lesson 1</span>
+            </div>
+        </div>
+    </article>
+</template>
+
+<script>
+    (function () {
+        const slots = Array.from(document.querySelectorAll('.lesson-slot'));
+        const chips = Array.from(document.querySelectorAll('.subject-chip'));
+        const payloadInput = document.getElementById('schedulePayload');
+        const template = document.getElementById('lesson-card-template');
+        const clearButton = document.querySelector('[data-action="clear-week"]');
+        let activeSlot = null;
+        let draggedCard = null;
+
+        function createEmptyState(slot) {
+            slot.classList.remove('lesson-slot--filled', 'lesson-slot--selected');
+            slot.innerHTML = `
+                <button class="slot-create" type="button">
+                    <span class="slot-create__plus">+</span>
+                    <span class="slot-create__text">Add subject</span>
+                </button>
+            `;
+        }
+
+        function renderCard(slot, data) {
+            const fragment = template.content.cloneNode(true);
+            const card = fragment.querySelector('.subject-card');
+            card.classList.add(data.color);
+            card.dataset.subjectName = data.name;
+            card.dataset.teacher = data.teacher;
+            card.dataset.room = data.room;
+            card.querySelector('.subject-card__name').textContent = data.name;
+            card.querySelector('.subject-card__teacher').textContent = data.teacher;
+            card.querySelector('.subject-card__room').textContent = data.room;
+            card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
+            slot.innerHTML = '';
+            slot.appendChild(fragment);
+            slot.classList.add('lesson-slot--filled');
+            syncPayload();
+        }
+
+        function syncPayload() {
+            const payload = Array.from(document.querySelectorAll('.day-column')).map((column) => ({
+                dayOfWeek: column.dataset.day,
+                lessons: Array.from(column.querySelectorAll('.lesson-slot')).map((slot) => {
+                    const card = slot.querySelector('.subject-card');
+                    if (!card) {
+                        return {
+                            lessonOrder: Number(slot.dataset.order),
+                            subjectName: null,
+                            teacher: null,
+                            room: null
+                        };
+                    }
+                    return {
+                        lessonOrder: Number(slot.dataset.order),
+                        subjectName: card.dataset.subjectName,
+                        teacher: card.dataset.teacher,
+                        room: card.dataset.room
+                    };
+                })
+            }));
+            payloadInput.value = JSON.stringify(payload);
+        }
+
+        slots.forEach((slot) => {
+            createEmptyState(slot);
+
+            slot.addEventListener('click', (event) => {
+                if (event.target.closest('.subject-card__remove')) {
+                    createEmptyState(slot);
+                    syncPayload();
+                    return;
+                }
+
+                if (event.target.closest('.slot-create') || !slot.querySelector('.subject-card')) {
+                    slots.forEach((item) => item.classList.remove('lesson-slot--selected'));
+                    slot.classList.add('lesson-slot--selected');
+                    activeSlot = slot;
+                }
+            });
+
+            slot.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                slot.classList.add('lesson-slot--drop-target');
+            });
+
+            slot.addEventListener('dragleave', () => {
+                slot.classList.remove('lesson-slot--drop-target');
+            });
+
+            slot.addEventListener('drop', (event) => {
+                event.preventDefault();
+                slot.classList.remove('lesson-slot--drop-target');
+                if (!draggedCard) return;
+
+                const sourceSlot = draggedCard.closest('.lesson-slot');
+                if (!sourceSlot || sourceSlot === slot) return;
+
+                const targetCard = slot.querySelector('.subject-card');
+                if (targetCard) {
+                    sourceSlot.innerHTML = '';
+                    sourceSlot.appendChild(targetCard);
+                    sourceSlot.classList.add('lesson-slot--filled');
+                    sourceSlot.querySelector('.subject-card__slot').textContent = 'Lesson ' + sourceSlot.dataset.order;
+                } else {
+                    createEmptyState(sourceSlot);
+                }
+
+                slot.innerHTML = '';
+                slot.appendChild(draggedCard);
+                slot.classList.add('lesson-slot--filled');
+                slot.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
+                syncPayload();
+            });
+        });
+
+        document.addEventListener('dragstart', (event) => {
+            const card = event.target.closest('.subject-card');
+            if (!card) return;
+            draggedCard = card;
+        });
+
+        document.addEventListener('dragend', () => {
+            draggedCard = null;
+            slots.forEach((slot) => slot.classList.remove('lesson-slot--drop-target'));
+        });
+
+        chips.forEach((chip) => {
+            chip.addEventListener('click', () => {
+                if (!activeSlot) return;
+                renderCard(activeSlot, {
+                    name: chip.dataset.subjectName,
+                    teacher: chip.dataset.teacher,
+                    room: chip.dataset.room,
+                    color: chip.dataset.color
+                });
+                activeSlot.classList.remove('lesson-slot--selected');
+                activeSlot = null;
+            });
+        });
+
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                slots.forEach((slot) => createEmptyState(slot));
+                activeSlot = null;
+                syncPayload();
+            });
+        }
+
+        syncPayload();
+    })();
+</script>
+</body>
+</html>

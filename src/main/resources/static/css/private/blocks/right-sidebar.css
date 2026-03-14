@@ -78,6 +78,23 @@
     flex-shrink: 0;
 }
 
+.nav__icon--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed #9db4df;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 100%);
+}
+
+.nav__icon--placeholder::before {
+    content: "+";
+    color: #6281b9;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 700;
+}
+
 .nav__item:hover{
     background: var(--panel-hover);
     transform: translateY(-1px);

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+
+    <title th:text="${title} ?: 'ISC | ScholarHub'">ISC | ScholarHub</title>
+
+    <link rel="stylesheet" href="/css/private/scholar-hub-setup.css" />
+</head>
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container setup-page">
+    <div class="setup-shell">
+        <section class="setup-main">
+            <section class="setup-hero">
+                <div>
+                    <p class="setup-hero__eyebrow">ScholarHub</p>
+                    <h1>Your schedule hub is ready for the next step</h1>
+                    <p class="muted setup-hero__text">
+                        This page is currently a placeholder so the route stays stable. Next you can render the saved week,
+                        homework widgets, and quick actions for editing the timetable.
+                    </p>
+                </div>
+                <div class="setup-hero__actions">
+                    <a class="btn btn--ghost" th:href="@{/scholar-hub/schedule/setup}">Edit schedule</a>
+                </div>
+            </section>
+        </section>
+
+        <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('scholarhub')}"></aside>
+    </div>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+</body>
+</html>

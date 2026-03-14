@@ -45,6 +45,13 @@
                 <img class="nav__icon" th:src="@{/images/private/sidebar-icons/friends.png}" src="/images/private/sidebar-icons/friends.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Friends</span>
                 </a>
+
+            <a class="nav__item"
+               th:href="@{/scholar-hub}"
+               th:classappend="${active}=='scholarhub' ? ' is-active' : ''">
+                <span class="nav__icon nav__icon--placeholder" aria-hidden="true"></span>
+                <span class="nav__label">ScholarHub</span>
+            </a>
         </nav>
     </div>
     <script>
