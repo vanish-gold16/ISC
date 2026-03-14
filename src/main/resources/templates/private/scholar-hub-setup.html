@@ -32,61 +32,6 @@
             </section>
 
             <section class="setup-layout">
-                <aside class="library card">
-                    <div class="library__head">
-                        <div>
-                            <p class="library__eyebrow">Subject library</p>
-                            <h2>Existing subjects</h2>
-                        </div>
-                        <button class="btn btn--ghost btn--sm" type="button">Add new</button>
-                    </div>
-
-                    <p class="muted">
-                        Click a plus in the week, then choose a subject here. Cards can be dragged between slots after that.
-                    </p>
-
-                    <div class="library__search">
-                        <input class="input" type="search" placeholder="Search subject or teacher" />
-                    </div>
-
-                    <div class="library__list" id="subject-library">
-                        <button class="subject-chip" type="button" data-subject-name="Mathematics" data-teacher="Mr. Parker" data-room="B-12" data-color="subject-card--math">
-                            <span class="subject-chip__name">Mathematics</span>
-                            <span class="subject-chip__meta">Mr. Parker / B-12</span>
-                        </button>
-                        <button class="subject-chip" type="button" data-subject-name="English" data-teacher="Ms. Carter" data-room="A-05" data-color="subject-card--english">
-                            <span class="subject-chip__name">English</span>
-                            <span class="subject-chip__meta">Ms. Carter / A-05</span>
-                        </button>
-                        <button class="subject-chip" type="button" data-subject-name="Programming" data-teacher="Dr. Nelson" data-room="Lab-2" data-color="subject-card--coding">
-                            <span class="subject-chip__name">Programming</span>
-                            <span class="subject-chip__meta">Dr. Nelson / Lab-2</span>
-                        </button>
-                        <button class="subject-chip" type="button" data-subject-name="Physics" data-teacher="Mrs. Hall" data-room="C-16" data-color="subject-card--physics">
-                            <span class="subject-chip__name">Physics</span>
-                            <span class="subject-chip__meta">Mrs. Hall / C-16</span>
-                        </button>
-                        <button class="subject-chip" type="button" data-subject-name="Design" data-teacher="Ms. Brooks" data-room="Studio" data-color="subject-card--design">
-                            <span class="subject-chip__name">Design</span>
-                            <span class="subject-chip__meta">Ms. Brooks / Studio</span>
-                        </button>
-                        <button class="subject-chip" type="button" data-subject-name="History" data-teacher="Mr. Wade" data-room="D-08" data-color="subject-card--history">
-                            <span class="subject-chip__name">History</span>
-                            <span class="subject-chip__meta">Mr. Wade / D-08</span>
-                        </button>
-                    </div>
-
-                    <div class="tips">
-                        <h3>Recommended backend flow</h3>
-                        <ul>
-                            <li>`GET /scholar-hub` checks for schedule and redirects to `/scholar-hub/schedule/setup` if missing.</li>
-                            <li>The setup page edits the whole week in one payload, not day-by-day drafts.</li>
-                            <li>On save, backend creates `Schedule -> Day -> DaySubject` in one transaction.</li>
-                            <li>Reordering on the client only changes `lessonOrder` before submit.</li>
-                        </ul>
-                    </div>
-                </aside>
-
                 <section class="planner">
                     <div class="planner__toolbar card">
                         <div>
@@ -101,8 +46,8 @@
                     </div>
 
                     <form class="week-grid" method="post" action="#" id="schedule-setup-form">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="schedulePayload" id="schedulePayload" />
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="schedulePayload" id="schedulePayload" />
 
                 <article class="day-column card" data-day="MONDAY">
                     <header class="day-column__head">
@@ -110,7 +55,7 @@
                             <p class="day-column__label">Mon</p>
                             <h3>Monday</h3>
                         </div>
-                        <span class="day-column__count">7 slots</span>
+                        <span class="day-column__count">8 slots</span>
                     </header>
                     <div class="day-column__slots">
                         <div class="lesson-slot" data-day="MONDAY" data-order="1"></div>
@@ -120,6 +65,7 @@
                         <div class="lesson-slot" data-day="MONDAY" data-order="5"></div>
                         <div class="lesson-slot" data-day="MONDAY" data-order="6"></div>
                         <div class="lesson-slot" data-day="MONDAY" data-order="7"></div>
+                        <div class="lesson-slot" data-day="MONDAY" data-order="8"></div>
                     </div>
                 </article>
 
@@ -129,7 +75,7 @@
                             <p class="day-column__label">Tue</p>
                             <h3>Tuesday</h3>
                         </div>
-                        <span class="day-column__count">7 slots</span>
+                        <span class="day-column__count">8 slots</span>
                     </header>
                     <div class="day-column__slots">
                         <div class="lesson-slot" data-day="TUESDAY" data-order="1"></div>
@@ -139,6 +85,7 @@
                         <div class="lesson-slot" data-day="TUESDAY" data-order="5"></div>
                         <div class="lesson-slot" data-day="TUESDAY" data-order="6"></div>
                         <div class="lesson-slot" data-day="TUESDAY" data-order="7"></div>
+                        <div class="lesson-slot" data-day="TUESDAY" data-order="8"></div>
                     </div>
                 </article>
 
@@ -148,7 +95,7 @@
                             <p class="day-column__label">Wed</p>
                             <h3>Wednesday</h3>
                         </div>
-                        <span class="day-column__count">7 slots</span>
+                        <span class="day-column__count">8 slots</span>
                     </header>
                     <div class="day-column__slots">
                         <div class="lesson-slot" data-day="WEDNESDAY" data-order="1"></div>
@@ -158,6 +105,7 @@
                         <div class="lesson-slot" data-day="WEDNESDAY" data-order="5"></div>
                         <div class="lesson-slot" data-day="WEDNESDAY" data-order="6"></div>
                         <div class="lesson-slot" data-day="WEDNESDAY" data-order="7"></div>
+                        <div class="lesson-slot" data-day="WEDNESDAY" data-order="8"></div>
                     </div>
                 </article>
 
@@ -167,7 +115,7 @@
                             <p class="day-column__label">Thu</p>
                             <h3>Thursday</h3>
                         </div>
-                        <span class="day-column__count">7 slots</span>
+                        <span class="day-column__count">8 slots</span>
                     </header>
                     <div class="day-column__slots">
                         <div class="lesson-slot" data-day="THURSDAY" data-order="1"></div>
@@ -177,6 +125,7 @@
                         <div class="lesson-slot" data-day="THURSDAY" data-order="5"></div>
                         <div class="lesson-slot" data-day="THURSDAY" data-order="6"></div>
                         <div class="lesson-slot" data-day="THURSDAY" data-order="7"></div>
+                        <div class="lesson-slot" data-day="THURSDAY" data-order="8"></div>
                     </div>
                 </article>
 
@@ -186,7 +135,7 @@
                             <p class="day-column__label">Fri</p>
                             <h3>Friday</h3>
                         </div>
-                        <span class="day-column__count">7 slots</span>
+                        <span class="day-column__count">8 slots</span>
                     </header>
                     <div class="day-column__slots">
                         <div class="lesson-slot" data-day="FRIDAY" data-order="1"></div>
@@ -196,6 +145,7 @@
                         <div class="lesson-slot" data-day="FRIDAY" data-order="5"></div>
                         <div class="lesson-slot" data-day="FRIDAY" data-order="6"></div>
                         <div class="lesson-slot" data-day="FRIDAY" data-order="7"></div>
+                        <div class="lesson-slot" data-day="FRIDAY" data-order="8"></div>
                     </div>
                 </article>
                     </form>
