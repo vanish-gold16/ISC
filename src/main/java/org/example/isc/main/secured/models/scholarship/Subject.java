@@ -20,7 +20,7 @@ public class Subject {
     private String fullName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToMany
