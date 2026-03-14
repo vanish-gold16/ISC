@@ -23,7 +23,6 @@ public class DaySubject {
     private Long order;
 
     @OneToMany(mappedBy = "daySubject", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "homeworks")
     private List<Homework> homeworks;
 
     @Column(name = "room")

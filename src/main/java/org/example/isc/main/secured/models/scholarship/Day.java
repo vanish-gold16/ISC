@@ -21,8 +21,7 @@ public class Day {
     @Column(name = "day_enum")
     private DayOfWeek dayOfWeek;
 
-    @OneToMany(mappedBy = "days", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "day_subject")
+    @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DaySubject> lessons;
 
     public Day() {
