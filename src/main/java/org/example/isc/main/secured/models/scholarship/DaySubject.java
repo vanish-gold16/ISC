@@ -11,22 +11,25 @@ public class DaySubject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "day")
     private Day day;
 
-    @ManyToOne
-    @JoinColumn(name = "subjects")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject")
     private Subject subject;
 
-    @OneToMany
+    @Column(name = "order")
+    private Long order;
+
+    @OneToMany(mappedBy = "days", cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "homeworks")
     private List<Homework> homeworks;
 
     public DaySubject() {
     }
 
-    public DaySubject(Day day, Subject subject, List<Homework> homeworks) {
+    public DaySubject(Day day, Subject subject, Long order, List<Homework> homeworks) {
         this.day = day;
         this.subject = subject;
         this.homeworks = homeworks;
@@ -62,5 +65,13 @@ public class DaySubject {
 
     public void setHomeworks(List<Homework> homeworks) {
         this.homeworks = homeworks;
+    }
+
+    public Long getOrder() {
+        return order;
+    }
+
+    public void setOrder(Long order) {
+        this.order = order;
     }
 }

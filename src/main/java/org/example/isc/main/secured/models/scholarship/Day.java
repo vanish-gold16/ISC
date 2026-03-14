@@ -13,29 +13,25 @@ public class Day {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule")
     private Schedule schedule;
-
-    @OneToMany
-    @JoinColumn(name = "subjects")
-    private List<DaySubject> subjects;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_enum")
     private DayOfWeek dayOfWeek;
 
-    @OneToOne
+    @OneToMany(mappedBy = "days", cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "day_subject")
-    private DaySubject daySubject;
+    private List<DaySubject> lessons;
 
     public Day() {
     }
 
-    public Day(Schedule schedule, List<DaySubject> subjects, DayOfWeek dayOfWeek) {
+    public Day(Schedule schedule, DayOfWeek dayOfWeek, List<DaySubject> lessons) {
         this.schedule = schedule;
-        this.subjects = subjects;
         this.dayOfWeek = dayOfWeek;
+        this.lessons = lessons;
     }
 
     public Long getId() {
@@ -54,14 +50,6 @@ public class Day {
         this.schedule = schedule;
     }
 
-    public List<DaySubject> getSubjects() {
-        return subjects;
-    }
-
-    public void setSubjects(List<DaySubject> subjects) {
-        this.subjects = subjects;
-    }
-
     public DayOfWeek getDayOfWeek() {
         return dayOfWeek;
     }
@@ -70,11 +58,11 @@ public class Day {
         this.dayOfWeek = dayOfWeek;
     }
 
-    public DaySubject getDaySubject() {
-        return daySubject;
+    public List<DaySubject> getLessons() {
+        return lessons;
     }
 
-    public void setDaySubject(DaySubject daySubject) {
-        this.daySubject = daySubject;
+    public void setLessons(List<DaySubject> lessons) {
+        this.lessons = lessons;
     }
 }

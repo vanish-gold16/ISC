@@ -13,7 +13,7 @@ public class Homework {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject")
     private Subject subject;
 
@@ -21,7 +21,7 @@ public class Homework {
     @Column(name = "status")
     private HomeworkStatusEnum status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "day_subject")
     private DaySubject daySubject;
 
