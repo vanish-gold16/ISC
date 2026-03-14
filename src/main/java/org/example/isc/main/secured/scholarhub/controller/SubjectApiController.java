@@ -52,7 +52,7 @@ public class SubjectApiController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         if(subjectsRepository.existsByUserAndFullName(me, form.getFullName())){
-            SubjectOptionDTO option = subjectsRepository.findByUserAndFullNameIgnoreCase(me, form.getFullName());
+            SubjectOptionDTO option = subjectsRepository.findOptionByUserAndFullNameIgnoreCase(me, form.getFullName());
             return ResponseEntity.ok(option);
         }
         Subject subject = new Subject(
