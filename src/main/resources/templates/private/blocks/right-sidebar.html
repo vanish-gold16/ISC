@@ -40,18 +40,18 @@
                 </a>
 
             <a class="nav__item"
-               th:href="@{/friends}"
-               th:classappend="${active}=='friends' ? ' is-active' : ''">
-                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/friends.png}" src="/images/private/sidebar-icons/friends.png" alt="" aria-hidden="true" />
-                <span class="nav__label">Friends</span>
-                </a>
-
-            <a class="nav__item"
                th:href="@{/scholar-hub}"
                th:classappend="${active}=='scholarhub' ? ' is-active' : ''">
                 <img class="nav__icon" th:src="@{/images/private/sidebar-icons/scholarhub.png}" src="/images/private/sidebar-icons/scholarhub.png" alt="" aria-hidden="true" />
                 <span class="nav__label">ScholarHub</span>
             </a>
+
+            <a class="nav__item"
+               th:href="@{/friends}"
+               th:classappend="${active}=='friends' ? ' is-active' : ''">
+                <img class="nav__icon" th:src="@{/images/private/sidebar-icons/friends.png}" src="/images/private/sidebar-icons/friends.png" alt="" aria-hidden="true" />
+                <span class="nav__label">Friends</span>
+                </a>
         </nav>
     </div>
     <script>

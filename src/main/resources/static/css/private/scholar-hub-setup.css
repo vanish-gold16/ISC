@@ -25,6 +25,7 @@ body {
         radial-gradient(circle at right, rgba(255, 223, 177, 0.34), transparent 24%),
         linear-gradient(180deg, #eef5ff 0%, #f8fbff 40%, #f3f7ff 100%);
     font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+    overflow-x: clip;
 }
 
 .container {
@@ -131,7 +132,7 @@ body {
 
 .setup-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 288px;
     gap: 20px;
     align-items: start;
 }
@@ -182,8 +183,8 @@ body {
 
 .setup-layout {
     display: grid;
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-    gap: 20px;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
 }
 
@@ -311,23 +312,28 @@ body {
 
 .week-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: 14px;
     align-items: start;
+    min-width: 0;
 }
 
 .day-column {
     padding: 16px;
     display: grid;
+    grid-template-columns: 164px minmax(0, 1fr);
     gap: 14px;
     min-height: 100%;
+    align-items: start;
 }
 
 .day-column__head {
     display: flex;
+    flex-direction: column;
     align-items: start;
     justify-content: space-between;
     gap: 10px;
+    padding-top: 6px;
 }
 
 .day-column__label {
@@ -355,11 +361,26 @@ body {
 
 .day-column__slots {
     display: grid;
+    grid-template-columns: repeat(7, minmax(118px, 1fr));
     gap: 12px;
+    min-width: 0;
+}
+
+.day-column__slots::-webkit-scrollbar {
+    height: 8px;
+}
+
+.day-column__slots::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.day-column__slots::-webkit-scrollbar-thumb {
+    background: #c9d8f3;
+    border-radius: 999px;
 }
 
 .lesson-slot {
-    min-height: 134px;
+    min-height: 148px;
     border: 2px dashed #d7e2f6;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.62);
@@ -391,7 +412,7 @@ body {
 
 .slot-create {
     width: 100%;
-    min-height: 130px;
+    min-height: 144px;
     padding: 18px;
     border: 0;
     border-radius: 18px;
@@ -420,7 +441,7 @@ body {
 }
 
 .subject-card {
-    min-height: 134px;
+    min-height: 148px;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.7);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 255, 0.95));
@@ -569,8 +590,21 @@ body {
 }
 
 @media (max-width: 1420px) {
-    .week-grid {
-        grid-template-columns: repeat(3, minmax(220px, 1fr));
+    .day-column {
+        grid-template-columns: 1fr;
+    }
+
+    .day-column__head {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .day-column__slots {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: #c9d8f3 transparent;
     }
 }
 
@@ -589,10 +623,6 @@ body {
 
     .sidebar-right {
         display: none;
-    }
-
-    .week-grid {
-        grid-template-columns: repeat(2, minmax(220px, 1fr));
     }
 }
 
@@ -621,7 +651,15 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .setup-layout {
+        grid-template-columns: 1fr;
+    }
+
     .day-column__head h3 {
         font-size: 20px;
+    }
+
+    .day-column__slots {
+        grid-template-columns: repeat(7, minmax(152px, 152px));
     }
 }
