@@ -589,7 +589,7 @@ body {
 
 .subject-modal__body {
     display: grid;
-    gap: 18px;
+    gap: 12px;
 }
 
 .subject-modal__field {
@@ -603,34 +603,18 @@ body {
     color: var(--text);
 }
 
-.subject-modal__section {
-    display: grid;
-    gap: 10px;
-}
-
-.subject-modal__section-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.subject-modal__section-head h4 {
-    margin: 0;
-    font-size: 15px;
-}
-
 .subject-modal__results {
     display: grid;
     gap: 8px;
     max-height: 240px;
     overflow: auto;
     padding-right: 4px;
+    align-content: start;
 }
 
 .subject-result {
-    min-height: 46px;
-    padding: 0 14px;
+    min-height: 52px;
+    padding: 10px 14px;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: #fff;
@@ -639,6 +623,8 @@ body {
     font-weight: 700;
     cursor: pointer;
     transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    display: grid;
+    gap: 2px;
 }
 
 .subject-result:hover {
@@ -647,24 +633,26 @@ body {
     border-color: #b7c9ee;
 }
 
+.subject-result span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6f84aa;
+}
+
+.subject-result strong {
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.subject-result--create {
+    background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
+    border-color: #c9d8f3;
+}
+
 .subject-modal__empty {
     margin: 0;
     padding: 10px 2px;
-}
-
-.subject-modal__create {
-    padding: 14px;
-    border-radius: 18px;
-    border: 1px solid #dbe6f8;
-    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-}
-
-.subject-modal__create p {
-    margin: 0;
 }
 
 @media (max-width: 1420px) {
@@ -732,10 +720,5 @@ body {
 
     .subject-modal__dialog {
         padding: 18px;
-    }
-
-    .subject-modal__create {
-        flex-direction: column;
-        align-items: stretch;
     }
 }

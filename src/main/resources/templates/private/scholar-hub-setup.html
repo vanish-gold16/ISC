@@ -192,26 +192,7 @@
                 <span>Subject name</span>
                 <input class="input" id="subject-search-input" type="text" placeholder="Start typing a subject name" autocomplete="off" />
             </label>
-
-            <div class="subject-modal__section">
-                <div class="subject-modal__section-head">
-                    <h4>Existing subjects</h4>
-                    <span class="muted" id="subject-results-count">0 found</span>
-                </div>
-                <div class="subject-modal__results" id="subject-results"></div>
-            </div>
-
-            <div class="subject-modal__section">
-                <div class="subject-modal__section-head">
-                    <h4>Create new</h4>
-                </div>
-                <div class="subject-modal__create">
-                    <p class="muted" id="subject-create-copy">
-                        Enter a name above to create a new subject for this schedule.
-                    </p>
-                    <button class="btn btn--primary" type="button" id="create-subject-button" disabled>Create subject</button>
-                </div>
-            </div>
+            <div class="subject-modal__results" id="subject-results"></div>
         </div>
     </div>
 </div>
@@ -225,21 +206,10 @@
         const subjectModal = document.getElementById('subject-modal');
         const subjectSearchInput = document.getElementById('subject-search-input');
         const subjectResults = document.getElementById('subject-results');
-        const subjectResultsCount = document.getElementById('subject-results-count');
-        const subjectCreateCopy = document.getElementById('subject-create-copy');
-        const createSubjectButton = document.getElementById('create-subject-button');
         const closeModalTriggers = Array.from(document.querySelectorAll('[data-close-subject-modal]'));
         let activeSlot = null;
         let draggedCard = null;
-        let selectedSubjectName = '';
-        const subjectLibrary = [
-            { name: 'Mathematics', color: 'subject-card--math' },
-            { name: 'English', color: 'subject-card--english' },
-            { name: 'Programming', color: 'subject-card--coding' },
-            { name: 'Physics', color: 'subject-card--physics' },
-            { name: 'Design', color: 'subject-card--design' },
-            { name: 'History', color: 'subject-card--history' }
-        ];
+        const subjectLibrary = [];
 
         function normalizeSubjectName(value) {
             return String(value || '').trim().replace(/\s+/g, ' ');
@@ -256,59 +226,75 @@
 
         function openSubjectModal(slot) {
             activeSlot = slot;
-            selectedSubjectName = '';
             subjectModal.classList.remove('hidden');
             subjectModal.setAttribute('aria-hidden', 'false');
             subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
-            subjectResultsCount.textContent = 'Type to search';
             subjectSearchInput.value = '';
-            createSubjectButton.disabled = true;
-            subjectCreateCopy.textContent = 'Enter a name above to create a new subject for this schedule.';
             window.setTimeout(() => subjectSearchInput.focus(), 0);
         }
 
         function closeSubjectModal() {
             subjectModal.classList.add('hidden');
             subjectModal.setAttribute('aria-hidden', 'true');
-            selectedSubjectName = '';
+        }
+
+        function insertSubjectIntoActiveSlot(subjectName) {
+            if (!activeSlot) return;
+            renderCard(activeSlot, {
+                name: subjectName,
+                color: buildSubjectColor(subjectName)
+            });
+            activeSlot.classList.remove('lesson-slot--selected');
+            activeSlot = null;
+            closeSubjectModal();
         }
 
         function renderSubjectResults(query) {
             const normalizedQuery = normalizeSubjectName(query).toLowerCase();
             if (!normalizedQuery) {
                 subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
-                subjectResultsCount.textContent = 'Type to search';
                 return;
             }
             const items = subjectLibrary.filter((item) => item.name.toLowerCase().includes(normalizedQuery));
             subjectResults.innerHTML = '';
-            subjectResultsCount.textContent = items.length + ' found';
 
-            if (!items.length) {
-                const empty = document.createElement('p');
-                empty.className = 'subject-modal__empty muted';
-                empty.textContent = 'No existing subjects match this name yet.';
-                subjectResults.appendChild(empty);
-                return;
-            }
+            const createButton = document.createElement('button');
+            createButton.type = 'button';
+            createButton.className = 'subject-result subject-result--create';
+            createButton.innerHTML = '<span>Add new</span><strong>' + normalizeSubjectName(query) + '</strong>';
+            createButton.addEventListener('click', () => {
+                const subjectName = normalizeSubjectName(query);
+                if (!subjectName) return;
+
+                const exists = subjectLibrary.some((item) => item.name.toLowerCase() === subjectName.toLowerCase());
+                if (!exists) {
+                    subjectLibrary.unshift({
+                        name: subjectName,
+                        color: buildSubjectColor(subjectName)
+                    });
+                }
+
+                insertSubjectIntoActiveSlot(subjectName);
+            });
+            subjectResults.appendChild(createButton);
 
             items.forEach((item) => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'subject-result';
-                button.textContent = item.name;
+                button.innerHTML = '<span>Use existing</span><strong>' + item.name + '</strong>';
                 button.addEventListener('click', () => {
-                    if (!activeSlot) return;
-                    renderCard(activeSlot, {
-                        name: item.name,
-                        color: item.color
-                    });
-                    activeSlot.classList.remove('lesson-slot--selected');
-                    activeSlot = null;
-                    closeSubjectModal();
+                    insertSubjectIntoActiveSlot(item.name);
                 });
                 subjectResults.appendChild(button);
             });
+
+            if (!items.length) {
+                const empty = document.createElement('p');
+                empty.className = 'subject-modal__empty muted';
+                empty.textContent = 'No existing subjects found for this user yet.';
+                subjectResults.appendChild(empty);
+            }
         }
 
         function createEmptyState(slot) {
@@ -424,33 +410,7 @@
         });
 
         subjectSearchInput.addEventListener('input', () => {
-            selectedSubjectName = normalizeSubjectName(subjectSearchInput.value);
-            renderSubjectResults(selectedSubjectName);
-            createSubjectButton.disabled = selectedSubjectName.length === 0;
-            subjectCreateCopy.textContent = selectedSubjectName
-                ? 'Create "' + selectedSubjectName + '" and insert it into the selected lesson slot.'
-                : 'Enter a name above to create a new subject for this schedule.';
-        });
-
-        createSubjectButton.addEventListener('click', () => {
-            const subjectName = normalizeSubjectName(subjectSearchInput.value);
-            if (!subjectName || !activeSlot) return;
-
-            const exists = subjectLibrary.some((item) => item.name.toLowerCase() === subjectName.toLowerCase());
-            if (!exists) {
-                subjectLibrary.unshift({
-                    name: subjectName,
-                    color: buildSubjectColor(subjectName)
-                });
-            }
-
-            renderCard(activeSlot, {
-                name: subjectName,
-                color: buildSubjectColor(subjectName)
-            });
-            activeSlot.classList.remove('lesson-slot--selected');
-            activeSlot = null;
-            closeSubjectModal();
+            renderSubjectResults(subjectSearchInput.value);
         });
 
         if (clearButton) {
