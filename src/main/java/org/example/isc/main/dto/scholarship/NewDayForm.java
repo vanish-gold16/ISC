@@ -1,34 +1,21 @@
 package org.example.isc.main.dto.scholarship;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NewDayForm {
-
-    @NotNull
-    private Long scheduleId;
-
-    private List<Long> subjectIds;
 
     @NotNull
     private DayOfWeek dayOfWeek;
 
-    public Long getScheduleId() {
-        return scheduleId;
-    }
+    private List<NewLessonRequest> lessons = new ArrayList<>();
 
-    public void setScheduleId(Long scheduleId) {
-        this.scheduleId = scheduleId;
-    }
-
-    public List<Long> getSubjectIds() {
-        return subjectIds;
-    }
-
-    public void setSubjectIds(List<Long> subjectIds) {
-        this.subjectIds = subjectIds;
+    public NewDayForm() {
     }
 
     public DayOfWeek getDayOfWeek() {
@@ -37,5 +24,13 @@ public class NewDayForm {
 
     public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
+    }
+
+    public List<NewLessonRequest> getLessons() {
+        return lessons;
+    }
+
+    public void setLessons(List<NewLessonRequest> lessons) {
+        this.lessons = lessons;
     }
 }
