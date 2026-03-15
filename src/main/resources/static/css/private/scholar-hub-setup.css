@@ -650,6 +650,58 @@ body {
     border-color: #c9d8f3;
 }
 
+.subject-create-panel {
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid #dbe6f8;
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    display: grid;
+    gap: 14px;
+}
+
+.subject-create-panel.hidden {
+    display: none;
+}
+
+.subject-create-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.subject-create-panel__eyebrow {
+    margin: 0 0 4px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6f84aa;
+    font-weight: 800;
+}
+
+.subject-create-panel__head h4 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.15;
+}
+
+.subject-create-panel__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.subject-create-panel__grid .subject-modal__field:first-child {
+    grid-column: 1 / -1;
+}
+
+.subject-create-panel__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .subject-modal__empty {
     margin: 0;
     padding: 10px 2px;
@@ -720,5 +772,13 @@ body {
 
     .subject-modal__dialog {
         padding: 18px;
+    }
+
+    .subject-create-panel__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .subject-create-panel__grid .subject-modal__field:first-child {
+        grid-column: auto;
     }
 }

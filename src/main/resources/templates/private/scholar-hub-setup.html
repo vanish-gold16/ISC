@@ -193,6 +193,47 @@
                 <input class="input" id="subject-search-input" type="text" placeholder="Start typing a subject name" autocomplete="off" />
             </label>
             <div class="subject-modal__results" id="subject-results"></div>
+
+            <section class="subject-create-panel hidden" id="subject-create-panel" aria-hidden="true">
+                <div class="subject-create-panel__head">
+                    <div>
+                        <p class="subject-create-panel__eyebrow">Create new</p>
+                        <h4>New subject details</h4>
+                    </div>
+                </div>
+
+                <div class="subject-create-panel__grid">
+                    <label class="subject-modal__field">
+                        <span>Full name</span>
+                        <input class="input" id="subject-create-name" type="text" placeholder="Full subject name" />
+                    </label>
+
+                    <label class="subject-modal__field">
+                        <span>Short name</span>
+                        <input class="input" id="subject-create-short-name" type="text" placeholder="Math / Eng / IT" maxlength="12" />
+                    </label>
+
+                    <label class="subject-modal__field">
+                        <span>Teacher name</span>
+                        <input class="input" id="subject-create-teacher" type="text" placeholder="Teacher name" />
+                    </label>
+
+                    <label class="subject-modal__field">
+                        <span>Class</span>
+                        <input class="input" id="subject-create-class" type="text" placeholder="10A / CS-101" />
+                    </label>
+
+                    <label class="subject-modal__field">
+                        <span>Room</span>
+                        <input class="input" id="subject-create-room" type="text" placeholder="B-12 / Lab-2" />
+                    </label>
+                </div>
+
+                <div class="subject-create-panel__actions">
+                    <button class="btn btn--ghost" type="button" id="subject-create-cancel">Cancel</button>
+                    <button class="btn btn--primary" type="button" id="subject-create-save">Add subject</button>
+                </div>
+            </section>
         </div>
     </div>
 </div>
@@ -206,6 +247,14 @@
         const subjectModal = document.getElementById('subject-modal');
         const subjectSearchInput = document.getElementById('subject-search-input');
         const subjectResults = document.getElementById('subject-results');
+        const subjectCreatePanel = document.getElementById('subject-create-panel');
+        const subjectCreateName = document.getElementById('subject-create-name');
+        const subjectCreateShortName = document.getElementById('subject-create-short-name');
+        const subjectCreateTeacher = document.getElementById('subject-create-teacher');
+        const subjectCreateClass = document.getElementById('subject-create-class');
+        const subjectCreateRoom = document.getElementById('subject-create-room');
+        const subjectCreateCancel = document.getElementById('subject-create-cancel');
+        const subjectCreateSave = document.getElementById('subject-create-save');
         const closeModalTriggers = Array.from(document.querySelectorAll('[data-close-subject-modal]'));
         let activeSlot = null;
         let draggedCard = null;
@@ -224,25 +273,48 @@
             return 'subject-card--math';
         }
 
+        function openCreatePanel(subjectName) {
+            const normalizedName = normalizeSubjectName(subjectName);
+            subjectCreatePanel.classList.remove('hidden');
+            subjectCreatePanel.setAttribute('aria-hidden', 'false');
+            subjectCreateName.value = normalizedName;
+            subjectCreateShortName.value = normalizedName ? normalizedName.slice(0, 12) : '';
+            subjectCreateTeacher.value = '';
+            subjectCreateClass.value = '';
+            subjectCreateRoom.value = '';
+            window.setTimeout(() => subjectCreateShortName.focus(), 0);
+        }
+
+        function closeCreatePanel() {
+            subjectCreatePanel.classList.add('hidden');
+            subjectCreatePanel.setAttribute('aria-hidden', 'true');
+        }
+
         function openSubjectModal(slot) {
             activeSlot = slot;
             subjectModal.classList.remove('hidden');
             subjectModal.setAttribute('aria-hidden', 'false');
             subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
             subjectSearchInput.value = '';
+            closeCreatePanel();
             window.setTimeout(() => subjectSearchInput.focus(), 0);
         }
 
         function closeSubjectModal() {
             subjectModal.classList.add('hidden');
             subjectModal.setAttribute('aria-hidden', 'true');
+            closeCreatePanel();
         }
 
-        function insertSubjectIntoActiveSlot(subjectName) {
+        function insertSubjectIntoActiveSlot(subjectData) {
             if (!activeSlot) return;
             renderCard(activeSlot, {
-                name: subjectName,
-                color: buildSubjectColor(subjectName)
+                name: subjectData.name,
+                shortName: subjectData.shortName,
+                teacher: subjectData.teacher,
+                room: subjectData.room,
+                classGroup: subjectData.classGroup,
+                color: subjectData.color || buildSubjectColor(subjectData.name)
             });
             activeSlot.classList.remove('lesson-slot--selected');
             activeSlot = null;
@@ -263,18 +335,7 @@
             createButton.className = 'subject-result subject-result--create';
             createButton.innerHTML = '<span>Add new</span><strong>' + normalizeSubjectName(query) + '</strong>';
             createButton.addEventListener('click', () => {
-                const subjectName = normalizeSubjectName(query);
-                if (!subjectName) return;
-
-                const exists = subjectLibrary.some((item) => item.name.toLowerCase() === subjectName.toLowerCase());
-                if (!exists) {
-                    subjectLibrary.unshift({
-                        name: subjectName,
-                        color: buildSubjectColor(subjectName)
-                    });
-                }
-
-                insertSubjectIntoActiveSlot(subjectName);
+                openCreatePanel(query);
             });
             subjectResults.appendChild(createButton);
 
@@ -284,7 +345,7 @@
                 button.className = 'subject-result';
                 button.innerHTML = '<span>Use existing</span><strong>' + item.name + '</strong>';
                 button.addEventListener('click', () => {
-                    insertSubjectIntoActiveSlot(item.name);
+                    insertSubjectIntoActiveSlot(item);
                 });
                 subjectResults.appendChild(button);
             });
@@ -312,9 +373,13 @@
             const card = fragment.querySelector('.subject-card');
             card.classList.add(data.color);
             card.dataset.subjectName = data.name;
+            card.dataset.shortName = data.shortName || data.name;
+            card.dataset.teacher = data.teacher || '';
+            card.dataset.room = data.room || '';
+            card.dataset.classGroup = data.classGroup || '';
             card.querySelector('.subject-card__name').textContent = data.name;
-            card.querySelector('.subject-card__teacher').textContent = 'Custom subject';
-            card.querySelector('.subject-card__room').textContent = 'No room';
+            card.querySelector('.subject-card__teacher').textContent = data.teacher || data.classGroup || 'Custom subject';
+            card.querySelector('.subject-card__room').textContent = data.room || data.shortName || 'No room';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
             slot.innerHTML = '';
             slot.appendChild(fragment);
@@ -332,14 +397,18 @@
                             lessonOrder: Number(slot.dataset.order),
                             subjectName: null,
                             teacher: null,
-                            room: null
+                            room: null,
+                            shortName: null,
+                            classGroup: null
                         };
                     }
                     return {
                         lessonOrder: Number(slot.dataset.order),
                         subjectName: card.dataset.subjectName,
                         teacher: card.dataset.teacher,
-                        room: card.dataset.room
+                        room: card.dataset.room,
+                        shortName: card.dataset.shortName,
+                        classGroup: card.dataset.classGroup
                     };
                 })
             }));
@@ -410,7 +479,34 @@
         });
 
         subjectSearchInput.addEventListener('input', () => {
+            closeCreatePanel();
             renderSubjectResults(subjectSearchInput.value);
+        });
+
+        subjectCreateCancel.addEventListener('click', () => {
+            closeCreatePanel();
+            window.setTimeout(() => subjectSearchInput.focus(), 0);
+        });
+
+        subjectCreateSave.addEventListener('click', () => {
+            const name = normalizeSubjectName(subjectCreateName.value || subjectSearchInput.value);
+            if (!name) return;
+
+            const newSubject = {
+                name,
+                shortName: normalizeSubjectName(subjectCreateShortName.value) || name.slice(0, 12),
+                teacher: normalizeSubjectName(subjectCreateTeacher.value),
+                classGroup: normalizeSubjectName(subjectCreateClass.value),
+                room: normalizeSubjectName(subjectCreateRoom.value),
+                color: buildSubjectColor(name)
+            };
+
+            const exists = subjectLibrary.some((item) => item.name.toLowerCase() === name.toLowerCase());
+            if (!exists) {
+                subjectLibrary.unshift(newSubject);
+            }
+
+            insertSubjectIntoActiveSlot(newSubject);
         });
 
         if (clearButton) {
