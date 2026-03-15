@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import org.example.isc.main.secured.models.users.User;
 
 import java.util.List;
@@ -25,6 +26,10 @@ public class Subject {
     @Column(name = "room")
     private String room;
 
+    @Column(name = "color")
+    @Size(max = 7)
+    private String color;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -40,11 +45,12 @@ public class Subject {
     public Subject() {
     }
 
-    public Subject(String shortName, String fullName, String room, User user, List<Teacher> teachers) {
+    public Subject(String shortName, String fullName, String room, String color, User user, List<Teacher> teachers) {
         this.name = fullName;
         this.shortName = shortName;
         this.fullName = fullName;
         this.room = room;
+        this.color = color;
         this.user = user;
         this.teachers = teachers;
     }
@@ -118,5 +124,13 @@ public class Subject {
         if ((fullName == null || fullName.isBlank()) && name != null && !name.isBlank()) {
             fullName = name;
         }
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }

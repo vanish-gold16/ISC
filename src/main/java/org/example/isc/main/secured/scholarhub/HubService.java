@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class HubService {
@@ -79,15 +81,10 @@ public class HubService {
                                 return subjectsRepository.save(newSubject);
                             });
 
-                    if (normalize(lessonForm.getShortName()) != null) {
-                        subject.setShortName(resolveShortName(lessonForm, subjectName));
-                    }
-                    if (normalize(lessonForm.getRoom()) != null) {
-                        subject.setRoom(normalize(lessonForm.getRoom()));
-                    }
-                    if (normalize(lessonForm.getTeacher()) != null) {
-                        subject.setTeachers(resolveTeachers(lessonForm));
-                    }
+                    if (normalize(lessonForm.getShortName()) != null) subject.setShortName(resolveShortName(lessonForm, subjectName));
+                    if (normalize(lessonForm.getRoom()) != null) subject.setRoom(normalize(lessonForm.getRoom()));
+                    if(normalizeColor(lessonForm.getColor()) != null) subject.setColor(normalizeColor(lessonForm.getColor()));
+                    if (normalize(lessonForm.getTeacher()) != null) subject.setTeachers(resolveTeachers(lessonForm));
                     subject = subjectsRepository.save(subject);
 
                     DaySubject lesson = new DaySubject();
@@ -122,6 +119,12 @@ public class HubService {
         if(value == null) return null;
         String normalized = value.trim().replaceAll("\\s+", " ");
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizeColor(String color){
+        String normalized = normalize(color);
+        Pattern pattern = Pattern.compile("^#[0-9A-Fa-f]{6}$");
+        return color.matches(String.valueOf(pattern)) ? normalized : null;
     }
 
     private String buildShortName(String fullName){

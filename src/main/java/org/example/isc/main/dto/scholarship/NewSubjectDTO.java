@@ -18,6 +18,9 @@ public class NewSubjectDTO {
     @Size(max = 40)
     private String room;
 
+    @Size(max = 7)
+    private String color;
+
     public String getFullName() {
         return fullName;
     }
@@ -48,5 +51,13 @@ public class NewSubjectDTO {
 
     public void setRoom(String room) {
         this.room = room;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }

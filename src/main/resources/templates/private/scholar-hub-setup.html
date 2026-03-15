@@ -165,6 +165,9 @@
         <div class="subject-card__top">
             <span class="subject-card__drag" aria-hidden="true">::</span>
             <div class="subject-card__actions">
+                <a class="subject-card__edit" href="#" aria-label="Edit subject">
+                    <img class="subject-card__edit-icon" src="/images/private/icons/edit.png" alt="" />
+                </a>
                 <button class="subject-card__color" type="button" aria-label="Change subject color"></button>
                 <button class="subject-card__remove" type="button" aria-label="Remove lesson">x</button>
             </div>
@@ -369,6 +372,14 @@
             }
         }
 
+        function buildSubjectEditHref(subjectId, subjectName) {
+            const normalizedName = normalizeSubjectName(subjectName);
+            if (subjectId) {
+                return '/scholar-hub/subjects/edit?id=' + encodeURIComponent(subjectId);
+            }
+            return '/scholar-hub/subjects/edit?name=' + encodeURIComponent(normalizedName);
+        }
+
         function updateSubjectColorEverywhere(subjectName, color) {
             const resolvedColor = rememberSubjectColor(subjectName, color);
             Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
@@ -377,6 +388,48 @@
                 }
             });
             syncPayload();
+        }
+
+        async function persistSubjectColor(subjectName, color) {
+            const referenceCard = Array.from(document.querySelectorAll('.subject-card')).find((card) => {
+                return normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(subjectName);
+            });
+
+            if (!referenceCard) {
+                return;
+            }
+
+            const response = await fetch('/scholar-hub/subjects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    fullName: referenceCard.dataset.subjectName,
+                    shortName: referenceCard.dataset.shortName,
+                    teacherName: referenceCard.dataset.teacher || null,
+                    room: referenceCard.dataset.room || null,
+                    color
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Color update failed with status ' + response.status);
+            }
+
+            const savedSubject = await response.json();
+            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
+                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(savedSubject.name)) {
+                    card.dataset.subjectId = savedSubject.id || '';
+                    const editLink = card.querySelector('.subject-card__edit');
+                    if (editLink) {
+                        editLink.href = buildSubjectEditHref(savedSubject.id, savedSubject.name);
+                    }
+                }
+            });
+            updateSubjectColorEverywhere(savedSubject.name, savedSubject.color || color);
         }
 
         function getCsrfToken() {
@@ -421,6 +474,7 @@
             if (!activeSlot) return;
             const subjectColor = rememberSubjectColor(subjectData.name, subjectData.color);
             renderCard(activeSlot, {
+                id: subjectData.id,
                 name: subjectData.name,
                 shortName: subjectData.shortName,
                 teacher: subjectData.teacher,
@@ -461,6 +515,7 @@
                 button.style.setProperty('--subject-result-color', itemColor);
                 button.addEventListener('click', () => {
                     insertSubjectIntoActiveSlot({
+                        id: item.id,
                         name: item.name,
                         shortName: item.shortName,
                         teacher: item.teacherName,
@@ -492,11 +547,14 @@
         function renderCard(slot, data) {
             const fragment = template.content.cloneNode(true);
             const card = fragment.querySelector('.subject-card');
+            card.dataset.subjectId = data.id || '';
             card.dataset.subjectName = data.name;
             card.dataset.shortName = data.shortName || data.name;
             card.dataset.teacher = data.teacher || '';
             card.dataset.room = data.room || '';
             applyCardColor(card, data.color);
+            const editLink = card.querySelector('.subject-card__edit');
+            editLink.href = buildSubjectEditHref(data.id, data.name);
             card.querySelector('.subject-card__name').textContent = data.name;
             card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Teacher not set';
             card.querySelector('.subject-card__room').textContent = data.room || 'Room not set';
@@ -676,8 +734,19 @@
             updateSubjectColorEverywhere(activeColorSubjectName, subjectCardColorInput.value);
         });
 
-        subjectCardColorInput.addEventListener('change', () => {
+        subjectCardColorInput.addEventListener('change', async () => {
+            const subjectName = activeColorSubjectName;
             activeColorSubjectName = null;
+
+            if (!subjectName) {
+                return;
+            }
+
+            try {
+                await persistSubjectColor(subjectName, subjectCardColorInput.value);
+            } catch (error) {
+                console.error(error);
+            }
         });
 
         subjectCreateSave.addEventListener('click', async () => {
@@ -718,6 +787,7 @@
 
                 const savedSubject = await response.json();
                 insertSubjectIntoActiveSlot({
+                    id: savedSubject.id,
                     name: savedSubject.name,
                     shortName: savedSubject.shortName,
                     teacher: savedSubject.teacherName,

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @RestController()
 @RequestMapping("/scholar-hub/subjects")
@@ -76,6 +77,10 @@ public class SubjectApiController {
         String shortName = normalize(form.getShortName());
         subject.setShortName(shortName != null ? shortName : buildShortName(fullName));
         subject.setRoom(normalize(form.getRoom()));
+        String color = normalizeColor(form.getColor());
+        if (color != null) {
+            subject.setColor(color);
+        }
 
         String teacherName = normalize(form.getTeacherName());
         if (teacherName != null) {
@@ -102,7 +107,8 @@ public class SubjectApiController {
                 subject.getFullName(),
                 subject.getShortName(),
                 teacherName,
-                subject.getRoom()
+                subject.getRoom(),
+                subject.getColor()
         );
     }
 
@@ -112,6 +118,12 @@ public class SubjectApiController {
         }
         String normalized = value.trim().replaceAll("\\s+", " ");
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizeColor(String color){
+        String normalized = normalize(color);
+        Pattern pattern = Pattern.compile("^#[0-9A-Fa-f]{6}$");
+        return color.matches(String.valueOf(pattern)) ? normalized : null;
     }
 
     private String buildShortName(String fullName) {

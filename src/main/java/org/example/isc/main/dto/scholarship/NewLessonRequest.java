@@ -10,6 +10,7 @@ public class NewLessonRequest {
     private String shortName;
     private String teacher;
     private String room;
+    private String color;
 
     public Integer getLessonOrder() {
         return lessonOrder;
@@ -49,5 +50,13 @@ public class NewLessonRequest {
 
     public void setRoom(String room) {
         this.room = room;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }

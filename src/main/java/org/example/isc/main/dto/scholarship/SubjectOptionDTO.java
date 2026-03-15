@@ -5,5 +5,6 @@ public record SubjectOptionDTO(
         String name,
         String shortName,
         String teacherName,
-        String room
+        String room,
+        String color
 ) {}
