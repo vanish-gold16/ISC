@@ -164,7 +164,10 @@
     <article class="subject-card" draggable="true">
         <div class="subject-card__top">
             <span class="subject-card__drag" aria-hidden="true">::</span>
-            <button class="subject-card__remove" type="button" aria-label="Remove lesson">x</button>
+            <div class="subject-card__actions">
+                <button class="subject-card__color" type="button" aria-label="Change subject color"></button>
+                <button class="subject-card__remove" type="button" aria-label="Remove lesson">x</button>
+            </div>
         </div>
         <div class="subject-card__content">
             <p class="subject-card__name">Subject</p>
@@ -223,6 +226,15 @@
                         <span>Room</span>
                         <input class="input" id="subject-create-room" type="text" placeholder="B-12 / Lab-2" />
                     </label>
+
+                    <div class="subject-modal__field subject-modal__field--full">
+                        <span>Color</span>
+                        <div class="subject-color-picker" id="subject-create-colors"></div>
+                        <label class="subject-custom-color">
+                            <span>Custom</span>
+                            <input id="subject-create-color-custom" type="color" value="#7aa2ff" />
+                        </label>
+                    </div>
                 </div>
 
                 <div class="subject-create-panel__actions">
@@ -234,8 +246,21 @@
     </div>
 </div>
 
+<input type="color" id="subject-card-color-input" class="subject-card-color-input" value="#7aa2ff" />
+
 <script>
     (function () {
+        const SUBJECT_COLOR_PRESETS = [
+            '#7aa2ff',
+            '#5dc7b2',
+            '#ffb86b',
+            '#f58fb4',
+            '#b59cff',
+            '#78c4f4',
+            '#9adf70',
+            '#f5d66b'
+        ];
+        const DEFAULT_SUBJECT_COLOR = '#7aa2ff';
         const slots = Array.from(document.querySelectorAll('.lesson-slot'));
         const payloadInput = document.getElementById('schedulePayload');
         const template = document.getElementById('lesson-card-template');
@@ -252,16 +277,26 @@
         const subjectCreateShortName = document.getElementById('subject-create-short-name');
         const subjectCreateTeacher = document.getElementById('subject-create-teacher');
         const subjectCreateRoom = document.getElementById('subject-create-room');
+        const subjectCreateColors = document.getElementById('subject-create-colors');
+        const subjectCreateColorCustom = document.getElementById('subject-create-color-custom');
         const subjectCreateCancel = document.getElementById('subject-create-cancel');
         const subjectCreateSave = document.getElementById('subject-create-save');
+        const subjectCardColorInput = document.getElementById('subject-card-color-input');
         const closeModalTriggers = Array.from(document.querySelectorAll('[data-close-subject-modal]'));
         let activeSlot = null;
         let draggedCard = null;
         let currentSubjectResults = [];
         let subjectSearchAbortController = null;
+        let draftSubjectColor = DEFAULT_SUBJECT_COLOR;
+        let activeColorSubjectName = null;
+        const subjectColorRegistry = new Map();
 
         function normalizeSubjectName(value) {
             return String(value || '').trim().replace(/\s+/g, ' ');
+        }
+
+        function normalizeSubjectKey(value) {
+            return normalizeSubjectName(value).toLowerCase();
         }
 
         function hasAtLeastOneSubject() {
@@ -270,13 +305,78 @@
             });
         }
 
-        function buildSubjectColor(name) {
-            const normalized = normalizeSubjectName(name).toLowerCase();
-            const existing = currentSubjectResults.find((item) => normalizeSubjectName(item.name).toLowerCase() === normalized);
-            if (existing) {
-                return existing.color;
+        function sanitizeColor(color) {
+            return /^#[0-9a-f]{6}$/i.test(String(color || '').trim()) ? String(color).trim() : null;
+        }
+
+        function hashSubjectColor(name) {
+            const normalized = normalizeSubjectKey(name);
+            if (!normalized) {
+                return DEFAULT_SUBJECT_COLOR;
             }
-            return 'subject-card--math';
+            let hash = 0;
+            for (let index = 0; index < normalized.length; index += 1) {
+                hash = (hash * 31 + normalized.charCodeAt(index)) >>> 0;
+            }
+            return SUBJECT_COLOR_PRESETS[hash % SUBJECT_COLOR_PRESETS.length];
+        }
+
+        function resolveSubjectColor(name, fallbackColor) {
+            const normalizedKey = normalizeSubjectKey(name);
+            return sanitizeColor(fallbackColor)
+                || subjectColorRegistry.get(normalizedKey)
+                || hashSubjectColor(name);
+        }
+
+        function rememberSubjectColor(name, color) {
+            const normalizedKey = normalizeSubjectKey(name);
+            const resolvedColor = resolveSubjectColor(name, color);
+            if (normalizedKey) {
+                subjectColorRegistry.set(normalizedKey, resolvedColor);
+            }
+            return resolvedColor;
+        }
+
+        function setDraftSubjectColor(color) {
+            draftSubjectColor = resolveSubjectColor(subjectCreateName.value || subjectSearchInput.value, color);
+            subjectCreateColorCustom.value = draftSubjectColor;
+            Array.from(subjectCreateColors.querySelectorAll('.subject-color-swatch')).forEach((swatch) => {
+                swatch.classList.toggle('subject-color-swatch--active', swatch.dataset.color === draftSubjectColor);
+            });
+        }
+
+        function renderColorSwatches() {
+            subjectCreateColors.innerHTML = '';
+            SUBJECT_COLOR_PRESETS.forEach((color) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'subject-color-swatch';
+                button.dataset.color = color;
+                button.style.setProperty('--subject-swatch-color', color);
+                button.addEventListener('click', () => setDraftSubjectColor(color));
+                subjectCreateColors.appendChild(button);
+            });
+            setDraftSubjectColor(draftSubjectColor);
+        }
+
+        function applyCardColor(card, color) {
+            const resolvedColor = sanitizeColor(color) || DEFAULT_SUBJECT_COLOR;
+            card.dataset.color = resolvedColor;
+            card.style.setProperty('--subject-accent', resolvedColor);
+            const colorButton = card.querySelector('.subject-card__color');
+            if (colorButton) {
+                colorButton.style.setProperty('--subject-swatch-color', resolvedColor);
+            }
+        }
+
+        function updateSubjectColorEverywhere(subjectName, color) {
+            const resolvedColor = rememberSubjectColor(subjectName, color);
+            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
+                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(subjectName)) {
+                    applyCardColor(card, resolvedColor);
+                }
+            });
+            syncPayload();
         }
 
         function getCsrfToken() {
@@ -291,6 +391,7 @@
             subjectCreateShortName.value = normalizedName ? normalizedName.slice(0, 12) : '';
             subjectCreateTeacher.value = '';
             subjectCreateRoom.value = '';
+            setDraftSubjectColor(resolveSubjectColor(normalizedName));
             window.setTimeout(() => subjectCreateShortName.focus(), 0);
         }
 
@@ -318,12 +419,13 @@
 
         function insertSubjectIntoActiveSlot(subjectData) {
             if (!activeSlot) return;
+            const subjectColor = rememberSubjectColor(subjectData.name, subjectData.color);
             renderCard(activeSlot, {
                 name: subjectData.name,
                 shortName: subjectData.shortName,
                 teacher: subjectData.teacher,
                 room: subjectData.room,
-                color: subjectData.color || buildSubjectColor(subjectData.name)
+                color: subjectColor
             });
             activeSlot.classList.remove('lesson-slot--selected');
             activeSlot = null;
@@ -342,24 +444,28 @@
             const createButton = document.createElement('button');
             createButton.type = 'button';
             createButton.className = 'subject-result subject-result--create';
+            const createColor = resolveSubjectColor(query);
             createButton.innerHTML = '<span>Add new</span><strong>' + normalizeSubjectName(query) + '</strong>';
+            createButton.style.setProperty('--subject-result-color', createColor);
             createButton.addEventListener('click', () => {
                 openCreatePanel(query);
             });
             subjectResults.appendChild(createButton);
 
             items.forEach((item) => {
+                const itemColor = rememberSubjectColor(item.name, item.color);
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'subject-result';
                 button.innerHTML = '<span>Use existing</span><strong>' + item.name + '</strong>';
+                button.style.setProperty('--subject-result-color', itemColor);
                 button.addEventListener('click', () => {
                     insertSubjectIntoActiveSlot({
                         name: item.name,
                         shortName: item.shortName,
                         teacher: item.teacherName,
                         room: item.room,
-                        color: buildSubjectColor(item.name)
+                        color: itemColor
                     });
                 });
                 subjectResults.appendChild(button);
@@ -386,11 +492,11 @@
         function renderCard(slot, data) {
             const fragment = template.content.cloneNode(true);
             const card = fragment.querySelector('.subject-card');
-            card.classList.add(data.color);
             card.dataset.subjectName = data.name;
             card.dataset.shortName = data.shortName || data.name;
             card.dataset.teacher = data.teacher || '';
             card.dataset.room = data.room || '';
+            applyCardColor(card, data.color);
             card.querySelector('.subject-card__name').textContent = data.name;
             card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Teacher not set';
             card.querySelector('.subject-card__room').textContent = data.room || 'Room not set';
@@ -412,7 +518,8 @@
                             subjectName: null,
                             teacher: null,
                             room: null,
-                            shortName: null
+                            shortName: null,
+                            color: null
                         };
                     }
                     return {
@@ -420,7 +527,8 @@
                         subjectName: card.dataset.subjectName,
                         teacher: card.dataset.teacher,
                         room: card.dataset.room,
-                        shortName: card.dataset.shortName
+                        shortName: card.dataset.shortName,
+                        color: card.dataset.color || resolveSubjectColor(card.dataset.subjectName)
                     };
                 })
             }));
@@ -454,7 +562,10 @@
                     throw new Error('Search failed with status ' + response.status);
                 }
 
-                currentSubjectResults = await response.json();
+                currentSubjectResults = (await response.json()).map((item) => ({
+                    ...item,
+                    color: resolveSubjectColor(item.name, item.color)
+                }));
                 renderSubjectResults(normalizedQuery);
             } catch (error) {
                 if (error.name === 'AbortError') {
@@ -472,6 +583,18 @@
                 if (event.target.closest('.subject-card__remove')) {
                     createEmptyState(slot);
                     syncPayload();
+                    return;
+                }
+
+                const colorButton = event.target.closest('.subject-card__color');
+                if (colorButton) {
+                    const card = slot.querySelector('.subject-card');
+                    if (!card) {
+                        return;
+                    }
+                    activeColorSubjectName = card.dataset.subjectName;
+                    subjectCardColorInput.value = card.dataset.color || resolveSubjectColor(card.dataset.subjectName);
+                    subjectCardColorInput.click();
                     return;
                 }
 
@@ -533,9 +656,28 @@
             loadSubjectResults(subjectSearchInput.value);
         });
 
+        subjectCreateName.addEventListener('input', () => {
+            setDraftSubjectColor(resolveSubjectColor(subjectCreateName.value, draftSubjectColor));
+        });
+
         subjectCreateCancel.addEventListener('click', () => {
             closeCreatePanel();
             window.setTimeout(() => subjectSearchInput.focus(), 0);
+        });
+
+        subjectCreateColorCustom.addEventListener('input', () => {
+            setDraftSubjectColor(subjectCreateColorCustom.value);
+        });
+
+        subjectCardColorInput.addEventListener('input', () => {
+            if (!activeColorSubjectName) {
+                return;
+            }
+            updateSubjectColorEverywhere(activeColorSubjectName, subjectCardColorInput.value);
+        });
+
+        subjectCardColorInput.addEventListener('change', () => {
+            activeColorSubjectName = null;
         });
 
         subjectCreateSave.addEventListener('click', async () => {
@@ -547,7 +689,7 @@
                 shortName: normalizeSubjectName(subjectCreateShortName.value) || name.slice(0, 12),
                 teacher: normalizeSubjectName(subjectCreateTeacher.value),
                 room: normalizeSubjectName(subjectCreateRoom.value),
-                color: buildSubjectColor(name)
+                color: rememberSubjectColor(name, draftSubjectColor)
             };
 
             subjectCreateSave.disabled = true;
@@ -565,7 +707,8 @@
                         fullName: draftSubject.name,
                         shortName: draftSubject.shortName,
                         teacherName: draftSubject.teacher,
-                        room: draftSubject.room
+                        room: draftSubject.room,
+                        color: draftSubject.color
                     })
                 });
 
@@ -579,7 +722,7 @@
                     shortName: savedSubject.shortName,
                     teacher: savedSubject.teacherName,
                     room: savedSubject.room,
-                    color: buildSubjectColor(savedSubject.name)
+                    color: resolveSubjectColor(savedSubject.name, savedSubject.color || draftSubject.color)
                 });
             } catch (error) {
                 subjectResults.innerHTML = '<p class="subject-modal__empty muted">Could not save the subject right now.</p>';
@@ -643,6 +786,7 @@
             }
         });
 
+        renderColorSwatches();
         syncPayload();
     })();
 </script>

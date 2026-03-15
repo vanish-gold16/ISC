@@ -381,10 +381,15 @@ body {
 }
 
 .subject-card {
+    --subject-accent: #7aa2ff;
     min-height: 116px;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 255, 0.95));
+    border: 1px solid color-mix(in srgb, var(--subject-accent) 28%, white);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--subject-accent) 20%, white) 0%,
+        color-mix(in srgb, var(--subject-accent) 8%, white) 100%
+    );
     box-shadow: var(--shadow-soft);
     padding: 10px;
     display: grid;
@@ -402,12 +407,19 @@ body {
     justify-content: space-between;
 }
 
+.subject-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .subject-card__drag {
     color: #6680b1;
     font-weight: 900;
     letter-spacing: 0.15em;
 }
 
+.subject-card__color,
 .subject-card__remove {
     width: 22px;
     height: 22px;
@@ -418,6 +430,18 @@ body {
     cursor: pointer;
     font-size: 14px;
     line-height: 1;
+}
+
+.subject-card__color {
+    position: relative;
+}
+
+.subject-card__color::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: var(--subject-swatch-color, var(--subject-accent));
 }
 
 .subject-card__content {
@@ -447,30 +471,6 @@ body {
     color: #4f6488;
     font-size: 10px;
     font-weight: 700;
-}
-
-.subject-card--math {
-    background: linear-gradient(180deg, #fff8e4 0%, #fffef7 100%);
-}
-
-.subject-card--english {
-    background: linear-gradient(180deg, #e8f5ff 0%, #fafdff 100%);
-}
-
-.subject-card--coding {
-    background: linear-gradient(180deg, #e8fff5 0%, #fbfffd 100%);
-}
-
-.subject-card--physics {
-    background: linear-gradient(180deg, #efeaff 0%, #fcfbff 100%);
-}
-
-.subject-card--design {
-    background: linear-gradient(180deg, #ffeaf2 0%, #fffafd 100%);
-}
-
-.subject-card--history {
-    background: linear-gradient(180deg, #f3efe9 0%, #fcfbf9 100%);
 }
 
 .btn {
@@ -624,8 +624,9 @@ body {
 }
 
 .subject-result {
+    position: relative;
     min-height: 52px;
-    padding: 10px 14px;
+    padding: 10px 14px 10px 18px;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: #fff;
@@ -636,6 +637,18 @@ body {
     transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
     display: grid;
     gap: 2px;
+}
+
+.subject-result::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 7px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--subject-result-color, #c9d8f3);
 }
 
 .subject-result:hover {
@@ -706,6 +719,63 @@ body {
     grid-column: 1 / -1;
 }
 
+.subject-modal__field--full {
+    grid-column: 1 / -1;
+}
+
+.subject-color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subject-color-swatch {
+    --subject-swatch-color: #7aa2ff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(17, 32, 63, 0.08);
+    background: var(--subject-swatch-color);
+    cursor: pointer;
+    box-shadow: 0 0 0 0 rgba(47, 111, 237, 0.18);
+    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.subject-color-swatch:hover {
+    transform: translateY(-1px);
+}
+
+.subject-color-swatch--active {
+    border-color: rgba(17, 32, 63, 0.48);
+    box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+}
+
+.subject-custom-color {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    padding: 8px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+}
+
+.subject-custom-color span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.subject-custom-color input {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 .subject-create-panel__actions {
     display: flex;
     justify-content: flex-end;
@@ -716,6 +786,13 @@ body {
 .subject-modal__empty {
     margin: 0;
     padding: 10px 2px;
+}
+
+.subject-card-color-input {
+    position: fixed;
+    right: -9999px;
+    opacity: 0;
+    pointer-events: none;
 }
 
 @media (max-width: 1420px) {
