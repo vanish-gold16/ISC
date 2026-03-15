@@ -79,7 +79,7 @@ public class HubService {
                     DaySubject lesson = new DaySubject();
                     lesson.setDay(day);
                     lesson.setSubject(subject);
-                    lesson.setOrder(lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null);
+                    lesson.setLessonOrder(lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null);
 
                     lessons.add(lesson);
                 }

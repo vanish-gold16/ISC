@@ -19,8 +19,8 @@ public class DaySubject {
     @JoinColumn(name = "subject")
     private Subject subject;
 
-    @Column(name = "order")
-    private Long order;
+    @Column(name = "lesson_order")
+    private Long lessonOrder;
 
     @OneToMany(mappedBy = "daySubject", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Homework> homeworks;
@@ -31,10 +31,10 @@ public class DaySubject {
     public DaySubject() {
     }
 
-    public DaySubject(Day day, Subject subject, Long order, List<Homework> homeworks) {
+    public DaySubject(Day day, Subject subject, Long lessonOrder, List<Homework> homeworks) {
         this.day = day;
         this.subject = subject;
-        this.order = order;
+        this.lessonOrder = lessonOrder;
         this.homeworks = homeworks;
     }
 
@@ -70,12 +70,12 @@ public class DaySubject {
         this.homeworks = homeworks;
     }
 
-    public Long getOrder() {
-        return order;
+    public Long getLessonOrder() {
+        return lessonOrder;
     }
 
-    public void setOrder(Long order) {
-        this.order = order;
+    public void setLessonOrder(Long lessonOrder) {
+        this.lessonOrder = lessonOrder;
     }
 
     public Long getRoomId() {
