@@ -19,6 +19,9 @@ public class Subject {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "room")
+    private String room;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -34,9 +37,10 @@ public class Subject {
     public Subject() {
     }
 
-    public Subject(String shortName, String fullName, User user, List<Teacher> teachers) {
+    public Subject(String shortName, String fullName, String room, User user, List<Teacher> teachers) {
         this.shortName = shortName;
         this.fullName = fullName;
+        this.room = room;
         this.user = user;
         this.teachers = teachers;
     }
@@ -63,6 +67,14 @@ public class Subject {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getRoom() {
+        return room;
+    }
+
+    public void setRoom(String room) {
+        this.room = room;
     }
 
     public List<Teacher> getTeachers() {

@@ -1,31 +1,22 @@
 package org.example.isc.main.dto.scholarship;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
-import java.util.List;
 
 public class NewSubjectDTO {
 
-    @NotNull
-    @Size(max = 10)
-    private String shortName;
-
+    @NotBlank
     @Size(max = 70)
     private String fullName;
 
-    @NotNull
-    private Long userId;
+    @Size(max = 12)
+    private String shortName;
 
-    private List<Long> teacherId;
+    @Size(max = 80)
+    private String teacherName;
 
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
+    @Size(max = 40)
+    private String room;
 
     public String getFullName() {
         return fullName;
@@ -35,19 +26,27 @@ public class NewSubjectDTO {
         this.fullName = fullName;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getShortName() {
+        return shortName;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
-    public List<Long> getTeacherId() {
-        return teacherId;
+    public String getTeacherName() {
+        return teacherName;
     }
 
-    public void setTeacherId(List<Long> teacherId) {
-        this.teacherId = teacherId;
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public String getRoom() {
+        return room;
+    }
+
+    public void setRoom(String room) {
+        this.room = room;
     }
 }

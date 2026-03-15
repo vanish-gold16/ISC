@@ -27,7 +27,7 @@
 
                 <div class="setup-hero__actions">
                     <button class="btn btn--ghost" type="button" data-action="clear-week">Clear week</button>
-                    <button class="btn btn--primary" type="button">Save schedule</button>
+                    <button class="btn btn--primary" type="submit" form="schedule-setup-form" id="schedule-submit-button">Save schedule</button>
                 </div>
             </section>
 
@@ -45,9 +45,10 @@
                         </div>
                     </div>
 
-                    <form class="week-grid" method="post" action="#" id="schedule-setup-form">
+                    <form class="week-grid" method="post" th:action="@{/scholar-hub/schedule/setup}" action="/scholar-hub/schedule/setup" id="schedule-setup-form">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <input type="hidden" name="schedulePayload" id="schedulePayload" />
+                        <p class="schedule-form__error hidden" id="schedule-form-error">Add at least one subject before saving the schedule.</p>
 
                 <article class="day-column card" data-day="MONDAY">
                     <header class="day-column__head">
@@ -239,6 +240,10 @@
         const payloadInput = document.getElementById('schedulePayload');
         const template = document.getElementById('lesson-card-template');
         const clearButton = document.querySelector('[data-action="clear-week"]');
+        const scheduleForm = document.getElementById('schedule-setup-form');
+        const scheduleSubmitButton = document.getElementById('schedule-submit-button');
+        const scheduleFormError = document.getElementById('schedule-form-error');
+        const csrfInput = scheduleForm ? scheduleForm.querySelector('input[name="_csrf"]') : null;
         const subjectModal = document.getElementById('subject-modal');
         const subjectSearchInput = document.getElementById('subject-search-input');
         const subjectResults = document.getElementById('subject-results');
@@ -252,19 +257,30 @@
         const closeModalTriggers = Array.from(document.querySelectorAll('[data-close-subject-modal]'));
         let activeSlot = null;
         let draggedCard = null;
-        const subjectLibrary = [];
+        let currentSubjectResults = [];
+        let subjectSearchAbortController = null;
 
         function normalizeSubjectName(value) {
             return String(value || '').trim().replace(/\s+/g, ' ');
         }
 
+        function hasAtLeastOneSubject() {
+            return Array.from(document.querySelectorAll('.subject-card')).some((card) => {
+                return normalizeSubjectName(card.dataset.subjectName).length > 0;
+            });
+        }
+
         function buildSubjectColor(name) {
             const normalized = normalizeSubjectName(name).toLowerCase();
-            const existing = subjectLibrary.find((item) => item.name.toLowerCase() === normalized);
+            const existing = currentSubjectResults.find((item) => normalizeSubjectName(item.name).toLowerCase() === normalized);
             if (existing) {
                 return existing.color;
             }
             return 'subject-card--math';
+        }
+
+        function getCsrfToken() {
+            return csrfInput ? csrfInput.value : '';
         }
 
         function openCreatePanel(subjectName) {
@@ -297,6 +313,7 @@
             subjectModal.classList.add('hidden');
             subjectModal.setAttribute('aria-hidden', 'true');
             closeCreatePanel();
+            currentSubjectResults = [];
         }
 
         function insertSubjectIntoActiveSlot(subjectData) {
@@ -319,7 +336,7 @@
                 subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
                 return;
             }
-            const items = subjectLibrary.filter((item) => item.name.toLowerCase().includes(normalizedQuery));
+            const items = currentSubjectResults;
             subjectResults.innerHTML = '';
 
             const createButton = document.createElement('button');
@@ -337,7 +354,13 @@
                 button.className = 'subject-result';
                 button.innerHTML = '<span>Use existing</span><strong>' + item.name + '</strong>';
                 button.addEventListener('click', () => {
-                    insertSubjectIntoActiveSlot(item);
+                    insertSubjectIntoActiveSlot({
+                        name: item.name,
+                        shortName: item.shortName,
+                        teacher: item.teacherName,
+                        room: item.room,
+                        color: buildSubjectColor(item.name)
+                    });
                 });
                 subjectResults.appendChild(button);
             });
@@ -402,6 +425,44 @@
                 })
             }));
             payloadInput.value = JSON.stringify(payload);
+        }
+
+        async function loadSubjectResults(query) {
+            const normalizedQuery = normalizeSubjectName(query);
+            if (!normalizedQuery) {
+                currentSubjectResults = [];
+                renderSubjectResults('');
+                return;
+            }
+
+            if (subjectSearchAbortController) {
+                subjectSearchAbortController.abort();
+            }
+
+            subjectSearchAbortController = new AbortController();
+
+            try {
+                const response = await fetch('/scholar-hub/subjects?query=' + encodeURIComponent(normalizedQuery), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    signal: subjectSearchAbortController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error('Search failed with status ' + response.status);
+                }
+
+                currentSubjectResults = await response.json();
+                renderSubjectResults(normalizedQuery);
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                currentSubjectResults = [];
+                subjectResults.innerHTML = '<p class="subject-modal__empty muted">Could not load your subjects right now.</p>';
+            }
         }
 
         slots.forEach((slot) => {
@@ -469,7 +530,7 @@
 
         subjectSearchInput.addEventListener('input', () => {
             closeCreatePanel();
-            renderSubjectResults(subjectSearchInput.value);
+            loadSubjectResults(subjectSearchInput.value);
         });
 
         subjectCreateCancel.addEventListener('click', () => {
@@ -477,11 +538,11 @@
             window.setTimeout(() => subjectSearchInput.focus(), 0);
         });
 
-        subjectCreateSave.addEventListener('click', () => {
+        subjectCreateSave.addEventListener('click', async () => {
             const name = normalizeSubjectName(subjectCreateName.value || subjectSearchInput.value);
             if (!name) return;
 
-            const newSubject = {
+            const draftSubject = {
                 name,
                 shortName: normalizeSubjectName(subjectCreateShortName.value) || name.slice(0, 12),
                 teacher: normalizeSubjectName(subjectCreateTeacher.value),
@@ -489,19 +550,76 @@
                 color: buildSubjectColor(name)
             };
 
-            const exists = subjectLibrary.some((item) => item.name.toLowerCase() === name.toLowerCase());
-            if (!exists) {
-                subjectLibrary.unshift(newSubject);
-            }
+            subjectCreateSave.disabled = true;
+            subjectCreateSave.textContent = 'Saving...';
 
-            insertSubjectIntoActiveSlot(newSubject);
+            try {
+                const response = await fetch('/scholar-hub/subjects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        fullName: draftSubject.name,
+                        shortName: draftSubject.shortName,
+                        teacherName: draftSubject.teacher,
+                        room: draftSubject.room
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Create failed with status ' + response.status);
+                }
+
+                const savedSubject = await response.json();
+                insertSubjectIntoActiveSlot({
+                    name: savedSubject.name,
+                    shortName: savedSubject.shortName,
+                    teacher: savedSubject.teacherName,
+                    room: savedSubject.room,
+                    color: buildSubjectColor(savedSubject.name)
+                });
+            } catch (error) {
+                subjectResults.innerHTML = '<p class="subject-modal__empty muted">Could not save the subject right now.</p>';
+            } finally {
+                subjectCreateSave.disabled = false;
+                subjectCreateSave.textContent = 'Add subject';
+            }
         });
 
         if (clearButton) {
             clearButton.addEventListener('click', () => {
                 slots.forEach((slot) => createEmptyState(slot));
                 activeSlot = null;
+                if (scheduleFormError) {
+                    scheduleFormError.classList.add('hidden');
+                }
                 syncPayload();
+            });
+        }
+
+        if (scheduleForm) {
+            scheduleForm.addEventListener('submit', (event) => {
+                syncPayload();
+
+                if (!hasAtLeastOneSubject()) {
+                    event.preventDefault();
+                    if (scheduleFormError) {
+                        scheduleFormError.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                if (scheduleFormError) {
+                    scheduleFormError.classList.add('hidden');
+                }
+
+                if (scheduleSubmitButton) {
+                    scheduleSubmitButton.disabled = true;
+                    scheduleSubmitButton.textContent = 'Saving...';
+                }
             });
         }
 

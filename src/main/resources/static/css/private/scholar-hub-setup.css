@@ -17,13 +17,12 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 
+.hidden { display: none !important; }
+
 body {
     margin: 0;
     color: var(--text);
-    background:
-        radial-gradient(circle at top left, rgba(142, 195, 255, 0.45), transparent 28%),
-        radial-gradient(circle at right, rgba(255, 223, 177, 0.34), transparent 24%),
-        linear-gradient(180deg, #eef5ff 0%, #f8fbff 40%, #f3f7ff 100%);
+    background: linear-gradient(180deg, #eef5ff 0%, #f7faff 46%, #f3f7ff 100%);
     font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
     overflow-x: clip;
 }
@@ -243,6 +242,18 @@ body {
     gap: 12px;
     align-items: start;
     min-width: 0;
+}
+
+.schedule-form__hint,
+.schedule-form__error {
+    margin: 0 0 2px;
+    padding: 0 6px;
+    font-size: 13px;
+}
+
+.schedule-form__error {
+    color: #c2410c;
+    font-weight: 700;
 }
 
 .day-column {

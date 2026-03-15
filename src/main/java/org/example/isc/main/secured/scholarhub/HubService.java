@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.scholarhub;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.example.isc.main.dto.scholarship.NewDayForm;
 import org.example.isc.main.dto.scholarship.NewLessonRequest;
@@ -9,15 +10,14 @@ import org.example.isc.main.secured.models.scholarship.Day;
 import org.example.isc.main.secured.models.scholarship.DaySubject;
 import org.example.isc.main.secured.models.scholarship.Schedule;
 import org.example.isc.main.secured.models.scholarship.Subject;
+import org.example.isc.main.secured.models.scholarship.Teacher;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
-import org.springframework.http.ResponseEntity;
+import org.example.isc.main.secured.repositories.scholarhub.TeachersRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +26,16 @@ import java.util.List;
 public class HubService {
 
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final SchedulesRepository schedulesRepository;
     private final SubjectsRepository subjectsRepository;
+    private final TeachersRepository teachersRepository;
 
-    public HubService(UserRepository userRepository, ObjectMapper objectMapper, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository) {
+    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository) {
         this.userRepository = userRepository;
-        this.objectMapper = objectMapper;
         this.schedulesRepository = schedulesRepository;
         this.subjectsRepository = subjectsRepository;
+        this.teachersRepository = teachersRepository;
     }
 
     @Transactional
@@ -72,14 +73,28 @@ public class HubService {
                                 Subject newSubject = new Subject();
                                 newSubject.setUser(me);
                                 newSubject.setFullName(subjectName);
-                                newSubject.setShortName(buildShortName(subjectName));
+                                newSubject.setShortName(resolveShortName(lessonForm, subjectName));
+                                newSubject.setRoom(normalize(lessonForm.getRoom()));
+                                newSubject.setTeachers(resolveTeachers(lessonForm));
                                 return subjectsRepository.save(newSubject);
                             });
+
+                    if (normalize(lessonForm.getShortName()) != null) {
+                        subject.setShortName(resolveShortName(lessonForm, subjectName));
+                    }
+                    if (normalize(lessonForm.getRoom()) != null) {
+                        subject.setRoom(normalize(lessonForm.getRoom()));
+                    }
+                    if (normalize(lessonForm.getTeacher()) != null) {
+                        subject.setTeachers(resolveTeachers(lessonForm));
+                    }
+                    subject = subjectsRepository.save(subject);
 
                     DaySubject lesson = new DaySubject();
                     lesson.setDay(day);
                     lesson.setSubject(subject);
                     lesson.setLessonOrder(lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null);
+                    lesson.setRoom(normalize(lessonForm.getRoom()));
 
                     lessons.add(lesson);
                 }
@@ -93,10 +108,14 @@ public class HubService {
     }
 
     private NewScheduleForm parsePayload(String schedulePayload){
-        return objectMapper.readValue(
-                "{\"days\":" + schedulePayload + "}",
-                NewScheduleForm.class
-        );
+        try {
+            return objectMapper.readValue(
+                    "{\"days\":" + schedulePayload + "}",
+                    NewScheduleForm.class
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid schedule payload", e);
+        }
     }
 
     private String normalize(String value){
@@ -107,7 +126,29 @@ public class HubService {
 
     private String buildShortName(String fullName){
         String trimmed = fullName.trim();
-        return trimmed.length() <= 10 ? trimmed : trimmed.substring(0, 10);
+        return trimmed.length() <= 12 ? trimmed : trimmed.substring(0, 12);
+    }
+
+    private String resolveShortName(NewLessonRequest lessonForm, String subjectName) {
+        String shortName = normalize(lessonForm.getShortName());
+        return shortName != null ? shortName : buildShortName(subjectName);
+    }
+
+    private List<Teacher> resolveTeachers(NewLessonRequest lessonForm) {
+        String teacherName = normalize(lessonForm.getTeacher());
+        if (teacherName == null) {
+            return new ArrayList<>();
+        }
+
+        Teacher teacher = teachersRepository.findByFullNameIgnoreCase(teacherName)
+                .orElseGet(() -> {
+                    Teacher newTeacher = new Teacher();
+                    newTeacher.setFullName(teacherName);
+                    newTeacher.setSubjects(new ArrayList<>());
+                    return teachersRepository.save(newTeacher);
+                });
+
+        return List.of(teacher);
     }
 
 }

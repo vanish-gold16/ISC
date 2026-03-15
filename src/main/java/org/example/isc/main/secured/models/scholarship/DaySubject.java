@@ -26,7 +26,7 @@ public class DaySubject {
     private List<Homework> homeworks;
 
     @Column(name = "room")
-    private Long roomId;
+    private String room;
 
     public DaySubject() {
     }
@@ -78,11 +78,11 @@ public class DaySubject {
         this.lessonOrder = lessonOrder;
     }
 
-    public Long getRoomId() {
-        return roomId;
+    public String getRoom() {
+        return room;
     }
 
-    public void setRoomId(Long roomId) {
-        this.roomId = roomId;
+    public void setRoom(String room) {
+        this.room = room;
     }
 }

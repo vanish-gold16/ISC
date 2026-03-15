@@ -7,6 +7,9 @@ public class NewLessonRequest {
 
     private Integer lessonOrder;
     private String subjectName;
+    private String shortName;
+    private String teacher;
+    private String room;
 
     public Integer getLessonOrder() {
         return lessonOrder;
@@ -22,5 +25,29 @@ public class NewLessonRequest {
 
     public void setSubjectName(String subjectName) {
         this.subjectName = subjectName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(String teacher) {
+        this.teacher = teacher;
+    }
+
+    public String getRoom() {
+        return room;
+    }
+
+    public void setRoom(String room) {
+        this.room = room;
     }
 }
