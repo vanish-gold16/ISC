@@ -219,11 +219,6 @@
                     </label>
 
                     <label class="subject-modal__field">
-                        <span>Class</span>
-                        <input class="input" id="subject-create-class" type="text" placeholder="10A / CS-101" />
-                    </label>
-
-                    <label class="subject-modal__field">
                         <span>Room</span>
                         <input class="input" id="subject-create-room" type="text" placeholder="B-12 / Lab-2" />
                     </label>
@@ -251,7 +246,6 @@
         const subjectCreateName = document.getElementById('subject-create-name');
         const subjectCreateShortName = document.getElementById('subject-create-short-name');
         const subjectCreateTeacher = document.getElementById('subject-create-teacher');
-        const subjectCreateClass = document.getElementById('subject-create-class');
         const subjectCreateRoom = document.getElementById('subject-create-room');
         const subjectCreateCancel = document.getElementById('subject-create-cancel');
         const subjectCreateSave = document.getElementById('subject-create-save');
@@ -280,7 +274,6 @@
             subjectCreateName.value = normalizedName;
             subjectCreateShortName.value = normalizedName ? normalizedName.slice(0, 12) : '';
             subjectCreateTeacher.value = '';
-            subjectCreateClass.value = '';
             subjectCreateRoom.value = '';
             window.setTimeout(() => subjectCreateShortName.focus(), 0);
         }
@@ -313,7 +306,6 @@
                 shortName: subjectData.shortName,
                 teacher: subjectData.teacher,
                 room: subjectData.room,
-                classGroup: subjectData.classGroup,
                 color: subjectData.color || buildSubjectColor(subjectData.name)
             });
             activeSlot.classList.remove('lesson-slot--selected');
@@ -376,9 +368,8 @@
             card.dataset.shortName = data.shortName || data.name;
             card.dataset.teacher = data.teacher || '';
             card.dataset.room = data.room || '';
-            card.dataset.classGroup = data.classGroup || '';
             card.querySelector('.subject-card__name').textContent = data.name;
-            card.querySelector('.subject-card__teacher').textContent = data.teacher || data.classGroup || 'Custom subject';
+            card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Custom subject';
             card.querySelector('.subject-card__room').textContent = data.room || data.shortName || 'No room';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
             slot.innerHTML = '';
@@ -398,8 +389,7 @@
                             subjectName: null,
                             teacher: null,
                             room: null,
-                            shortName: null,
-                            classGroup: null
+                            shortName: null
                         };
                     }
                     return {
@@ -407,8 +397,7 @@
                         subjectName: card.dataset.subjectName,
                         teacher: card.dataset.teacher,
                         room: card.dataset.room,
-                        shortName: card.dataset.shortName,
-                        classGroup: card.dataset.classGroup
+                        shortName: card.dataset.shortName
                     };
                 })
             }));
@@ -496,7 +485,6 @@
                 name,
                 shortName: normalizeSubjectName(subjectCreateShortName.value) || name.slice(0, 12),
                 teacher: normalizeSubjectName(subjectCreateTeacher.value),
-                classGroup: normalizeSubjectName(subjectCreateClass.value),
                 room: normalizeSubjectName(subjectCreateRoom.value),
                 color: buildSubjectColor(name)
             };
