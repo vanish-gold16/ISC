@@ -13,6 +13,9 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "short_name", nullable = false)
     private String shortName;
 
@@ -38,6 +41,7 @@ public class Subject {
     }
 
     public Subject(String shortName, String fullName, String room, User user, List<Teacher> teachers) {
+        this.name = fullName;
         this.shortName = shortName;
         this.fullName = fullName;
         this.room = room;
@@ -53,6 +57,17 @@ public class Subject {
         this.id = id;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        if (this.fullName == null || this.fullName.isBlank()) {
+            this.fullName = name;
+        }
+    }
+
     public String getShortName() {
         return shortName;
     }
@@ -62,11 +77,12 @@ public class Subject {
     }
 
     public String getFullName() {
-        return fullName;
+        return fullName != null ? fullName : name;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+        this.name = fullName;
     }
 
     public String getRoom() {
@@ -91,5 +107,16 @@ public class Subject {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    @PrePersist
+    @PreUpdate
+    void syncLegacyName() {
+        if ((name == null || name.isBlank()) && fullName != null && !fullName.isBlank()) {
+            name = fullName;
+        }
+        if ((fullName == null || fullName.isBlank()) && name != null && !name.isBlank()) {
+            fullName = name;
+        }
     }
 }

@@ -46,7 +46,7 @@ public class SubjectApiController {
         String normalizedQuery = normalize(query);
         List<Subject> subjects = normalizedQuery == null
                 ? List.of()
-                : subjectsRepository.findByUserAndFullNameContainingIgnoreCaseOrderByFullNameAsc(me, normalizedQuery);
+                : subjectsRepository.searchByUserAndResolvedName(me, normalizedQuery);
 
         return ResponseEntity.ok(subjects.stream().map(this::toOption).toList());
     }
@@ -64,7 +64,7 @@ public class SubjectApiController {
             throw new IllegalArgumentException("Subject full name is required");
         }
 
-        Subject subject = subjectsRepository.findByUserAndFullNameIgnoreCase(me, fullName)
+        Subject subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, fullName)
                 .orElseGet(() -> {
                     Subject newSubject = new Subject();
                     newSubject.setUser(me);

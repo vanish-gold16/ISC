@@ -68,7 +68,7 @@ public class HubService {
                     String subjectName = normalize(lessonForm.getSubjectName());
                     if(subjectName == null) continue;
 
-                    Subject subject = subjectsRepository.findByUserAndFullNameIgnoreCase(me, subjectName)
+                    Subject subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, subjectName)
                             .orElseGet(() -> {
                                 Subject newSubject = new Subject();
                                 newSubject.setUser(me);

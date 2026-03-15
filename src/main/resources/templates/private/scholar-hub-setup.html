@@ -392,8 +392,8 @@
             card.dataset.teacher = data.teacher || '';
             card.dataset.room = data.room || '';
             card.querySelector('.subject-card__name').textContent = data.name;
-            card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Custom subject';
-            card.querySelector('.subject-card__room').textContent = data.room || data.shortName || 'No room';
+            card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Teacher not set';
+            card.querySelector('.subject-card__room').textContent = data.room || 'Room not set';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
             slot.innerHTML = '';
             slot.appendChild(fragment);
