@@ -9,6 +9,39 @@ CREATE TABLE IF NOT EXISTS schedules (
 DO $$
 DECLARE
     constraint_name TEXT;
+    day_attnum INT;
+BEGIN
+    IF to_regclass('public.day_subject') IS NULL THEN
+        RETURN;
+    END IF;
+
+    SELECT attnum INTO day_attnum
+    FROM pg_attribute
+    WHERE attrelid = 'day_subject'::regclass
+      AND attname = 'day'
+      AND NOT attisdropped;
+
+    IF day_attnum IS NULL THEN
+        RETURN;
+    END IF;
+
+    FOR constraint_name IN
+        SELECT conname
+        FROM pg_constraint
+        WHERE conrelid = 'day_subject'::regclass
+          AND contype = 'u'
+          AND array_length(conkey, 1) = 1
+          AND conkey[1] = day_attnum
+    LOOP
+        EXECUTE format('ALTER TABLE day_subject DROP CONSTRAINT %I', constraint_name);
+    END LOOP;
+END;
+$$;
+@@
+
+DO $$
+DECLARE
+    constraint_name TEXT;
     sender_attnum INT;
 BEGIN
     SELECT attnum INTO sender_attnum
