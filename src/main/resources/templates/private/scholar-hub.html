@@ -15,19 +15,6 @@
 <main class="container setup-page">
     <div class="setup-shell">
         <section class="setup-main">
-            <section class="setup-hero">
-                <div>
-                    <p class="setup-hero__eyebrow">ScholarHub</p>
-                    <h1>Your weekly schedule</h1>
-                    <p class="muted setup-hero__text">
-                        Compact preview in the center. Click it to open the full schedule without leaving the page.
-                    </p>
-                </div>
-                <div class="setup-hero__actions">
-                    <a class="btn btn--ghost" th:href="@{/scholar-hub/schedule/setup}">Edit schedule</a>
-                </div>
-            </section>
-
             <section class="setup-layout">
                 <div class="hub-preview-stage">
                     <a class="hub-preview-card" id="schedule-preview" th:href="@{/scholar-hub/schedule}" href="/scholar-hub/schedule" aria-label="Open full schedule">
@@ -42,21 +29,15 @@
                             </div>
                         </div>
 
-                        <div class="hub-timetable">
-                            <div class="hub-timetable__corner"></div>
-
-                            <th:block th:each="day : ${schedule.days}">
-                                <div class="hub-timetable__day-head">
+                        <div class="hub-timetable hub-timetable--rows">
+                            <article class="hub-timetable__day-row" th:each="day : ${schedule.days}">
+                                <header class="hub-timetable__day-label">
                                     <p class="hub-timetable__day-short" th:text="${day.shortLabel}">Mon</p>
                                     <h3 th:text="${day.label}">Monday</h3>
-                                </div>
-                            </th:block>
+                                </header>
 
-                            <th:block th:each="slotNumber : ${#numbers.sequence(1, schedule.maxLessonSlots)}">
-                                <div class="hub-timetable__slot-head" th:text="${slotNumber}">1</div>
-
-                                <th:block th:each="day : ${schedule.days}">
-                                    <th:block th:with="lesson=${day.lessons[slotNumber - 1]}">
+                                <div class="hub-timetable__day-track">
+                                    <th:block th:each="lesson : ${day.lessons}">
                                         <div class="hub-timetable__cell hub-timetable__cell--empty"
                                              th:if="${lesson.empty}"></div>
 
@@ -64,6 +45,8 @@
                                              th:if="${!lesson.empty}"
                                              th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}">
                                             <div class="hub-timetable__cell-top">
+                                                <span class="hub-timetable__order"
+                                                      th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
                                                 <span class="hub-timetable__room"
                                                       th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
                                             </div>
@@ -73,8 +56,8 @@
                                                th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher'}">Teacher</p>
                                         </div>
                                     </th:block>
-                                </th:block>
-                            </th:block>
+                                </div>
+                            </article>
                         </div>
                     </a>
                 </div>
