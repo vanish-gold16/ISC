@@ -114,14 +114,18 @@ public class HubService {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        Schedule schedule = schedulesRepository.findDetailedByUser(me);
+        Schedule schedule = schedulesRepository.findByUser(me);
         if(schedule == null) return null;
 
-        List<ScheduleDayView> days = schedule.getDays().stream()
+        List<Day> scheduleDays = schedule.getDays() == null ? List.of() : schedule.getDays();
+
+        List<ScheduleDayView> days = scheduleDays.stream()
                 .filter(day -> day.getDayOfWeek() != null)
                 .sorted(Comparator.comparing(day -> day.getDayOfWeek().getValue()))
                 .map(day -> {
-                    List<ScheduleLessonView> allLessons = day.getLessons().stream()
+                    List<DaySubject> dayLessons = day.getLessons() == null ? List.of() : day.getLessons();
+
+                    List<ScheduleLessonView> allLessons = dayLessons.stream()
                             .filter(lesson -> lesson.getSubject() != null)
                             .sorted(Comparator.comparing(DaySubject::getLessonOrder, Comparator.nullsLast(Long::compareTo)))
                             .map(lesson -> {

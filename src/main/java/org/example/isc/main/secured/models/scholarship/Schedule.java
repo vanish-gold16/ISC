@@ -1,10 +1,10 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import org.example.isc.main.secured.models.users.User;
 
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name = "schedules")
@@ -19,6 +19,7 @@ public class Schedule {
     private User user;
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 32)
     private List<Day> days;
 
     // subject - day - schedule - class - school

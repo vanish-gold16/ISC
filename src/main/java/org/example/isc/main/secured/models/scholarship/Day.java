@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.DayOfWeek;
 import java.util.List;
@@ -22,6 +23,7 @@ public class Day {
     private DayOfWeek dayOfWeek;
 
     @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 32)
     private List<DaySubject> lessons;
 
     public Day() {

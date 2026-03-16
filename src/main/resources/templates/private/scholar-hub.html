@@ -42,37 +42,32 @@
                     </div>
 
                     <div class="week-grid">
-                        <article class="day-column card" th:each="day : ${schedule.days}" th:if="${day.dayOfWeek != null}">
+                        <article class="day-column card" th:each="day : ${schedule.days}">
                             <header class="day-column__head">
                                 <div>
-                                    <p class="day-column__label"
-                                       th:text="${#strings.substring(day.dayOfWeek.name(), 0, 3)}">MON</p>
-                                    <h3 th:text="${#strings.capitalize(#strings.toLowerCase(day.dayOfWeek.name()))}">Monday</h3>
+                                    <p class="day-column__label" th:text="${day.shortLabel}">MON</p>
+                                    <h3 th:text="${day.label}">Monday</h3>
                                 </div>
-                                <span class="day-column__count"
-                                      th:text="${day.lessons != null ? #lists.size(day.lessons) + ' lessons' : '0 lessons'}">0 lessons</span>
+                                <span class="day-column__count" th:text="${day.lessonCount} + ' lessons'">0 lessons</span>
                             </header>
 
                             <div class="day-column__slots">
                                 <div class="lesson-slot lesson-slot--filled"
-                                     th:each="lesson, lessonStat : ${day.lessons}"
-                                     th:if="${lessonStat.index < 4 and lesson.subject != null}">
+                                     th:each="lesson : ${day.lessons}">
                                     <article class="subject-card"
-                                             th:with="teacherName=${lesson.subject.teachers != null and !#lists.isEmpty(lesson.subject.teachers) ? lesson.subject.teachers[0].fullName : null},
-                                                      lessonRoom=${lesson.room != null ? lesson.room : lesson.subject.room}"
-                                             th:style="${lesson.subject.color != null ? '--subject-accent:' + lesson.subject.color : ''}"
+                                             th:style="${lesson.color != null ? '--subject-accent:' + lesson.color : ''}"
                                              draggable="false">
                                         <div class="subject-card__top">
                                             <span class="subject-card__drag"
                                                   th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
                                         </div>
                                         <div class="subject-card__content">
-                                            <p class="subject-card__name" th:text="${lesson.subject.fullName}">Subject</p>
+                                            <p class="subject-card__name" th:text="${lesson.subjectName}">Subject</p>
                                             <p class="subject-card__teacher"
-                                               th:text="${teacherName != null ? teacherName : 'Teacher not set'}">Teacher</p>
+                                               th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher not set'}">Teacher</p>
                                             <div class="subject-card__footer">
-                                                <span th:text="${lessonRoom != null ? lessonRoom : 'Room not set'}">Room</span>
-                                                <span th:text="${lesson.subject.shortName != null ? lesson.subject.shortName : lesson.subject.fullName}">Short</span>
+                                                <span th:text="${lesson.room != null ? lesson.room : 'Room not set'}">Room</span>
+                                                <span th:text="${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">Short</span>
                                             </div>
                                         </div>
                                     </article>
@@ -85,11 +80,9 @@
                                     </div>
                                 </div>
 
-                                <div class="lesson-slot"
-                                     th:if="${day.lessons != null and #lists.size(day.lessons) > 4}">
+                                <div class="lesson-slot" th:if="${day.hiddenLessonCount > 0}">
                                     <div class="slot-create">
-                                        <span class="slot-create__plus"
-                                              th:text="${'+' + (#lists.size(day.lessons) - 4)}">+1</span>
+                                        <span class="slot-create__plus" th:text="${'+' + day.hiddenLessonCount}">+1</span>
                                         <span class="slot-create__text">more lessons</span>
                                     </div>
                                 </div>
@@ -131,37 +124,31 @@
             </div>
 
             <div class="week-grid">
-                <article class="day-column card" th:each="day : ${schedule.days}" th:if="${day.dayOfWeek != null}">
+                <article class="day-column card" th:each="day : ${schedule.days}">
                     <header class="day-column__head">
                         <div>
-                            <p class="day-column__label"
-                               th:text="${#strings.substring(day.dayOfWeek.name(), 0, 3)}">MON</p>
-                            <h3 th:text="${#strings.capitalize(#strings.toLowerCase(day.dayOfWeek.name()))}">Monday</h3>
+                            <p class="day-column__label" th:text="${day.shortLabel}">MON</p>
+                            <h3 th:text="${day.label}">Monday</h3>
                         </div>
-                        <span class="day-column__count"
-                              th:text="${day.lessons != null ? #lists.size(day.lessons) + ' lessons' : '0 lessons'}">0 lessons</span>
+                        <span class="day-column__count" th:text="${day.lessonCount} + ' lessons'">0 lessons</span>
                     </header>
 
                     <div class="day-column__slots">
-                        <div class="lesson-slot lesson-slot--filled"
-                             th:each="lesson : ${day.lessons}"
-                             th:if="${lesson.subject != null}">
+                        <div class="lesson-slot lesson-slot--filled" th:each="lesson : ${day.lessons}">
                             <article class="subject-card"
-                                     th:with="teacherName=${lesson.subject.teachers != null and !#lists.isEmpty(lesson.subject.teachers) ? lesson.subject.teachers[0].fullName : null},
-                                              lessonRoom=${lesson.room != null ? lesson.room : lesson.subject.room}"
-                                     th:style="${lesson.subject.color != null ? '--subject-accent:' + lesson.subject.color : ''}"
+                                     th:style="${lesson.color != null ? '--subject-accent:' + lesson.color : ''}"
                                      draggable="false">
                                 <div class="subject-card__top">
                                     <span class="subject-card__drag"
                                           th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
                                 </div>
                                 <div class="subject-card__content">
-                                    <p class="subject-card__name" th:text="${lesson.subject.fullName}">Subject</p>
+                                    <p class="subject-card__name" th:text="${lesson.subjectName}">Subject</p>
                                     <p class="subject-card__teacher"
-                                       th:text="${teacherName != null ? teacherName : 'Teacher not set'}">Teacher</p>
+                                       th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher not set'}">Teacher</p>
                                     <div class="subject-card__footer">
-                                        <span th:text="${lessonRoom != null ? lessonRoom : 'Room not set'}">Room</span>
-                                        <span th:text="${lesson.subject.shortName != null ? lesson.subject.shortName : lesson.subject.fullName}">Short</span>
+                                        <span th:text="${lesson.room != null ? lesson.room : 'Room not set'}">Room</span>
+                                        <span th:text="${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">Short</span>
                                     </div>
                                 </div>
                             </article>
