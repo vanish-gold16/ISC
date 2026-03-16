@@ -36,7 +36,7 @@
                                     <h3 th:text="${day.label}">Monday</h3>
                                 </header>
 
-                                <div class="hub-timetable__day-track">
+                                <div class="hub-timetable__day-track" th:style="'--slot-count:' + ${schedule.maxLessonSlots}">
                                     <th:block th:each="lesson : ${day.lessons}">
                                         <div class="hub-timetable__cell hub-timetable__cell--empty"
                                              th:if="${lesson.empty}"></div>

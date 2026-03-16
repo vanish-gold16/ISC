@@ -205,14 +205,14 @@ body {
 
 .hub-preview-stage {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    padding: 16px 0 0;
+    padding: 0;
 }
 
 .hub-preview-card {
     width: 100%;
-    max-width: 820px;
+    max-width: 100%;
     padding: 16px 16px 14px;
     border: 1px solid rgba(255, 255, 255, 0.98);
     border-radius: 32px;
@@ -233,6 +233,7 @@ body {
 
 .hub-preview-card--page {
     cursor: default;
+    max-width: 100%;
 }
 
 .hub-preview-card--page:hover {
@@ -319,29 +320,10 @@ body {
 
 .hub-timetable__day-track {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(98px, 1fr);
+    grid-template-columns: repeat(var(--slot-count), minmax(0, 1fr));
     gap: 6px;
     align-items: stretch;
     min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
-    scrollbar-color: #c9d8f3 transparent;
-}
-
-.hub-timetable__day-track::-webkit-scrollbar {
-    height: 6px;
-}
-
-.hub-timetable__day-track::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.hub-timetable__day-track::-webkit-scrollbar-thumb {
-    background: #c9d8f3;
-    border-radius: 999px;
 }
 
 .hub-timetable__cell {
@@ -411,7 +393,7 @@ body {
 }
 
 .hub-timetable--page .hub-timetable__day-track {
-    grid-auto-columns: minmax(116px, 1fr);
+    grid-template-columns: repeat(var(--slot-count), minmax(0, 1fr));
 }
 
 .hub-timetable--page .hub-timetable__cell {
@@ -1063,7 +1045,12 @@ body {
     }
 
     .hub-timetable__day-track {
-        grid-auto-columns: 94px;
+        grid-template-columns: repeat(var(--slot-count), minmax(102px, 102px));
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #c9d8f3 transparent;
     }
 }
 
@@ -1100,7 +1087,7 @@ body {
     }
 
     .hub-preview-stage {
-        padding-top: 8px;
+        padding-top: 0;
     }
 
     .hub-preview-card__meta {
@@ -1112,7 +1099,7 @@ body {
     }
 
     .hub-timetable__day-track {
-        grid-auto-columns: 88px;
+        grid-template-columns: repeat(var(--slot-count), minmax(94px, 94px));
         overflow-x: auto;
     }
 
