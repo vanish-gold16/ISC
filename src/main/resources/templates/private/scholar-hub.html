@@ -18,15 +18,85 @@
             <section class="setup-hero">
                 <div>
                     <p class="setup-hero__eyebrow">ScholarHub</p>
-                    <h1>Your schedule hub is ready for the next step</h1>
+                    <h1>Your weekly schedule</h1>
                     <p class="muted setup-hero__text">
-                        This page is currently a placeholder so the route stays stable. Next you can render the saved week,
-                        homework widgets, and quick actions for editing the timetable.
+                        Compact preview in the center. Click it to open the full schedule without leaving the page.
                     </p>
                 </div>
                 <div class="setup-hero__actions">
                     <a class="btn btn--ghost" th:href="@{/scholar-hub/schedule/setup}">Edit schedule</a>
                 </div>
+            </section>
+
+            <section class="setup-layout">
+                <section class="planner" id="schedule-preview" tabindex="0" role="button" aria-label="Open full schedule"
+                         style="cursor:pointer;">
+                    <div class="planner__toolbar card">
+                        <div>
+                            <p class="planner__eyebrow">Schedule preview</p>
+                            <h2>Tap to open full schedule</h2>
+                        </div>
+                        <div class="planner__legend">
+                            <span>Compact copy in the center</span>
+                        </div>
+                    </div>
+
+                    <div class="week-grid">
+                        <article class="day-column card" th:each="day : ${schedule.days}" th:if="${day.dayOfWeek != null}">
+                            <header class="day-column__head">
+                                <div>
+                                    <p class="day-column__label"
+                                       th:text="${#strings.substring(day.dayOfWeek.name(), 0, 3)}">MON</p>
+                                    <h3 th:text="${#strings.capitalize(#strings.toLowerCase(day.dayOfWeek.name()))}">Monday</h3>
+                                </div>
+                                <span class="day-column__count"
+                                      th:text="${day.lessons != null ? #lists.size(day.lessons) + ' lessons' : '0 lessons'}">0 lessons</span>
+                            </header>
+
+                            <div class="day-column__slots">
+                                <div class="lesson-slot lesson-slot--filled"
+                                     th:each="lesson, lessonStat : ${day.lessons}"
+                                     th:if="${lessonStat.index < 4 and lesson.subject != null}">
+                                    <article class="subject-card"
+                                             th:with="teacherName=${lesson.subject.teachers != null and !#lists.isEmpty(lesson.subject.teachers) ? lesson.subject.teachers[0].fullName : null},
+                                                      lessonRoom=${lesson.room != null ? lesson.room : lesson.subject.room}"
+                                             th:style="${lesson.subject.color != null ? '--subject-accent:' + lesson.subject.color : ''}"
+                                             draggable="false">
+                                        <div class="subject-card__top">
+                                            <span class="subject-card__drag"
+                                                  th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
+                                        </div>
+                                        <div class="subject-card__content">
+                                            <p class="subject-card__name" th:text="${lesson.subject.fullName}">Subject</p>
+                                            <p class="subject-card__teacher"
+                                               th:text="${teacherName != null ? teacherName : 'Teacher not set'}">Teacher</p>
+                                            <div class="subject-card__footer">
+                                                <span th:text="${lessonRoom != null ? lessonRoom : 'Room not set'}">Room</span>
+                                                <span th:text="${lesson.subject.shortName != null ? lesson.subject.shortName : lesson.subject.fullName}">Short</span>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+
+                                <div class="lesson-slot" th:if="${day.lessons == null or #lists.isEmpty(day.lessons)}">
+                                    <div class="slot-create">
+                                        <span class="slot-create__plus">-</span>
+                                        <span class="slot-create__text">No lessons</span>
+                                    </div>
+                                </div>
+
+                                <div class="lesson-slot"
+                                     th:if="${day.lessons != null and #lists.size(day.lessons) > 4}">
+                                    <div class="slot-create">
+                                        <span class="slot-create__plus"
+                                              th:text="${'+' + (#lists.size(day.lessons) - 4)}">+1</span>
+                                        <span class="slot-create__text">more lessons</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
             </section>
         </section>
 
@@ -34,6 +104,122 @@
     </div>
 </main>
 
+<div class="subject-modal hidden" id="schedule-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-schedule-modal></div>
+    <div class="subject-modal__dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="schedule-modal-title"
+         style="width:min(1320px,100%);max-height:calc(100vh - 32px);overflow:auto;">
+        <div class="subject-modal__head">
+            <div>
+                <p class="subject-modal__eyebrow">Full schedule</p>
+                <h3 id="schedule-modal-title">Weekly view</h3>
+            </div>
+            <button class="subject-modal__close" type="button" aria-label="Close" data-close-schedule-modal>x</button>
+        </div>
+
+        <section class="planner">
+            <div class="planner__toolbar card">
+                <div>
+                    <p class="planner__eyebrow">Full view</p>
+                    <h2>All saved lessons</h2>
+                </div>
+                <div class="planner__legend">
+                    <span>Widgets can be added later</span>
+                </div>
+            </div>
+
+            <div class="week-grid">
+                <article class="day-column card" th:each="day : ${schedule.days}" th:if="${day.dayOfWeek != null}">
+                    <header class="day-column__head">
+                        <div>
+                            <p class="day-column__label"
+                               th:text="${#strings.substring(day.dayOfWeek.name(), 0, 3)}">MON</p>
+                            <h3 th:text="${#strings.capitalize(#strings.toLowerCase(day.dayOfWeek.name()))}">Monday</h3>
+                        </div>
+                        <span class="day-column__count"
+                              th:text="${day.lessons != null ? #lists.size(day.lessons) + ' lessons' : '0 lessons'}">0 lessons</span>
+                    </header>
+
+                    <div class="day-column__slots">
+                        <div class="lesson-slot lesson-slot--filled"
+                             th:each="lesson : ${day.lessons}"
+                             th:if="${lesson.subject != null}">
+                            <article class="subject-card"
+                                     th:with="teacherName=${lesson.subject.teachers != null and !#lists.isEmpty(lesson.subject.teachers) ? lesson.subject.teachers[0].fullName : null},
+                                              lessonRoom=${lesson.room != null ? lesson.room : lesson.subject.room}"
+                                     th:style="${lesson.subject.color != null ? '--subject-accent:' + lesson.subject.color : ''}"
+                                     draggable="false">
+                                <div class="subject-card__top">
+                                    <span class="subject-card__drag"
+                                          th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
+                                </div>
+                                <div class="subject-card__content">
+                                    <p class="subject-card__name" th:text="${lesson.subject.fullName}">Subject</p>
+                                    <p class="subject-card__teacher"
+                                       th:text="${teacherName != null ? teacherName : 'Teacher not set'}">Teacher</p>
+                                    <div class="subject-card__footer">
+                                        <span th:text="${lessonRoom != null ? lessonRoom : 'Room not set'}">Room</span>
+                                        <span th:text="${lesson.subject.shortName != null ? lesson.subject.shortName : lesson.subject.fullName}">Short</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="lesson-slot" th:if="${day.lessons == null or #lists.isEmpty(day.lessons)}">
+                            <div class="slot-create">
+                                <span class="slot-create__plus">-</span>
+                                <span class="slot-create__text">No lessons</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</div>
+
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+
+<script>
+    (function () {
+        const preview = document.getElementById('schedule-preview');
+        const modal = document.getElementById('schedule-modal');
+        const closeTriggers = Array.from(document.querySelectorAll('[data-close-schedule-modal]'));
+
+        if (!preview || !modal) {
+            return;
+        }
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        preview.addEventListener('click', openModal);
+        preview.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openModal();
+            }
+        });
+
+        closeTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    })();
+</script>
 </body>
 </html>
