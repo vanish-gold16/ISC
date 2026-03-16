@@ -3,6 +3,7 @@ package org.example.isc.main.secured.models.scholarship;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.example.isc.main.secured.models.users.User;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class Subject {
             joinColumns = @JoinColumn(name = "subject_id"),
             inverseJoinColumns = @JoinColumn(name = "teacher_id")
     )
+    @BatchSize(size = 32)
     private List<Teacher> teachers;
 
     public Subject() {

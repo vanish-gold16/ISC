@@ -3,6 +3,9 @@ package org.example.isc.main.secured.scholarhub;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.example.isc.main.dto.messenger.ScheduleDayView;
+import org.example.isc.main.dto.messenger.ScheduleLessonView;
+import org.example.isc.main.dto.messenger.ScheduleView;
 import org.example.isc.main.dto.scholarship.NewDayForm;
 import org.example.isc.main.dto.scholarship.NewLessonRequest;
 import org.example.isc.main.dto.scholarship.NewScheduleForm;
@@ -19,7 +22,9 @@ import org.example.isc.main.secured.repositories.scholarhub.TeachersRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,6 +109,57 @@ public class HubService {
         return schedulesRepository.save(schedule);
     }
 
+    @Transactional
+    public ScheduleView getScheduleForHub(Authentication authentication, int previewLimitPerDay){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Schedule schedule = schedulesRepository.findDetailedByUser(me);
+        if(schedule == null) return null;
+
+        List<ScheduleDayView> days = schedule.getDays().stream()
+                .filter(day -> day.getDayOfWeek() != null)
+                .sorted(Comparator.comparing(day -> day.getDayOfWeek().getValue()))
+                .map(day -> {
+                    List<ScheduleLessonView> allLessons = day.getLessons().stream()
+                            .filter(lesson -> lesson.getSubject() != null)
+                            .sorted(Comparator.comparing(DaySubject::getLessonOrder, Comparator.nullsLast(Long::compareTo)))
+                            .map(lesson -> {
+                                Subject subject = lesson.getSubject();
+                                String teacherName = subject.getTeachers() == null || subject.getTeachers().isEmpty()
+                                        ? null
+                                        : subject.getTeachers().get(0).getFullName();
+
+                                return new ScheduleLessonView(
+                                        lesson.getLessonOrder(),
+                                        subject.getFullName(),
+                                        subject.getShortName(),
+                                        teacherName,
+                                        lesson.getRoom() != null ? lesson.getRoom() : subject.getRoom(),
+                                        subject.getColor()
+                                );
+                            })
+                            .toList();
+
+                List<ScheduleLessonView> previewLessons = allLessons.stream()
+                        .limit(previewLimitPerDay)
+                        .toList();
+
+                return new ScheduleDayView(
+                        day.getDayOfWeek().name(),
+                        toLabel(day.getDayOfWeek()),
+                        toShortLabel(day.getDayOfWeek()),
+                        allLessons.size(),
+                        Math.max(allLessons.size() - previewLessons.size(), 0),
+                        previewLessons
+                );
+        }).toList();
+
+        int totalLessons = days.stream().mapToInt(ScheduleDayView::lessonCount).sum();
+        return new ScheduleView(totalLessons, days);
+    }
+
+
     private NewScheduleForm parsePayload(String schedulePayload){
         try {
             return objectMapper.readValue(
@@ -154,6 +210,63 @@ public class HubService {
         List<Teacher> teachers = new ArrayList<>();
         teachers.add(teacher);
         return teachers;
+    }
+
+    private String toShortLabel(DayOfWeek day) {
+        String shorten = "";
+        switch(day){
+            case MONDAY:
+                shorten = "Mon";
+                break;
+            case TUESDAY:
+                shorten = "Tue";
+                break;
+            case WEDNESDAY:
+                shorten = "Wed";
+                break;
+            case THURSDAY:
+                shorten = "Thu";
+                break;
+            case FRIDAY:
+                shorten = "Fri";
+                break;
+            case SATURDAY:
+                shorten = "Sat";
+                break;
+            case SUNDAY:
+                shorten = "Sun";
+                break;
+        }
+
+        return shorten;
+    }
+
+    private String toLabel(DayOfWeek day) {
+        String label = "";
+        switch (day){
+            case MONDAY:
+                label = "Monday";
+                break;
+            case TUESDAY:
+                label = "Tuesday";
+                break;
+            case WEDNESDAY:
+                label = "Wednesday";
+                break;
+            case THURSDAY:
+                label = "Thursday";
+                break;
+            case FRIDAY:
+                label = "Friday";
+                break;
+            case SATURDAY:
+                label = "Saturday";
+                break;
+            case SUNDAY:
+                label = "Sunday";
+                break;
+        }
+        return label;
     }
 
 }

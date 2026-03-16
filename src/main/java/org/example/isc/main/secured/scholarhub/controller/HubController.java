@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.scholarhub.controller;
 
+import org.example.isc.main.dto.messenger.ScheduleView;
 import org.example.isc.main.secured.models.scholarship.Schedule;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -34,11 +35,8 @@ public class HubController {
     ) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-        Schedule currentSchedule = schedulesRepository.findByUser(me);
-
-        if (currentSchedule == null) {
-            return "redirect:/scholar-hub/schedule/setup";
-        }
+        ScheduleView currentSchedule = hubService.getScheduleForHub(authentication, 8);
+        if (currentSchedule == null) return "redirect:/scholar-hub/schedule/setup";
 
         model.addAttribute("title", "ScholarHub");
         model.addAttribute("user", me);
