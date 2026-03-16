@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
 
-    <title th:text="${title} ?: 'ISC | ScholarHub'">ISC | ScholarHub</title>
+    <title th:text="${title} ?: 'ISC | ScholarHub schedule'">ISC | ScholarHub schedule</title>
 
     <link rel="stylesheet" href="/css/private/scholar-hub-setup.css" />
 </head>
@@ -18,31 +18,31 @@
             <section class="setup-hero">
                 <div>
                     <p class="setup-hero__eyebrow">ScholarHub</p>
-                    <h1>Your weekly schedule</h1>
+                    <h1>Full schedule</h1>
                     <p class="muted setup-hero__text">
-                        Compact preview in the center. Click it to open the full schedule without leaving the page.
+                        Days stay horizontal, and empty slots between lessons are preserved.
                     </p>
                 </div>
                 <div class="setup-hero__actions">
-                    <a class="btn btn--ghost" th:href="@{/scholar-hub/schedule/setup}">Edit schedule</a>
+                    <a class="btn btn--ghost" th:href="@{/scholar-hub}">Back to hub</a>
+                    <a class="btn btn--primary" th:href="@{/scholar-hub/schedule/setup}">Edit schedule</a>
                 </div>
             </section>
 
             <section class="setup-layout">
                 <div class="hub-preview-stage">
-                    <a class="hub-preview-card" id="schedule-preview" th:href="@{/scholar-hub/schedule}" href="/scholar-hub/schedule" aria-label="Open full schedule">
+                    <section class="hub-preview-card hub-preview-card--page">
                         <div class="hub-preview-card__head">
                             <div>
-                                <p class="planner__eyebrow">Schedule preview</p>
-                                <h2>Weekly rectangle</h2>
+                                <p class="planner__eyebrow">Schedule</p>
+                                <h2>Full weekly board</h2>
                             </div>
                             <div class="hub-preview-card__meta">
                                 <span class="hub-preview-card__badge" th:text="${schedule.totalLessons} + ' lessons'">0 lessons</span>
-                                <span class="hub-preview-card__hint">Click to open full view</span>
                             </div>
                         </div>
 
-                        <div class="hub-timetable">
+                        <div class="hub-timetable hub-timetable--page">
                             <div class="hub-timetable__corner"></div>
 
                             <th:block th:each="day : ${schedule.days}">
@@ -76,7 +76,7 @@
                                 </th:block>
                             </th:block>
                         </div>
-                    </a>
+                    </section>
                 </div>
             </section>
         </section>

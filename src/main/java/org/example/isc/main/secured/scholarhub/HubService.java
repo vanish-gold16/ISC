@@ -26,8 +26,10 @@ import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class HubService {
@@ -125,42 +127,101 @@ public class HubService {
                 .map(day -> {
                     List<DaySubject> dayLessons = day.getLessons() == null ? List.of() : day.getLessons();
 
-                    List<ScheduleLessonView> allLessons = dayLessons.stream()
+                    List<ScheduleLessonView> orderedLessons = dayLessons.stream()
                             .filter(lesson -> lesson.getSubject() != null)
                             .sorted(Comparator.comparing(DaySubject::getLessonOrder, Comparator.nullsLast(Long::compareTo)))
-                            .map(lesson -> {
-                                Subject subject = lesson.getSubject();
-                                String teacherName = subject.getTeachers() == null || subject.getTeachers().isEmpty()
-                                        ? null
-                                        : subject.getTeachers().get(0).getFullName();
-
-                                return new ScheduleLessonView(
-                                        lesson.getLessonOrder(),
-                                        subject.getFullName(),
-                                        subject.getShortName(),
-                                        teacherName,
-                                        lesson.getRoom() != null ? lesson.getRoom() : subject.getRoom(),
-                                        subject.getColor()
-                                );
-                            })
+                            .map(this::toScheduleLessonView)
                             .toList();
 
-                List<ScheduleLessonView> previewLessons = allLessons.stream()
-                        .limit(previewLimitPerDay)
-                        .toList();
+                    List<ScheduleLessonView> visibleLessons = buildVisibleSlots(orderedLessons, previewLimitPerDay);
+                    long visibleRealLessons = visibleLessons.stream().filter(lesson -> !lesson.empty()).count();
 
-                return new ScheduleDayView(
+                    return new ScheduleDayView(
                         day.getDayOfWeek().name(),
                         toLabel(day.getDayOfWeek()),
                         toShortLabel(day.getDayOfWeek()),
-                        allLessons.size(),
-                        Math.max(allLessons.size() - previewLessons.size(), 0),
-                        previewLessons
-                );
-        }).toList();
+                        orderedLessons.size(),
+                        Math.max(orderedLessons.size() - (int) visibleRealLessons, 0),
+                        visibleLessons
+                    );
+                }).toList();
 
-        int totalLessons = days.stream().mapToInt(ScheduleDayView::lessonCount).sum();
-        return new ScheduleView(totalLessons, days);
+        int maxLessonSlots = days.stream()
+                .mapToInt(day -> day.lessons().size())
+                .max()
+                .orElse(0);
+
+        List<ScheduleDayView> paddedDays = days.stream()
+                .map(day -> new ScheduleDayView(
+                        day.key(),
+                        day.label(),
+                        day.shortLabel(),
+                        day.lessonCount(),
+                        day.hiddenLessonCount(),
+                        padLessons(day.lessons(), maxLessonSlots)
+                ))
+                .toList();
+
+        int totalLessons = paddedDays.stream().mapToInt(ScheduleDayView::lessonCount).sum();
+        return new ScheduleView(totalLessons, maxLessonSlots, paddedDays);
+    }
+
+    private ScheduleLessonView toScheduleLessonView(DaySubject lesson) {
+        Subject subject = lesson.getSubject();
+        String teacherName = subject.getTeachers() == null || subject.getTeachers().isEmpty()
+                ? null
+                : subject.getTeachers().get(0).getFullName();
+
+        return new ScheduleLessonView(
+                lesson.getLessonOrder(),
+                subject.getFullName(),
+                subject.getShortName(),
+                teacherName,
+                lesson.getRoom() != null ? lesson.getRoom() : subject.getRoom(),
+                subject.getColor(),
+                false
+        );
+    }
+
+    private List<ScheduleLessonView> buildVisibleSlots(List<ScheduleLessonView> lessons, int previewLimitPerDay) {
+        if (lessons.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, ScheduleLessonView> lessonsByOrder = lessons.stream()
+                .filter(lesson -> lesson.lessonOrder() != null)
+                .collect(Collectors.toMap(ScheduleLessonView::lessonOrder, lesson -> lesson, (left, right) -> left));
+
+        long maxOrder = lessons.stream()
+                .map(ScheduleLessonView::lessonOrder)
+                .filter(order -> order != null)
+                .mapToLong(Long::longValue)
+                .max()
+                .orElse(0L);
+
+        if (previewLimitPerDay > 0) {
+            maxOrder = Math.min(maxOrder, previewLimitPerDay);
+        }
+
+        List<ScheduleLessonView> visibleSlots = new ArrayList<>();
+        for (long order = 1; order <= maxOrder; order++) {
+            ScheduleLessonView lesson = lessonsByOrder.get(order);
+            if (lesson != null) {
+                visibleSlots.add(lesson);
+            } else {
+                visibleSlots.add(new ScheduleLessonView(order, null, null, null, null, null, true));
+            }
+        }
+
+        return visibleSlots;
+    }
+
+    private List<ScheduleLessonView> padLessons(List<ScheduleLessonView> lessons, int maxLessonSlots) {
+        List<ScheduleLessonView> padded = new ArrayList<>(lessons);
+        for (int index = padded.size() + 1; index <= maxLessonSlots; index++) {
+            padded.add(new ScheduleLessonView((long) index, null, null, null, null, null, true));
+        }
+        return padded;
     }
 
 

@@ -5,6 +5,7 @@ public record ScheduleLessonView(Long lessonOrder,
                                  String shortName,
                                  String teacherName,
                                  String room,
-                                 String color
+                                 String color,
+                                 boolean empty
 ) {
 }
