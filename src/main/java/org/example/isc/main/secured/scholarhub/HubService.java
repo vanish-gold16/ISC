@@ -124,7 +124,7 @@ public class HubService {
     private String normalizeColor(String color){
         String normalized = normalize(color);
         Pattern pattern = Pattern.compile("^#[0-9A-Fa-f]{6}$");
-        return color.matches(String.valueOf(pattern)) ? normalized : null;
+        return normalized != null && pattern.matcher(normalized).matches() ? normalized : null;
     }
 
     private String buildShortName(String fullName){
@@ -151,7 +151,9 @@ public class HubService {
                     return teachersRepository.save(newTeacher);
                 });
 
-        return List.of(teacher);
+        List<Teacher> teachers = new ArrayList<>();
+        teachers.add(teacher);
+        return teachers;
     }
 
 }

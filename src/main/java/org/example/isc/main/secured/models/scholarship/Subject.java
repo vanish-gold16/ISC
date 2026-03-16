@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.example.isc.main.secured.models.users.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -52,7 +53,7 @@ public class Subject {
         this.room = room;
         this.color = color;
         this.user = user;
-        this.teachers = teachers;
+        setTeachers(teachers);
     }
 
     public Long getId() {
@@ -104,7 +105,7 @@ public class Subject {
     }
 
     public void setTeachers(List<Teacher> teachers) {
-        this.teachers = teachers;
+        this.teachers = teachers == null ? new ArrayList<>() : new ArrayList<>(teachers);
     }
 
     public User getUser() {

@@ -2,6 +2,7 @@ package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,7 +27,7 @@ public class Teacher {
 
     public Teacher(String fullName, List<Subject> subjects, int age) {
         this.fullName = fullName;
-        this.subjects = subjects;
+        setSubjects(subjects);
         this.age = age;
     }
 
@@ -51,7 +52,7 @@ public class Teacher {
     }
 
     public void setSubjects(List<Subject> subjects) {
-        this.subjects = subjects;
+        this.subjects = subjects == null ? new ArrayList<>() : new ArrayList<>(subjects);
     }
 
     public int getAge() {
