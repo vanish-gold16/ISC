@@ -17,6 +17,16 @@
         <section class="setup-main">
             <section class="setup-layout">
                 <div class="hub-preview-stage">
+                    <div class="week-switcher" data-week-nav>
+                        <div class="week-switcher__range-block">
+                            <p class="week-switcher__eyebrow">Current week</p>
+                            <h3 class="week-switcher__range" data-week-range>16.03-21.03</h3>
+                        </div>
+                        <div class="week-switcher__actions">
+                            <button class="week-switcher__button" type="button" data-week-shift="-1" aria-label="Previous week">←</button>
+                            <button class="week-switcher__button" type="button" data-week-shift="1" aria-label="Next week">→</button>
+                        </div>
+                    </div>
                     <a class="hub-preview-card" id="schedule-preview" th:href="@{/scholar-hub/schedule}" href="/scholar-hub/schedule" aria-label="Open full schedule">
                         <div class="hub-preview-card__head">
                             <div>
@@ -30,7 +40,7 @@
                         </div>
 
                         <div class="hub-timetable hub-timetable--rows">
-                            <article class="hub-timetable__day-row" th:each="day : ${schedule.days}">
+                            <article class="hub-timetable__day-row" th:each="day : ${schedule.days}" th:attr="data-day-key=${day.key}">
                                 <header class="hub-timetable__day-label">
                                     <p class="hub-timetable__day-short" th:text="${day.shortLabel}">Mon</p>
                                     <h3 th:text="${day.label}">Monday</h3>
@@ -69,5 +79,6 @@
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+<script src="/js/private/scholar-hub-week-nav.js"></script>
 </body>
 </html>
