@@ -1,12 +1,15 @@
 package org.example.isc.main.secured.scholarhub.controller;
 
 import jakarta.validation.Valid;
+import org.example.isc.main.dto.scholarship.HomeworkDTO;
 import org.example.isc.main.dto.scholarship.NewSubjectDTO;
 import org.example.isc.main.dto.scholarship.SubjectOptionDTO;
+import org.example.isc.main.secured.models.scholarship.Homework;
 import org.example.isc.main.secured.models.scholarship.Subject;
 import org.example.isc.main.secured.models.scholarship.Teacher;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.example.isc.main.secured.repositories.scholarhub.TeachersRepository;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -29,11 +33,13 @@ public class SubjectApiController {
     private final UserRepository userRepository;
     private final SubjectsRepository subjectsRepository;
     private final TeachersRepository teachersRepository;
+    private final HomeworkRepository homeworkRepository;
 
-    public SubjectApiController(UserRepository userRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository) {
+    public SubjectApiController(UserRepository userRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository, HomeworkRepository homeworkRepository) {
         this.userRepository = userRepository;
         this.subjectsRepository = subjectsRepository;
         this.teachersRepository = teachersRepository;
+        this.homeworkRepository = homeworkRepository;
     }
 
     @GetMapping
@@ -100,6 +106,23 @@ public class SubjectApiController {
         return ResponseEntity.ok(toOption(saved));
     }
 
+    @GetMapping("/scholar-hub/homework")
+    public ResponseEntity<List<HomeworkDTO>> getHomeWorkByWeek(
+            @RequestParam(value = "query", required = false) String query,
+            Authentication authentication
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        String normalizedQuery = normalize(query);
+        LocalDate parsedDate = LocalDate.parse(normalizedQuery);
+        List<Homework> homeworks = normalizedQuery == null
+                ? List.of()
+                : homeworkRepository.findAllByWeekStart(parsedDate);
+
+        return ResponseEntity.ok(homeworks.stream().map(this::toHomeworkDTO).toList());
+    }
+
     private SubjectOptionDTO toOption(Subject subject) {
         String teacherName = subject.getTeachers() != null && !subject.getTeachers().isEmpty()
                 ? subject.getTeachers().get(0).getFullName()
@@ -111,6 +134,17 @@ public class SubjectApiController {
                 teacherName,
                 subject.getRoom(),
                 subject.getColor()
+        );
+    }
+
+    private HomeworkDTO toHomeworkDTO(Homework homework){
+        return new HomeworkDTO(
+                homework.getTitle(),
+                homework.getDetails(),
+                homework.getPriority(),
+                homework.getSubject().getId(),
+                homework.getStatus(),
+                homework.getWeekStart()
         );
     }
 
