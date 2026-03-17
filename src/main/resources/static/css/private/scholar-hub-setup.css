@@ -279,6 +279,40 @@ body {
     font-weight: 700;
 }
 
+.hub-preview-card__footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.hub-preview-card__footer-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+    transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.hub-preview-card__footer-action:hover {
+    transform: translateY(-1px);
+    background: var(--panel-hover);
+    border-color: #b7c9ee;
+}
+
+.hub-preview-card__footer-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
 .week-switcher {
     width: 100%;
     display: flex;
@@ -328,6 +362,21 @@ body {
     font-weight: 900;
     cursor: pointer;
     transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.week-switcher__button-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    display: block;
+}
+
+.week-switcher__button-icon--left {
+    transform: rotate(-90deg);
+}
+
+.week-switcher__button-icon--right {
+    transform: rotate(90deg);
 }
 
 .week-switcher__button:hover {
@@ -415,6 +464,14 @@ body {
     gap: 3px;
 }
 
+.hub-timetable__cell-body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 0;
+}
+
 .hub-timetable__cell-top {
     display: flex;
     align-items: center;
@@ -443,6 +500,64 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.hub-timetable__lesson-tools {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.hub-timetable__icon-button {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(17, 32, 63, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.74);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.hub-timetable__icon-button:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(17, 32, 63, 0.18);
+}
+
+.hub-timetable__icon-button:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.hub-timetable__icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+.hub-timetable__homework-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.52);
+}
+
+.hub-timetable__homework-dot--low {
+    background: #22c55e;
+}
+
+.hub-timetable__homework-dot--medium {
+    background: #f59e0b;
+}
+
+.hub-timetable__homework-dot--high {
+    background: #ef4444;
 }
 
 .hub-timetable__order,
@@ -894,6 +1009,11 @@ body {
     color: var(--text);
 }
 
+.subject-modal__field textarea,
+.subject-modal__field select {
+    font: inherit;
+}
+
 .subject-modal__results {
     display: grid;
     gap: 8px;
@@ -1068,6 +1188,28 @@ body {
     padding: 10px 2px;
 }
 
+.homework-modal__dialog {
+    width: min(680px, 100%);
+}
+
+.homework-modal__context {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.homework-modal__textarea {
+    min-height: 132px;
+    height: auto;
+    padding: 14px;
+    resize: vertical;
+}
+
+.homework-modal__select {
+    padding-left: 14px;
+    appearance: none;
+}
+
 .subject-card-color-input {
     position: fixed;
     right: -9999px;
@@ -1145,6 +1287,10 @@ body {
         max-width: 100%;
     }
 
+    .hub-preview-card__footer {
+        justify-content: flex-start;
+    }
+
     .hub-preview-card__head {
         grid-template-columns: 1fr;
         display: grid;
@@ -1169,6 +1315,17 @@ body {
     .hub-timetable__day-track {
         grid-template-columns: repeat(var(--slot-count), minmax(94px, 94px));
         overflow-x: auto;
+    }
+
+    .hub-timetable__cell-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hub-timetable__lesson-tools {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
     }
 
     .week-switcher {

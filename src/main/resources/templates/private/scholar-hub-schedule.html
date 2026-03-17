@@ -37,10 +37,19 @@
                             <h3 class="week-switcher__range" data-week-range>16.03-21.03</h3>
                         </div>
                         <div class="week-switcher__actions">
-                            <button class="week-switcher__button" type="button" data-week-shift="-1" aria-label="Previous week">←</button>
-                            <button class="week-switcher__button" type="button" data-week-shift="1" aria-label="Next week">→</button>
+                            <button class="week-switcher__button" type="button" data-week-shift="-1" aria-label="Previous week">
+                                <img class="week-switcher__button-icon week-switcher__button-icon--left"
+                                     src="/images/private/comments/comment-upload.png"
+                                     alt="" />
+                            </button>
+                            <button class="week-switcher__button" type="button" data-week-shift="1" aria-label="Next week">
+                                <img class="week-switcher__button-icon week-switcher__button-icon--right"
+                                     src="/images/private/comments/comment-upload.png"
+                                     alt="" />
+                            </button>
                         </div>
                     </div>
+
                     <section class="hub-preview-card hub-preview-card--page">
                         <div class="hub-preview-card__head">
                             <div>
@@ -66,17 +75,33 @@
 
                                         <div class="hub-timetable__cell hub-timetable__cell--filled"
                                              th:if="${!lesson.empty}"
-                                             th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}">
+                                             th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}"
+                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">
                                             <div class="hub-timetable__cell-top">
                                                 <span class="hub-timetable__order"
                                                       th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
                                                 <span class="hub-timetable__room"
                                                       th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
                                             </div>
-                                            <p class="hub-timetable__name"
-                                               th:text="${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">Math</p>
-                                            <p class="hub-timetable__teacher"
-                                               th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher'}">Teacher</p>
+                                            <div class="hub-timetable__cell-body">
+                                                <div>
+                                                    <p class="hub-timetable__name"
+                                                       th:text="${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">Math</p>
+                                                    <p class="hub-timetable__teacher"
+                                                       th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher'}">Teacher</p>
+                                                </div>
+                                                <div class="hub-timetable__lesson-tools">
+                                                    <button class="hub-timetable__icon-button"
+                                                            type="button"
+                                                            data-homework-trigger
+                                                            aria-label="Add homework">
+                                                        <img class="hub-timetable__icon" src="/images/private/icons/homework.png" alt="" />
+                                                    </button>
+                                                    <span class="hub-timetable__homework-dot hidden"
+                                                          data-homework-indicator
+                                                          aria-hidden="true"></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </th:block>
                                 </div>
@@ -92,6 +117,48 @@
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+
+<div class="subject-modal homework-modal hidden" id="homework-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-homework-modal></div>
+    <div class="subject-modal__dialog homework-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="homework-modal-title">
+        <div class="subject-modal__head">
+            <div>
+                <p class="subject-modal__eyebrow">Homework</p>
+                <h3 id="homework-modal-title">Add homework</h3>
+                <p class="homework-modal__context" id="homework-modal-context">Current lesson</p>
+            </div>
+            <button class="subject-modal__close" type="button" aria-label="Close" data-close-homework-modal>x</button>
+        </div>
+
+        <div class="subject-modal__body">
+            <label class="subject-modal__field">
+                <span>Homework title</span>
+                <input class="input" id="homework-title" type="text" placeholder="For example: solve exercises 1-8" />
+            </label>
+
+            <label class="subject-modal__field">
+                <span>Details</span>
+                <textarea class="homework-modal__textarea input" id="homework-details" placeholder="Additional notes, files, deadlines"></textarea>
+            </label>
+
+            <label class="subject-modal__field">
+                <span>Priority</span>
+                <select class="input homework-modal__select" id="homework-priority">
+                    <option value="low">Low priority</option>
+                    <option value="medium">Medium priority</option>
+                    <option value="high">High priority</option>
+                </select>
+            </label>
+
+            <div class="subject-create-panel__actions">
+                <button class="btn btn--ghost" type="button" id="homework-delete">Delete</button>
+                <button class="btn btn--ghost" type="button" data-close-homework-modal>Cancel</button>
+                <button class="btn btn--primary" type="button" id="homework-save">Save homework</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/js/private/scholar-hub-week-nav.js"></script>
 </body>
 </html>
