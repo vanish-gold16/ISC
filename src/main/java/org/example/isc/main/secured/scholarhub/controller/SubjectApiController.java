@@ -106,23 +106,6 @@ public class SubjectApiController {
         return ResponseEntity.ok(toOption(saved));
     }
 
-    @GetMapping("/scholar-hub/homework")
-    public ResponseEntity<List<HomeworkDTO>> getHomeWorkByWeek(
-            @RequestParam(value = "query", required = false) String query,
-            Authentication authentication
-    ){
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-
-        String normalizedQuery = normalize(query);
-        LocalDate parsedDate = LocalDate.parse(normalizedQuery);
-        List<Homework> homeworks = normalizedQuery == null
-                ? List.of()
-                : homeworkRepository.findAllByWeekStart(parsedDate);
-
-        return ResponseEntity.ok(homeworks.stream().map(this::toHomeworkDTO).toList());
-    }
-
     private SubjectOptionDTO toOption(Subject subject) {
         String teacherName = subject.getTeachers() != null && !subject.getTeachers().isEmpty()
                 ? subject.getTeachers().get(0).getFullName()
@@ -134,17 +117,6 @@ public class SubjectApiController {
                 teacherName,
                 subject.getRoom(),
                 subject.getColor()
-        );
-    }
-
-    private HomeworkDTO toHomeworkDTO(Homework homework){
-        return new HomeworkDTO(
-                homework.getTitle(),
-                homework.getDetails(),
-                homework.getPriority(),
-                homework.getSubject().getId(),
-                homework.getStatus(),
-                homework.getWeekStart()
         );
     }
 

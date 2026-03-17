@@ -1,0 +1,42 @@
+package org.example.isc.main.secured.scholarhub;
+
+import jakarta.transaction.Transactional;
+import org.example.isc.main.dto.scholarship.HomeworkDTO;
+import org.example.isc.main.secured.models.scholarship.DaySubject;
+import org.example.isc.main.secured.models.scholarship.Homework;
+import org.example.isc.main.secured.repositories.scholarhub.DaySubjectRepository;
+import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
+import org.springframework.stereotype.Service;
+
+@Service
+public class HomeworkService {
+
+    private final DaySubjectRepository daySubjectRepository;
+    private final HomeworkRepository homeworkRepository;
+
+    public HomeworkService(DaySubjectRepository daySubjectRepository, HomeworkRepository homeworkRepository) {
+        this.daySubjectRepository = daySubjectRepository;
+        this.homeworkRepository = homeworkRepository;
+    }
+
+    @Transactional
+    public void edit(
+            Long id,
+            HomeworkDTO homeworkDTO
+    ){
+        DaySubject lesson = daySubjectRepository.findById(homeworkDTO.getDaySubjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + homeworkDTO.getDaySubjectId()));
+
+        Homework homework = homeworkRepository.getById(id);
+
+        homework.setTitle(homeworkDTO.getTitle());
+        homework.setDetails(homeworkDTO.getDetails());
+        homework.setPriority(homeworkDTO.getPriority());
+        homework.setDaySubject(lesson);
+        homework.setStatus(homeworkDTO.getStatus());
+        homework.setWeekStart(homeworkDTO.getWeekStart());
+
+        homeworkRepository.save(homework);
+    }
+
+}
