@@ -67,7 +67,19 @@ public class HomeWorkApiController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteHomework(
+            @PathVariable Long id
+    ){
+        Homework homework = homeworkRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Homework not found: " + id));
 
+        if(!(homework == null)){
+
+        }
+
+
+    }
 
     private HomeworkDTO toHomeworkDTO(Homework homework){
         return new HomeworkDTO(
