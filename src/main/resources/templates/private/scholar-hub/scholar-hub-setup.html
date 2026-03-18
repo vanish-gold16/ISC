@@ -576,7 +576,7 @@
             applyCardColor(card, data.color);
             const editLink = card.querySelector('.subject-card__edit');
             editLink.href = buildSubjectEditHref(data.id, data.name);
-            card.querySelector('.subject-card__name').textContent = data.name;
+            card.querySelector('.subject-card__name').textContent = data.shortName || data.name;
             card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Teacher not set';
             card.querySelector('.subject-card__room').textContent = data.room || 'Room not set';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;

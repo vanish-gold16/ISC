@@ -251,6 +251,19 @@ public class HubService {
 
     private String buildShortName(String fullName){
         String trimmed = fullName.trim();
+        String[] words = trimmed.split("\\s+");
+        StringBuilder initials = new StringBuilder();
+
+        for (String word : words) {
+            if (!word.isBlank() && Character.isLetterOrDigit(word.charAt(0))) {
+                initials.append(Character.toUpperCase(word.charAt(0)));
+            }
+        }
+
+        if (!initials.isEmpty()) {
+            return initials.length() <= 12 ? initials.toString() : initials.substring(0, 12);
+        }
+
         return trimmed.length() <= 12 ? trimmed : trimmed.substring(0, 12);
     }
 

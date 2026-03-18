@@ -17,7 +17,7 @@ public class Subject {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    private String legacyName;
 
     @Column(name = "short_name", nullable = false)
     private String shortName;
@@ -49,9 +49,8 @@ public class Subject {
     }
 
     public Subject(String shortName, String fullName, String room, String color, User user, List<Teacher> teachers) {
-        this.name = fullName;
-        this.shortName = shortName;
-        this.fullName = fullName;
+        setFullName(fullName);
+        setShortName(shortName);
         this.room = room;
         this.color = color;
         this.user = user;
@@ -66,32 +65,21 @@ public class Subject {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-        if (this.fullName == null || this.fullName.isBlank()) {
-            this.fullName = name;
-        }
-    }
-
     public String getShortName() {
-        return shortName;
+        return shortName != null && !shortName.isBlank() ? shortName : buildAutoShortName(getFullName());
     }
 
     public void setShortName(String shortName) {
-        this.shortName = shortName;
+        this.shortName = shortName == null || shortName.isBlank() ? null : shortName;
     }
 
     public String getFullName() {
-        return fullName != null ? fullName : name;
+        return fullName != null ? fullName : legacyName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-        this.name = fullName;
+        this.legacyName = fullName;
     }
 
     public String getRoom() {
@@ -121,12 +109,32 @@ public class Subject {
     @PrePersist
     @PreUpdate
     void syncLegacyName() {
-        if ((name == null || name.isBlank()) && fullName != null && !fullName.isBlank()) {
-            name = fullName;
+        if ((legacyName == null || legacyName.isBlank()) && fullName != null && !fullName.isBlank()) {
+            legacyName = fullName;
         }
-        if ((fullName == null || fullName.isBlank()) && name != null && !name.isBlank()) {
-            fullName = name;
+        if ((fullName == null || fullName.isBlank()) && legacyName != null && !legacyName.isBlank()) {
+            fullName = legacyName;
         }
+        if ((shortName == null || shortName.isBlank()) && fullName != null && !fullName.isBlank()) {
+            shortName = buildAutoShortName(fullName);
+        }
+    }
+
+    private String buildAutoShortName(String value) {
+        String[] words = value.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+
+        for (String word : words) {
+            if (!word.isBlank() && Character.isLetterOrDigit(word.charAt(0))) {
+                initials.append(Character.toUpperCase(word.charAt(0)));
+            }
+        }
+
+        if (!initials.isEmpty()) {
+            return initials.length() <= 12 ? initials.toString() : initials.substring(0, 12);
+        }
+
+        return value.length() <= 12 ? value : value.substring(0, 12);
     }
 
     public String getColor() {
