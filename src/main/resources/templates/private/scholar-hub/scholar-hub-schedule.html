@@ -61,6 +61,19 @@
                         </div>
 
                         <div class="hub-timetable hub-timetable--rows hub-timetable--page">
+                            <div class="schedule-axis schedule-axis--preview schedule-axis--page" aria-hidden="true">
+                                <div class="schedule-axis__spacer"></div>
+                                <div class="schedule-axis__track">
+                                    <span class="schedule-axis__cell">1</span>
+                                    <span class="schedule-axis__cell">2</span>
+                                    <span class="schedule-axis__cell">3</span>
+                                    <span class="schedule-axis__cell">4</span>
+                                    <span class="schedule-axis__cell">5</span>
+                                    <span class="schedule-axis__cell">6</span>
+                                    <span class="schedule-axis__cell">7</span>
+                                    <span class="schedule-axis__cell">8</span>
+                                </div>
+                            </div>
                             <article class="hub-timetable__day-row" th:each="day : ${schedule.days}" th:attr="data-day-key=${day.key}">
                                 <header class="hub-timetable__day-label">
                                     <p class="hub-timetable__day-short" th:text="${day.shortLabel}">Mon</p>

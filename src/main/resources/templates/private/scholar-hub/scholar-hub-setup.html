@@ -26,6 +26,7 @@
                 </div>
 
                 <div class="setup-hero__actions">
+                    <a class="btn btn--ghost" th:href="@{/scholar-hub}" href="/scholar-hub">Back</a>
                     <button class="btn btn--ghost" type="button" data-action="clear-week">Clear week</button>
                     <button class="btn btn--primary" type="submit" form="schedule-setup-form" id="schedule-submit-button">Save schedule</button>
                 </div>
@@ -49,6 +50,19 @@
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <input type="hidden" name="schedulePayload" id="schedulePayload" />
                         <p class="schedule-form__error hidden" id="schedule-form-error">Add at least one subject before saving the schedule.</p>
+                        <div class="schedule-axis schedule-axis--editor" aria-hidden="true">
+                            <div class="schedule-axis__spacer"></div>
+                            <div class="schedule-axis__track">
+                                <span class="schedule-axis__cell">1</span>
+                                <span class="schedule-axis__cell">2</span>
+                                <span class="schedule-axis__cell">3</span>
+                                <span class="schedule-axis__cell">4</span>
+                                <span class="schedule-axis__cell">5</span>
+                                <span class="schedule-axis__cell">6</span>
+                                <span class="schedule-axis__cell">7</span>
+                                <span class="schedule-axis__cell">8</span>
+                            </div>
+                        </div>
 
                         <article class="day-column card" data-day="MONDAY">
                             <header class="day-column__head">

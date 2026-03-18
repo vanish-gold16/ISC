@@ -386,6 +386,49 @@ body {
     gap: 8px;
 }
 
+.schedule-axis {
+    display: grid;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.schedule-axis--preview {
+    grid-template-columns: 116px minmax(0, 1fr);
+}
+
+.schedule-axis--page {
+    grid-template-columns: 132px minmax(0, 1fr);
+}
+
+.schedule-axis--editor {
+    grid-template-columns: 118px minmax(0, 1fr);
+}
+
+.schedule-axis__spacer {
+    min-width: 0;
+}
+
+.schedule-axis__track {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+    min-width: 0;
+}
+
+.schedule-axis__cell {
+    min-height: 28px;
+    border-radius: 12px;
+    border: 1px solid #dfe8f8;
+    background: #f8fbff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #5d78a8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .hub-timetable__day-row {
     display: grid;
     grid-template-columns: 116px minmax(0, 1fr);
@@ -1451,6 +1494,14 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .schedule-axis--editor {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-axis--editor .schedule-axis__spacer {
+        display: none;
+    }
+
     .day-column__head {
         flex-direction: row;
         align-items: center;
@@ -1473,6 +1524,23 @@ body {
 
     .sidebar-right {
         display: none;
+    }
+
+    .schedule-axis--preview {
+        grid-template-columns: 104px minmax(0, 1fr);
+    }
+
+    .schedule-axis--page {
+        grid-template-columns: 132px minmax(0, 1fr);
+    }
+
+    .schedule-axis__track {
+        grid-template-columns: repeat(8, minmax(102px, 102px));
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #c9d8f3 transparent;
     }
 
     .hub-timetable__day-row {
@@ -1510,6 +1578,10 @@ body {
         justify-content: flex-start;
     }
 
+    .schedule-axis--preview {
+        grid-template-columns: 92px minmax(0, 1fr);
+    }
+
     .hub-preview-card {
         padding: 16px;
         border-radius: 24px;
@@ -1544,6 +1616,10 @@ body {
     .hub-timetable__day-track {
         grid-template-columns: repeat(var(--slot-count), minmax(94px, 94px));
         overflow-x: auto;
+    }
+
+    .schedule-axis__track {
+        grid-template-columns: repeat(8, minmax(94px, 94px));
     }
 
     .hub-timetable__cell-body {
