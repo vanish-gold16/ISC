@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.BatchSize;
 import org.example.isc.main.secured.models.users.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +21,7 @@ public class Schedule {
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 32)
-    private List<Day> days;
+    private List<Day> days = new ArrayList<>();
 
     // subject - day - schedule - class - school
 
@@ -29,7 +30,7 @@ public class Schedule {
 
     public Schedule(User user, List<Day> days) {
         this.user = user;
-        this.days = days;
+        setDays(days);
     }
 
     public Long getId() {
@@ -53,6 +54,9 @@ public class Schedule {
     }
 
     public void setDays(List<Day> days) {
-        this.days = days;
+        this.days.clear();
+        if (days != null) {
+            this.days.addAll(days);
+        }
     }
 }

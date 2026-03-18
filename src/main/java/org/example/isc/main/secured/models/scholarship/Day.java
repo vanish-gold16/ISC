@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.BatchSize;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,7 +25,7 @@ public class Day {
 
     @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 32)
-    private List<DaySubject> lessons;
+    private List<DaySubject> lessons = new ArrayList<>();
 
     public Day() {
     }
@@ -32,7 +33,7 @@ public class Day {
     public Day(Schedule schedule, DayOfWeek dayOfWeek, List<DaySubject> lessons) {
         this.schedule = schedule;
         this.dayOfWeek = dayOfWeek;
-        this.lessons = lessons;
+        setLessons(lessons);
     }
 
     public Long getId() {
@@ -64,6 +65,9 @@ public class Day {
     }
 
     public void setLessons(List<DaySubject> lessons) {
-        this.lessons = lessons;
+        this.lessons.clear();
+        if (lessons != null) {
+            this.lessons.addAll(lessons);
+        }
     }
 }
