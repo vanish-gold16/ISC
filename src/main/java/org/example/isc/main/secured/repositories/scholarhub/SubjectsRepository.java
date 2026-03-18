@@ -14,8 +14,11 @@ public interface SubjectsRepository extends JpaRepository<Subject, Long> {
     @Query("""
             select s from Subject s
             where s.user = :user
-              and lower(coalesce(s.fullName, s.legacyName)) like lower(concat('%', :query, '%'))
-            order by coalesce(s.fullName, s.legacyName) asc
+              and (
+                    lower(s.fullName) like lower(concat('%', :query, '%'))
+                 or lower(s.shortName) like lower(concat('%', :query, '%'))
+              )
+            order by s.fullName asc
             """)
     List<Subject> searchByUserAndResolvedName(
             @Param("user") User user,
@@ -25,7 +28,7 @@ public interface SubjectsRepository extends JpaRepository<Subject, Long> {
     @Query("""
             select s from Subject s
             where s.user = :user
-              and lower(coalesce(s.fullName, s.legacyName)) = lower(:name)
+              and lower(s.fullName) = lower(:name)
             """)
     Optional<Subject> findByUserAndResolvedNameIgnoreCase(
             @Param("user") User user,
@@ -36,7 +39,9 @@ public interface SubjectsRepository extends JpaRepository<Subject, Long> {
 
     boolean existsByUserAndFullName(User user, String fullName);
 
-    SubjectOptionDTO findByUserAndId(User user, Long id);
+    Optional<Subject> findByIdAndUser(Long id, User user);
 
-    Subject findByUserAndFullName(User user, String fullName);
+    Optional<Subject> findByUserAndFullNameIgnoreCase(User user, String fullName);
+
+    SubjectOptionDTO findByUserAndId(User user, Long id);
 }

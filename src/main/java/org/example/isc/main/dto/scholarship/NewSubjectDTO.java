@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Size;
 
 public class NewSubjectDTO {
 
+    private Long id;
+
     @NotBlank
     @Size(max = 70)
     private String fullName;
@@ -20,6 +22,14 @@ public class NewSubjectDTO {
 
     @Size(max = 7)
     private String color;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getFullName() {
         return fullName;

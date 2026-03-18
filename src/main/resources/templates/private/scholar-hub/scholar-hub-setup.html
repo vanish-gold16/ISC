@@ -202,24 +202,26 @@
     <div class="subject-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
         <div class="subject-modal__head">
             <div>
-                <p class="subject-modal__eyebrow">Add subject</p>
+                <p class="subject-modal__eyebrow" id="subject-modal-eyebrow">Add subject</p>
                 <h3 id="subject-modal-title">Select existing or create new</h3>
             </div>
             <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-modal>x</button>
         </div>
 
         <div class="subject-modal__body">
-            <label class="subject-modal__field">
-                <span>Subject name</span>
-                <input class="input" id="subject-search-input" type="text" placeholder="Start typing a subject name" autocomplete="off" />
-            </label>
-            <div class="subject-modal__results" id="subject-results"></div>
+            <div id="subject-search-section">
+                <label class="subject-modal__field">
+                    <span>Subject name</span>
+                    <input class="input" id="subject-search-input" type="text" placeholder="Start typing a subject name" autocomplete="off" />
+                </label>
+                <div class="subject-modal__results" id="subject-results"></div>
+            </div>
 
             <section class="subject-create-panel hidden" id="subject-create-panel" aria-hidden="true">
                 <div class="subject-create-panel__head">
                     <div>
-                        <p class="subject-create-panel__eyebrow">Create new</p>
-                        <h4>New subject details</h4>
+                        <p class="subject-create-panel__eyebrow" id="subject-create-panel-eyebrow">Create new</p>
+                        <h4 id="subject-create-panel-title">New subject details</h4>
                     </div>
                 </div>
 
@@ -294,9 +296,14 @@
         const scheduleFormError = document.getElementById('schedule-form-error');
         const csrfInput = scheduleForm ? scheduleForm.querySelector('input[name="_csrf"]') : null;
         const subjectModal = document.getElementById('subject-modal');
+        const subjectModalEyebrow = document.getElementById('subject-modal-eyebrow');
+        const subjectModalTitle = document.getElementById('subject-modal-title');
+        const subjectSearchSection = document.getElementById('subject-search-section');
         const subjectSearchInput = document.getElementById('subject-search-input');
         const subjectResults = document.getElementById('subject-results');
         const subjectCreatePanel = document.getElementById('subject-create-panel');
+        const subjectCreatePanelEyebrow = document.getElementById('subject-create-panel-eyebrow');
+        const subjectCreatePanelTitle = document.getElementById('subject-create-panel-title');
         const subjectCreateName = document.getElementById('subject-create-name');
         const subjectCreateShortName = document.getElementById('subject-create-short-name');
         const subjectCreateTeacher = document.getElementById('subject-create-teacher');
@@ -313,6 +320,9 @@
         let subjectSearchAbortController = null;
         let draftSubjectColor = DEFAULT_SUBJECT_COLOR;
         let activeColorSubjectName = null;
+        let subjectModalMode = 'add';
+        let editingSubjectId = null;
+        let editingSubjectKey = null;
         const subjectColorRegistry = new Map();
 
         function normalizeSubjectName(value) {
@@ -393,12 +403,20 @@
             }
         }
 
-        function buildSubjectEditHref(subjectId, subjectName) {
-            const normalizedName = normalizeSubjectName(subjectName);
-            if (subjectId) {
-                return '/scholar-hub/subjects/edit?id=' + encodeURIComponent(subjectId);
+        function setSubjectModalMode(mode) {
+            subjectModalMode = mode;
+            const isEditMode = mode === 'edit';
+
+            subjectModalEyebrow.textContent = isEditMode ? 'Edit subject' : 'Add subject';
+            subjectModalTitle.textContent = isEditMode ? 'Update subject details' : 'Select existing or create new';
+            subjectCreatePanelEyebrow.textContent = isEditMode ? 'Edit subject' : 'Create new';
+            subjectCreatePanelTitle.textContent = isEditMode ? 'Current subject details' : 'New subject details';
+            subjectCreateSave.textContent = isEditMode ? 'Save changes' : 'Add subject';
+
+            if (subjectSearchSection) {
+                subjectSearchSection.classList.toggle('hidden', isEditMode);
+                subjectSearchSection.setAttribute('aria-hidden', String(isEditMode));
             }
-            return '/scholar-hub/subjects/edit?name=' + encodeURIComponent(normalizedName);
         }
 
         function updateSubjectColorEverywhere(subjectName, color) {
@@ -442,15 +460,15 @@
 
             const savedSubject = await response.json();
             Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
-                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(savedSubject.name)) {
+                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(savedSubject.fullName)) {
                     card.dataset.subjectId = savedSubject.id || '';
                     const editLink = card.querySelector('.subject-card__edit');
                     if (editLink) {
-                        editLink.href = buildSubjectEditHref(savedSubject.id, savedSubject.name);
+                        editLink.href = '#';
                     }
                 }
             });
-            updateSubjectColorEverywhere(savedSubject.name, savedSubject.color || color);
+            updateSubjectColorEverywhere(savedSubject.fullName, savedSubject.color || color);
         }
 
         function getCsrfToken() {
@@ -458,15 +476,37 @@
         }
 
         function openCreatePanel(subjectName) {
+            setSubjectModalMode('add');
+            editingSubjectId = null;
+            editingSubjectKey = null;
             const normalizedName = normalizeSubjectName(subjectName);
             subjectCreatePanel.classList.remove('hidden');
             subjectCreatePanel.setAttribute('aria-hidden', 'false');
             subjectCreateName.value = normalizedName;
-            subjectCreateShortName.value = normalizedName ? normalizedName.slice(0, 12) : '';
+            subjectCreateShortName.value = '';
             subjectCreateTeacher.value = '';
             subjectCreateRoom.value = '';
             setDraftSubjectColor(resolveSubjectColor(normalizedName));
             window.setTimeout(() => subjectCreateShortName.focus(), 0);
+        }
+
+        function openEditPanel(card) {
+            setSubjectModalMode('edit');
+            editingSubjectId = card.dataset.subjectId ? Number(card.dataset.subjectId) : null;
+            editingSubjectKey = normalizeSubjectKey(card.dataset.subjectName);
+
+            subjectModal.classList.remove('hidden');
+            subjectModal.setAttribute('aria-hidden', 'false');
+            subjectCreatePanel.classList.remove('hidden');
+            subjectCreatePanel.setAttribute('aria-hidden', 'false');
+
+            subjectCreateName.value = card.dataset.subjectName || '';
+            subjectCreateShortName.value = card.dataset.shortName || '';
+            subjectCreateTeacher.value = card.dataset.teacher || '';
+            subjectCreateRoom.value = card.dataset.room || '';
+            setDraftSubjectColor(card.dataset.color || resolveSubjectColor(card.dataset.subjectName));
+
+            window.setTimeout(() => subjectCreateName.focus(), 0);
         }
 
         function closeCreatePanel() {
@@ -476,6 +516,9 @@
 
         function openSubjectModal(slot) {
             activeSlot = slot;
+            editingSubjectId = null;
+            editingSubjectKey = null;
+            setSubjectModalMode('add');
             subjectModal.classList.remove('hidden');
             subjectModal.setAttribute('aria-hidden', 'false');
             subjectResults.innerHTML = '<p class="subject-modal__empty muted">Start typing to search your subjects.</p>';
@@ -489,14 +532,17 @@
             subjectModal.setAttribute('aria-hidden', 'true');
             closeCreatePanel();
             currentSubjectResults = [];
+            editingSubjectId = null;
+            editingSubjectKey = null;
+            setSubjectModalMode('add');
         }
 
         function insertSubjectIntoActiveSlot(subjectData) {
             if (!activeSlot) return;
-            const subjectColor = rememberSubjectColor(subjectData.name, subjectData.color);
+            const subjectColor = rememberSubjectColor(subjectData.fullName, subjectData.color);
             renderCard(activeSlot, {
                 id: subjectData.id,
-                name: subjectData.name,
+                fullName: subjectData.fullName,
                 shortName: subjectData.shortName,
                 teacher: subjectData.teacher,
                 room: subjectData.room,
@@ -528,16 +574,16 @@
             subjectResults.appendChild(createButton);
 
             items.forEach((item) => {
-                const itemColor = rememberSubjectColor(item.name, item.color);
+                const itemColor = rememberSubjectColor(item.fullName, item.color);
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'subject-result';
-                button.innerHTML = '<span>Use existing</span><strong>' + item.name + '</strong>';
+                button.innerHTML = '<span>Use existing</span><strong>' + item.fullName + '</strong>';
                 button.style.setProperty('--subject-result-color', itemColor);
                 button.addEventListener('click', () => {
                     insertSubjectIntoActiveSlot({
                         id: item.id,
-                        name: item.name,
+                        fullName: item.fullName,
                         shortName: item.shortName,
                         teacher: item.teacherName,
                         room: item.room,
@@ -569,14 +615,14 @@
             const fragment = template.content.cloneNode(true);
             const card = fragment.querySelector('.subject-card');
             card.dataset.subjectId = data.id || '';
-            card.dataset.subjectName = data.name;
-            card.dataset.shortName = data.shortName || data.name;
+            card.dataset.subjectName = data.fullName;
+            card.dataset.shortName = data.shortName || data.fullName;
             card.dataset.teacher = data.teacher || '';
             card.dataset.room = data.room || '';
             applyCardColor(card, data.color);
             const editLink = card.querySelector('.subject-card__edit');
-            editLink.href = buildSubjectEditHref(data.id, data.name);
-            card.querySelector('.subject-card__name').textContent = data.shortName || data.name;
+            editLink.href = '#';
+            card.querySelector('.subject-card__name').textContent = data.shortName || data.fullName;
             card.querySelector('.subject-card__teacher').textContent = data.teacher || 'Teacher not set';
             card.querySelector('.subject-card__room').textContent = data.room || 'Room not set';
             card.querySelector('.subject-card__slot').textContent = 'Lesson ' + slot.dataset.order;
@@ -643,7 +689,7 @@
 
                 currentSubjectResults = (await response.json()).map((item) => ({
                     ...item,
-                    color: resolveSubjectColor(item.name, item.color)
+                    color: resolveSubjectColor(item.fullName, item.color)
                 }));
                 renderSubjectResults(normalizedQuery);
             } catch (error) {
@@ -655,10 +701,48 @@
             }
         }
 
+        function updateSubjectEverywhere(originalSubjectKey, updatedSubject) {
+            const subjectColor = rememberSubjectColor(updatedSubject.fullName, updatedSubject.color);
+
+            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
+                if (normalizeSubjectKey(card.dataset.subjectName) !== originalSubjectKey) {
+                    return;
+                }
+
+                card.dataset.subjectId = updatedSubject.id || '';
+                card.dataset.subjectName = updatedSubject.fullName;
+                card.dataset.shortName = updatedSubject.shortName || updatedSubject.fullName;
+                card.dataset.teacher = updatedSubject.teacherName || '';
+                card.dataset.room = updatedSubject.room || '';
+                applyCardColor(card, subjectColor);
+
+                const editLink = card.querySelector('.subject-card__edit');
+                if (editLink) {
+                    editLink.href = '#';
+                }
+
+                card.querySelector('.subject-card__name').textContent = updatedSubject.shortName || updatedSubject.fullName;
+                card.querySelector('.subject-card__teacher').textContent = updatedSubject.teacherName || 'Teacher not set';
+                card.querySelector('.subject-card__room').textContent = updatedSubject.room || 'Room not set';
+            });
+
+            syncPayload();
+        }
+
         slots.forEach((slot) => {
             createEmptyState(slot);
 
             slot.addEventListener('click', (event) => {
+                const editButton = event.target.closest('.subject-card__edit');
+                if (editButton) {
+                    event.preventDefault();
+                    const card = slot.querySelector('.subject-card');
+                    if (card) {
+                        openEditPanel(card);
+                    }
+                    return;
+                }
+
                 if (event.target.closest('.subject-card__remove')) {
                     createEmptyState(slot);
                     syncPayload();
@@ -740,6 +824,10 @@
         });
 
         subjectCreateCancel.addEventListener('click', () => {
+            if (subjectModalMode === 'edit') {
+                closeSubjectModal();
+                return;
+            }
             closeCreatePanel();
             window.setTimeout(() => subjectSearchInput.focus(), 0);
         });
@@ -775,8 +863,9 @@
             if (!name) return;
 
             const draftSubject = {
-                name,
-                shortName: normalizeSubjectName(subjectCreateShortName.value) || name.slice(0, 12),
+                id: editingSubjectId,
+                fullName: name,
+                shortName: normalizeSubjectName(subjectCreateShortName.value),
                 teacher: normalizeSubjectName(subjectCreateTeacher.value),
                 room: normalizeSubjectName(subjectCreateRoom.value),
                 color: rememberSubjectColor(name, draftSubjectColor)
@@ -786,7 +875,7 @@
             subjectCreateSave.textContent = 'Saving...';
 
             try {
-                const response = await fetch('/scholar-hub/subjects', {
+                const response = await fetch(subjectModalMode === 'edit' ? '/scholar-hub/subjects/edit' : '/scholar-hub/subjects', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -794,7 +883,8 @@
                         'X-CSRF-TOKEN': getCsrfToken()
                     },
                     body: JSON.stringify({
-                        fullName: draftSubject.name,
+                        id: draftSubject.id,
+                        fullName: draftSubject.fullName,
                         shortName: draftSubject.shortName,
                         teacherName: draftSubject.teacher,
                         room: draftSubject.room,
@@ -807,19 +897,31 @@
                 }
 
                 const savedSubject = await response.json();
-                insertSubjectIntoActiveSlot({
-                    id: savedSubject.id,
-                    name: savedSubject.name,
-                    shortName: savedSubject.shortName,
-                    teacher: savedSubject.teacherName,
-                    room: savedSubject.room,
-                    color: resolveSubjectColor(savedSubject.name, savedSubject.color || draftSubject.color)
-                });
+                if (subjectModalMode === 'edit') {
+                    updateSubjectEverywhere(editingSubjectKey, {
+                        ...savedSubject,
+                        color: resolveSubjectColor(savedSubject.fullName, savedSubject.color || draftSubject.color)
+                    });
+                    closeSubjectModal();
+                } else {
+                    insertSubjectIntoActiveSlot({
+                        id: savedSubject.id,
+                        fullName: savedSubject.fullName,
+                        shortName: savedSubject.shortName,
+                        teacher: savedSubject.teacherName,
+                        room: savedSubject.room,
+                        color: resolveSubjectColor(savedSubject.fullName, savedSubject.color || draftSubject.color)
+                    });
+                }
             } catch (error) {
-                subjectResults.innerHTML = '<p class="subject-modal__empty muted">Could not save the subject right now.</p>';
+                if (subjectModalMode === 'edit') {
+                    subjectCreatePanelTitle.textContent = 'Could not save changes right now';
+                } else {
+                    subjectResults.innerHTML = '<p class="subject-modal__empty muted">Could not save the subject right now.</p>';
+                }
             } finally {
                 subjectCreateSave.disabled = false;
-                subjectCreateSave.textContent = 'Add subject';
+                subjectCreateSave.textContent = subjectModalMode === 'edit' ? 'Save changes' : 'Add subject';
             }
         });
 

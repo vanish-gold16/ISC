@@ -7,6 +7,25 @@ CREATE TABLE IF NOT EXISTS schedules (
 @@
 
 DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'subjects'
+          AND column_name = 'name'
+    ) THEN
+        DROP TABLE IF EXISTS homeworks CASCADE;
+        DROP TABLE IF EXISTS day_subject CASCADE;
+        DROP TABLE IF EXISTS days CASCADE;
+        DROP TABLE IF EXISTS schedules CASCADE;
+        ALTER TABLE subjects DROP COLUMN name;
+    END IF;
+END;
+$$;
+@@
+
+DO $$
 DECLARE
     constraint_name TEXT;
     day_attnum INT;

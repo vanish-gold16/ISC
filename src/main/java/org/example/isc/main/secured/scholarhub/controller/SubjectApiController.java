@@ -63,14 +63,21 @@ public class SubjectApiController {
 
     @GetMapping("/edit")
     public ResponseEntity<SubjectOptionDTO> editSubject(
+            @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "query", required = false) String query,
             Authentication authentication
     ) {
         User me = requireCurrentUser(authentication);
-        String normalized = normalize(query);
 
-        Subject subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, normalized)
-                .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + normalized));
+        Subject subject;
+        if (id != null) {
+            subject = subjectsRepository.findByIdAndUser(id, me)
+                    .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + id));
+        } else {
+            String normalized = normalize(query);
+            subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, normalized)
+                    .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + normalized));
+        }
         return ResponseEntity.ok(toOption(subject));
     }
 
@@ -81,8 +88,15 @@ public class SubjectApiController {
     ) {
         User me = requireCurrentUser(authentication);
         String fullName = normalize(form.getFullName());
+        if (fullName == null) {
+            throw new IllegalArgumentException("Subject full name is required");
+        }
 
-        Subject subject = subjectsRepository.findByUserAndFullName(me, fullName);
+        Subject subject = form.getId() == null
+                ? subjectsRepository.findByUserAndFullNameIgnoreCase(me, fullName)
+                    .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + fullName))
+                : subjectsRepository.findByIdAndUser(form.getId(), me)
+                    .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + form.getId()));
         applySubjectFields(subject, form, fullName);
 
         return ResponseEntity.ok(toOption(subjectsRepository.save(subject)));

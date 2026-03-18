@@ -16,9 +16,6 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String legacyName;
-
     @Column(name = "short_name", nullable = false)
     private String shortName;
 
@@ -74,12 +71,11 @@ public class Subject {
     }
 
     public String getFullName() {
-        return fullName != null ? fullName : legacyName;
+        return fullName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-        this.legacyName = fullName;
     }
 
     public String getRoom() {
@@ -108,13 +104,7 @@ public class Subject {
 
     @PrePersist
     @PreUpdate
-    void syncLegacyName() {
-        if ((legacyName == null || legacyName.isBlank()) && fullName != null && !fullName.isBlank()) {
-            legacyName = fullName;
-        }
-        if ((fullName == null || fullName.isBlank()) && legacyName != null && !legacyName.isBlank()) {
-            fullName = legacyName;
-        }
+    void syncNames() {
         if ((shortName == null || shortName.isBlank()) && fullName != null && !fullName.isBlank()) {
             shortName = buildAutoShortName(fullName);
         }
