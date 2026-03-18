@@ -199,13 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const subjectId = cell.dataset.subjectId;
         if (subjectId) {
-            return `/scholar-hub/subjects/edit?id=${encodeURIComponent(subjectId)}`;
+            return `/scholar-hub/subject/${encodeURIComponent(subjectId)}`;
         }
-        const subjectName = cell.dataset.subjectName || cell.dataset.subjectShortName;
-        if (!subjectName) {
-            return null;
-        }
-        return `/scholar-hub/subjects/edit?name=${encodeURIComponent(subjectName)}`;
+        return null;
     }
 
     async function loadHomeworkForWeek(weekStart, scope) {
@@ -447,15 +443,74 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    function animateSubjectOpen(cell, href) {
+        if (!cell || !href) {
+            return;
+        }
+        if (cell.classList.contains("is-animating")) {
+            return;
+        }
+
+        const rect = cell.getBoundingClientRect();
+        const clone = cell.cloneNode(true);
+        clone.classList.add("hub-timetable__cell--filled");
+        clone.style.position = "fixed";
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+        clone.style.margin = "0";
+        clone.style.zIndex = "999";
+        clone.style.pointerEvents = "none";
+        clone.style.transformOrigin = "top left";
+        clone.style.boxShadow = "0 12px 34px rgba(17, 32, 63, 0.18)";
+        document.body.appendChild(clone);
+
+        cell.classList.add("is-animating");
+
+        const targetX = 16;
+        const targetY = 16;
+        const translateX = targetX - rect.left;
+        const translateY = targetY - rect.top;
+        const scale = Math.min(1.35, Math.max(1.1, (rect.width + 80) / rect.width));
+        const duration = 800;
+
+        try {
+            const accent = getComputedStyle(cell).getPropertyValue("--preview-accent").trim();
+            const payload = {
+                html: cell.innerHTML,
+                accent,
+                width: rect.width,
+                height: rect.height,
+                scale
+            };
+            sessionStorage.setItem("subjectTransition", JSON.stringify(payload));
+        } catch (error) {
+            console.warn(error);
+        }
+
+        requestAnimationFrame(() => {
+            clone.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow ${duration}ms ease`;
+            clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            clone.style.boxShadow = "0 20px 60px rgba(17, 32, 63, 0.22)";
+        });
+
+        window.setTimeout(() => {
+            window.location.href = href;
+        }, duration + 60);
+    }
+
     document.querySelectorAll(".hub-timetable__cell--filled").forEach((cell) => {
         cell.addEventListener("click", (event) => {
             if (event.target.closest("a, button, input, textarea, select, label")) {
                 return;
             }
             const href = buildSubjectHref(cell);
-            if (href) {
-                window.location.href = href;
+            if (!href) {
+                showToast("error", "Subject page is unavailable for this lesson.");
+                return;
             }
+            animateSubjectOpen(cell, href);
         });
     });
 

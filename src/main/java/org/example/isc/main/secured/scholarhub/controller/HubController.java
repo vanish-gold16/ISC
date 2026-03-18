@@ -38,7 +38,7 @@ public class HubController {
         model.addAttribute("user", me);
         model.addAttribute("schedule", currentSchedule);
 
-        return "/private/scholar-hub";
+        return "private/scholar-hub/scholar-hub";
     }
 
     @GetMapping("/schedule")
@@ -55,7 +55,7 @@ public class HubController {
         model.addAttribute("user", me);
         model.addAttribute("schedule", currentSchedule);
 
-        return "/private/scholar-hub-schedule";
+        return "private/scholar-hub/scholar-hub-schedule";
     }
 
     @GetMapping("/schedule/setup")
@@ -69,7 +69,7 @@ public class HubController {
         model.addAttribute("title", "Schedule setup");
         model.addAttribute("user", me);
 
-        return "/private/scholar-hub-setup";
+        return "private/scholar-hub/scholar-hub-setup";
     }
 
     @PostMapping("/schedule/setup")

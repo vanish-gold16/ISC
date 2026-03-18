@@ -456,6 +456,10 @@ body {
     cursor: pointer;
 }
 
+.hub-timetable__cell--filled.is-animating {
+    opacity: 0;
+}
+
 .hub-timetable__cell-body {
     display: flex;
     align-items: flex-end;

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+
+    <title th:text="${subject != null ? 'ISC | ' + subject.fullName : 'ISC | Subject'}">ISC | Subject</title>
+
+    <link rel="stylesheet" href="/css/private/scholar-hub-setup.css" />
+    <style>
+        body {
+            background: radial-gradient(circle at top, rgba(120, 160, 255, 0.12), transparent 45%),
+                        radial-gradient(circle at 20% 20%, rgba(125, 247, 209, 0.12), transparent 40%),
+                        #f3f7ff;
+        }
+
+        .subject-modal-shell {
+            min-height: calc(100vh - 120px);
+            display: grid;
+            place-items: center;
+            padding: 32px 0 40px;
+        }
+
+        .subject-modal {
+            width: min(920px, calc(100% - 32px));
+            border-radius: 32px;
+            border: 1px solid rgba(215, 226, 246, 0.9);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.92));
+            box-shadow: 0 30px 90px rgba(17, 32, 63, 0.16);
+            padding: 26px;
+            display: grid;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subject-modal::before {
+            content: "";
+            position: absolute;
+            inset: -40% -20% auto auto;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(126, 178, 255, 0.35), transparent 70%);
+            filter: blur(4px);
+        }
+
+        .subject-modal::after {
+            content: "";
+            position: absolute;
+            inset: auto auto -40% -10%;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(107, 238, 202, 0.35), transparent 70%);
+            filter: blur(6px);
+        }
+
+        .subject-modal__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subject-modal__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.08);
+            color: #12244b;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .subject-modal__title {
+            margin: 0;
+            font-size: clamp(26px, 4vw, 40px);
+            line-height: 1.05;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subject-modal__meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subject-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(17, 32, 63, 0.12);
+            background: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            backdrop-filter: blur(8px);
+        }
+
+        .subject-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--subject-color, #7aa2ff);
+            border: 2px solid rgba(17, 32, 63, 0.12);
+        }
+
+        .subject-modal__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subject-panel {
+            padding: 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(215, 226, 246, 0.95);
+            background: rgba(255, 255, 255, 0.88);
+            display: grid;
+            gap: 6px;
+        }
+
+        .subject-panel h4 {
+            margin: 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7aa0;
+        }
+
+        .subject-panel p {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .subject-transition-target {
+            opacity: 0;
+            transition: opacity 200ms ease;
+        }
+
+        .subject-modal__close {
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 760px) {
+            .subject-modal {
+                padding: 20px;
+                border-radius: 26px;
+            }
+
+            .subject-modal__header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container subject-modal-shell">
+    <section class="subject-modal" th:if="${subject != null}"
+             th:style="${subject.color != null ? '--subject-color:' + subject.color : ''}">
+        <div class="hub-timetable__cell hub-timetable__cell--filled subject-transition-target" id="subject-transition-target"
+             th:style="${subject.color != null ? '--preview-accent:' + subject.color : ''}">
+            <div class="hub-timetable__cell-top">
+                <span class="hub-timetable__order">#</span>
+                <span class="hub-timetable__room" th:text="${subject.room != null ? subject.room : 'Room'}">Room</span>
+            </div>
+            <div class="hub-timetable__cell-body">
+                <div>
+                    <p class="hub-timetable__name" th:text="${subject.shortName != null ? subject.shortName : subject.fullName}">Subject</p>
+                    <p class="hub-timetable__teacher"
+                       th:text="${(subject.teachers != null and !subject.teachers.isEmpty()) ? subject.teachers[0].fullName : 'Teacher'}">Teacher</p>
+                </div>
+            </div>
+        </div>
+        <div class="subject-modal__header">
+            <div>
+                <span class="subject-modal__badge">Subject</span>
+                <h1 class="subject-modal__title" th:text="${subject.fullName}">Subject</h1>
+                <p class="muted">
+                    Owner: <span th:text="${user != null ? user.username : 'User'}">User</span>
+                </p>
+            </div>
+            <a class="btn btn--ghost subject-modal__close" th:href="@{/scholar-hub}">Back to hub</a>
+        </div>
+
+        <div class="subject-modal__meta">
+            <span class="subject-chip">
+                <span class="subject-color-dot"></span>
+                <span th:text="${subject.shortName != null ? subject.shortName : 'No short name'}">Short name</span>
+            </span>
+            <span class="subject-chip" th:text="${subject.room != null ? subject.room : 'Room not set'}">Room</span>
+        </div>
+
+        <div class="subject-modal__grid">
+            <div class="subject-panel">
+                <h4>Teachers</h4>
+                <p th:text="${(subject.teachers != null and !subject.teachers.isEmpty()) ? subject.teachers[0].fullName : 'Not assigned'}">Teacher</p>
+            </div>
+            <div class="subject-panel">
+                <h4>Lessons</h4>
+                <p>Open schedule to see placements</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="subject-modal" th:if="${subject == null}">
+        <p class="muted">Subject details are not available.</p>
+    </section>
+</main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+
+<script src="/js/private/subject-transition.js"></script>
+</body>
+</html>
