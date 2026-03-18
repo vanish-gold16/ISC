@@ -1,5 +1,6 @@
 package org.example.isc.main.secured.scholarhub.controller;
 
+import jakarta.validation.Valid;
 import org.example.isc.main.dto.scholarship.HomeworkDTO;
 import org.example.isc.main.secured.models.scholarship.DaySubject;
 import org.example.isc.main.secured.models.scholarship.Homework;
@@ -31,37 +32,38 @@ public class HomeWorkApiController {
         this.homeworkService = homeworkService;
     }
 
-    // не понимаю
     @GetMapping
     public ResponseEntity<List<HomeworkDTO>> getHomeWorkByWeek(
-            @RequestParam(value = "query", required = false) String query,
+            @RequestParam("weekStart") LocalDate weekStart,
+            @RequestParam(value = "daySubjectId", required = false) Long daySubjectId,
             Authentication authentication
     ){
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-
-        String normalizedQuery = normalize(query);
-        LocalDate parsedDate = LocalDate.parse(normalizedQuery);
-        List<Homework> homeworks = homeworkRepository.findAllByWeekStartAndSubjectId();
+        requireCurrentUser(authentication);
+        List<Homework> homeworks = daySubjectId == null
+                ? homeworkRepository.findAllByWeekStart(weekStart)
+                : homeworkRepository.findAllByWeekStartAndDaySubject(weekStart, getLesson(daySubjectId));
 
         return ResponseEntity.ok(homeworks.stream().map(this::toHomeworkDTO).toList());
     }
 
     @PostMapping
     public ResponseEntity<Void> postHomework(
-        @RequestParam("form") HomeworkDTO homeworkDTO
+            @Valid @RequestBody HomeworkDTO homeworkDTO,
+            Authentication authentication
     ){
-        Homework homework = toHomework(homeworkDTO);
-        homeworkRepository.save(homework);
-
+        requireCurrentUser(authentication);
+        homeworkRepository.save(toHomework(homeworkDTO));
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> editHomework(
         @PathVariable Long id,
-        @RequestParam("form") HomeworkDTO homeworkDTO
+        @Valid @RequestBody HomeworkDTO homeworkDTO,
+        Authentication authentication
     ){
+        requireCurrentUser(authentication);
+
         homeworkService.edit(id, homeworkDTO);
 
         return ResponseEntity.ok().build();
@@ -69,24 +71,25 @@ public class HomeWorkApiController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHomework(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ){
+        requireCurrentUser(authentication);
+
         Homework homework = homeworkRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Homework not found: " + id));
 
-        if(!(homework == null)){
-
-        }
-
-
+        homeworkRepository.delete(homework);
+        return ResponseEntity.ok().build();
     }
 
     private HomeworkDTO toHomeworkDTO(Homework homework){
+        Long subjectId = homework.getSubject() != null ? homework.getSubject().getId() : null;
         return new HomeworkDTO(
                 homework.getTitle(),
                 homework.getDetails(),
                 homework.getPriority(),
-                homework.getSubject().getId(),
+                subjectId,
                 homework.getStatus(),
                 homework.getWeekStart()
         );
@@ -95,21 +98,25 @@ public class HomeWorkApiController {
     private Homework toHomework(HomeworkDTO homeworkDTO){
         DaySubject lesson = daySubjectRepository.findById(homeworkDTO.getDaySubjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + homeworkDTO.getDaySubjectId()));
-        return new Homework(
-                homeworkDTO.getTitle(),
-                homeworkDTO.getDetails(),
-                homeworkDTO.getPriority(),
-                lesson.getSubject(),
-                homeworkDTO.getStatus(),
-                homeworkDTO.getWeekStart()
-                );
+        Homework homework = new Homework();
+        homework.setTitle(homeworkDTO.getTitle());
+        homework.setDetails(homeworkDTO.getDetails());
+        homework.setPriority(homeworkDTO.getPriority());
+        homework.setSubject(lesson.getSubject());
+        homework.setStatus(homeworkDTO.getStatus());
+        homework.setDaySubject(lesson);
+        homework.setWeekStart(homeworkDTO.getWeekStart());
+        return  homework;
     }
 
-    private String normalize(String value) {
-        if (value == null) {
-            return null;
-        }
-        String normalized = value.trim().replaceAll("\\s+", " ");
-        return normalized.isBlank() ? null : normalized;
+    private DaySubject getLesson(Long daySubjectId) {
+        return daySubjectRepository.findById(daySubjectId)
+                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + daySubjectId));
     }
+
+    private User requireCurrentUser(Authentication authentication) {
+        return userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+    }
+
 }

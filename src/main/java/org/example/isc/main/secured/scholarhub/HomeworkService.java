@@ -27,11 +27,13 @@ public class HomeworkService {
         DaySubject lesson = daySubjectRepository.findById(homeworkDTO.getDaySubjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + homeworkDTO.getDaySubjectId()));
 
-        Homework homework = homeworkRepository.getById(id);
+        Homework homework = homeworkRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Homework not found: " + id));
 
         homework.setTitle(homeworkDTO.getTitle());
         homework.setDetails(homeworkDTO.getDetails());
         homework.setPriority(homeworkDTO.getPriority());
+        homework.setSubject(lesson.getSubject());
         homework.setDaySubject(lesson);
         homework.setStatus(homeworkDTO.getStatus());
         homework.setWeekStart(homeworkDTO.getWeekStart());
