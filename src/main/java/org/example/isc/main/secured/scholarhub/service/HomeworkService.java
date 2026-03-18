@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.scholarhub;
+package org.example.isc.main.secured.scholarhub.service;
 
 import jakarta.transaction.Transactional;
 import org.example.isc.main.dto.scholarship.HomeworkDTO;

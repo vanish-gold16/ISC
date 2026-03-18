@@ -8,7 +8,7 @@ import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.main.secured.repositories.scholarhub.DaySubjectRepository;
 import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
-import org.example.isc.main.secured.scholarhub.HomeworkService;
+import org.example.isc.main.secured.scholarhub.service.HomeworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

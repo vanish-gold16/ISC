@@ -3,7 +3,8 @@ package org.example.isc.main.secured.scholarhub.controller;
 import org.example.isc.main.dto.messenger.ScheduleView;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.main.secured.scholarhub.HubService;
+import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
+import org.example.isc.main.secured.scholarhub.service.HubService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,10 +19,12 @@ public class HubController {
 
     private final HubService hubService;
     private final UserRepository userRepository;
+    private final SchedulesRepository schedulesRepository;
 
-    public HubController(HubService hubService, UserRepository userRepository) {
+    public HubController(HubService hubService, UserRepository userRepository, SchedulesRepository schedulesRepository) {
         this.hubService = hubService;
         this.userRepository = userRepository;
+        this.schedulesRepository = schedulesRepository;
     }
 
     @GetMapping
@@ -65,6 +68,9 @@ public class HubController {
     ) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        ScheduleView currentSchedule = hubService.getScheduleForHub(authentication, 0);
+        model.addAttribute("schedule", currentSchedule);
 
         model.addAttribute("title", "Schedule setup");
         model.addAttribute("user", me);
