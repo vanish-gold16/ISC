@@ -193,6 +193,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2600);
     }
 
+    function buildSubjectHref(cell) {
+        if (!cell) {
+            return null;
+        }
+        const subjectId = cell.dataset.subjectId;
+        if (subjectId) {
+            return `/scholar-hub/subjects/edit?id=${encodeURIComponent(subjectId)}`;
+        }
+        const subjectName = cell.dataset.subjectName || cell.dataset.subjectShortName;
+        if (!subjectName) {
+            return null;
+        }
+        return `/scholar-hub/subjects/edit?name=${encodeURIComponent(subjectName)}`;
+    }
+
     async function loadHomeworkForWeek(weekStart, scope) {
         if (!weekStart) {
             return;
@@ -429,6 +444,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             openHomeworkModal(lessonCell);
+        });
+    });
+
+    document.querySelectorAll(".hub-timetable__cell--filled").forEach((cell) => {
+        cell.addEventListener("click", (event) => {
+            if (event.target.closest("a, button, input, textarea, select, label")) {
+                return;
+            }
+            const href = buildSubjectHref(cell);
+            if (href) {
+                window.location.href = href;
+            }
         });
     });
 
