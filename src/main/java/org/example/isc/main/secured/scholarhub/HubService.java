@@ -174,6 +174,8 @@ public class HubService {
 
         return new ScheduleLessonView(
                 lesson.getLessonOrder(),
+                lesson.getId(),
+                subject.getId(),
                 subject.getFullName(),
                 subject.getShortName(),
                 teacherName,
@@ -209,7 +211,7 @@ public class HubService {
             if (lesson != null) {
                 visibleSlots.add(lesson);
             } else {
-                visibleSlots.add(new ScheduleLessonView(order, null, null, null, null, null, true));
+                visibleSlots.add(new ScheduleLessonView(order, null, null, null, null, null, null, null, true));
             }
         }
 
@@ -219,7 +221,7 @@ public class HubService {
     private List<ScheduleLessonView> padLessons(List<ScheduleLessonView> lessons, int maxLessonSlots) {
         List<ScheduleLessonView> padded = new ArrayList<>(lessons);
         for (int index = padded.size() + 1; index <= maxLessonSlots; index++) {
-            padded.add(new ScheduleLessonView((long) index, null, null, null, null, null, true));
+            padded.add(new ScheduleLessonView((long) index, null, null, null, null, null, null, null, true));
         }
         return padded;
     }
