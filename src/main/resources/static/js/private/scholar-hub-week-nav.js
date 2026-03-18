@@ -35,6 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeworkDeleteButton = document.getElementById("homework-delete");
     const closeHomeworkTriggers = Array.from(document.querySelectorAll("[data-close-homework-modal]"));
     const toastStack = document.querySelector("[data-homework-toasts]");
+    const subjectModal = document.getElementById("subject-modal");
+    const subjectModalPreview = document.getElementById("subject-modal-preview");
+    const subjectModalTitle = document.getElementById("subject-modal-title");
+    const subjectModalShortName = document.getElementById("subject-modal-short-name");
+    const subjectModalRoom = document.getElementById("subject-modal-room");
+    const subjectModalTeacher = document.getElementById("subject-modal-teacher");
+    const subjectModalLesson = document.getElementById("subject-modal-lesson");
+    const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
@@ -193,15 +201,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2600);
     }
 
-    function buildSubjectHref(cell) {
-        if (!cell) {
-            return null;
+    function closeSubjectModal() {
+        if (!subjectModal) {
+            return;
         }
-        const subjectId = cell.dataset.subjectId;
-        if (subjectId) {
-            return `/scholar-hub/subject/${encodeURIComponent(subjectId)}`;
+        subjectModal.classList.add("hidden");
+        subjectModal.setAttribute("aria-hidden", "true");
+    }
+
+    function openSubjectModal(cell) {
+        if (!subjectModal || !cell) {
+            return;
         }
-        return null;
+
+        const subjectName = cell.dataset.subjectName || "Subject";
+        const shortName = cell.dataset.subjectShortName || subjectName;
+        const room = cell.dataset.subjectRoom || cell.querySelector(".hub-timetable__room")?.textContent?.trim() || "Room not set";
+        const teacher = cell.dataset.subjectTeacher || cell.querySelector(".hub-timetable__teacher")?.textContent?.trim() || "Not assigned";
+        const lessonOrder = cell.dataset.lessonOrder || "";
+        const dayKey = cell.dataset.dayKey;
+        const lessonDate = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
+        const dateLabel = lessonDate ? formatFullDateLabel(lessonDate) : (dayLabels[dayKey] || "");
+
+        if (subjectModalTitle) {
+            subjectModalTitle.textContent = subjectName;
+        }
+        if (subjectModalShortName) {
+            subjectModalShortName.textContent = shortName || "No short name";
+        }
+        if (subjectModalRoom) {
+            subjectModalRoom.textContent = room;
+        }
+        if (subjectModalTeacher) {
+            subjectModalTeacher.textContent = teacher;
+        }
+        if (subjectModalLesson) {
+            const label = lessonOrder ? `Lesson #${lessonOrder}` : "Lesson";
+            subjectModalLesson.textContent = dateLabel ? `${label} • ${dateLabel}` : label;
+        }
+        if (subjectModalPreview) {
+            subjectModalPreview.innerHTML = "";
+            const preview = cell.cloneNode(true);
+            preview.classList.add("subject-detail-modal__cell");
+            subjectModalPreview.appendChild(preview);
+        }
+
+        const accent = getComputedStyle(cell).getPropertyValue("--preview-accent").trim();
+        subjectModal.style.setProperty("--subject-color", accent || "#7aa2ff");
+        subjectModal.classList.remove("hidden");
+        subjectModal.setAttribute("aria-hidden", "false");
     }
 
     async function loadHomeworkForWeek(weekStart, scope) {
@@ -443,80 +491,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    function animateSubjectOpen(cell, href) {
-        if (!cell || !href) {
-            return;
-        }
-        if (cell.classList.contains("is-animating")) {
-            return;
-        }
-
-        const rect = cell.getBoundingClientRect();
-        const clone = cell.cloneNode(true);
-        clone.classList.add("hub-timetable__cell--filled");
-        clone.style.position = "fixed";
-        clone.style.left = `${rect.left}px`;
-        clone.style.top = `${rect.top}px`;
-        clone.style.width = `${rect.width}px`;
-        clone.style.height = `${rect.height}px`;
-        clone.style.margin = "0";
-        clone.style.zIndex = "999";
-        clone.style.pointerEvents = "none";
-        clone.style.transformOrigin = "top left";
-        clone.style.boxShadow = "0 12px 34px rgba(17, 32, 63, 0.18)";
-        document.body.appendChild(clone);
-
-        cell.classList.add("is-animating");
-
-        const targetX = 16;
-        const targetY = 16;
-        const translateX = targetX - rect.left;
-        const translateY = targetY - rect.top;
-        const scale = Math.min(1.35, Math.max(1.1, (rect.width + 80) / rect.width));
-        const duration = 800;
-
-        try {
-            const accent = getComputedStyle(cell).getPropertyValue("--preview-accent").trim();
-            const payload = {
-                html: cell.innerHTML,
-                accent,
-                width: rect.width,
-                height: rect.height,
-                scale
-            };
-            sessionStorage.setItem("subjectTransition", JSON.stringify(payload));
-        } catch (error) {
-            console.warn(error);
-        }
-
-        requestAnimationFrame(() => {
-            clone.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow ${duration}ms ease`;
-            clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-            clone.style.boxShadow = "0 20px 60px rgba(17, 32, 63, 0.22)";
-        });
-
-        window.setTimeout(() => {
-            window.location.href = href;
-        }, duration + 60);
-    }
-
     document.querySelectorAll(".hub-timetable__cell--filled").forEach((cell) => {
         cell.addEventListener("click", (event) => {
             if (event.target.closest("a, button, input, textarea, select, label")) {
                 return;
             }
-            const href = buildSubjectHref(cell);
-            if (!href) {
-                showToast("error", "Subject page is unavailable for this lesson.");
-                return;
-            }
-            animateSubjectOpen(cell, href);
+            openSubjectModal(cell);
         });
     });
 
     closeHomeworkTriggers.forEach((trigger) => {
         trigger.addEventListener("click", () => {
             closeHomeworkModal();
+        });
+    });
+
+    closeSubjectTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+            closeSubjectModal();
         });
     });
 
@@ -535,6 +527,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && homeworkModal && !homeworkModal.classList.contains("hidden")) {
             closeHomeworkModal();
+        }
+        if (event.key === "Escape" && subjectModal && !subjectModal.classList.contains("hidden")) {
+            closeSubjectModal();
         }
     });
 });

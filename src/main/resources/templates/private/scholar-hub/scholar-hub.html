@@ -62,7 +62,7 @@
                                         <div class="hub-timetable__cell hub-timetable__cell--filled"
                                              th:if="${!lesson.empty}"
                                              th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}"
-                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-day-subject-id=${lesson.daySubjectId},data-subject-id=${lesson.subjectId},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">
+                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-day-subject-id=${lesson.daySubjectId},data-subject-id=${lesson.subjectId},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName},data-subject-room=${lesson.room},data-subject-teacher=${lesson.teacherName}">
                                             <div class="hub-timetable__cell-top">
                                                 <span class="hub-timetable__order"
                                                       th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
@@ -149,6 +149,45 @@
                 <button class="btn btn--ghost" type="button" id="homework-delete">Delete</button>
                 <button class="btn btn--ghost" type="button" data-close-homework-modal>Cancel</button>
                 <button class="btn btn--primary" type="button" id="homework-save">Save homework</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="subject-modal subject-detail-modal hidden" id="subject-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-subject-modal></div>
+    <div class="subject-modal__dialog subject-detail-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="subject-modal-title">
+        <div class="subject-detail-modal__preview" id="subject-modal-preview"></div>
+        <div class="subject-detail-modal__content">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__badge">Subject</p>
+                    <h3 id="subject-modal-title">Subject</h3>
+                    <p class="muted">
+                        Owner: <span id="subject-modal-owner" th:text="${user != null ? user.username : 'User'}">User</span>
+                    </p>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-modal>x</button>
+            </div>
+
+            <div class="subject-detail-modal__meta">
+                <span class="subject-detail-chip">
+                    <span class="subject-detail-dot"></span>
+                    <span id="subject-modal-short-name">Short name</span>
+                </span>
+                <span class="subject-detail-chip" id="subject-modal-room">Room not set</span>
+                <span class="subject-detail-chip" id="subject-modal-lesson">Lesson</span>
+            </div>
+
+            <div class="subject-detail-modal__grid">
+                <div class="subject-detail-panel">
+                    <h4>Teachers</h4>
+                    <p id="subject-modal-teacher">Not assigned</p>
+                </div>
+                <div class="subject-detail-panel">
+                    <h4>Homework</h4>
+                    <p>Open a lesson to manage homework.</p>
+                </div>
             </div>
         </div>
     </div>
