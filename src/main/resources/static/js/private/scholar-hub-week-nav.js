@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const toastStack           = document.querySelector("[data-homework-toasts]");
     const subjectModal         = document.getElementById("subject-modal");
     const subjectModalPreview  = document.getElementById("subject-modal-preview");
-    const subjectModalTitle    = document.getElementById("subject-modal-title");
     const subjectModalShortName= document.getElementById("subject-modal-short-name");
     const subjectModalRoom     = document.getElementById("subject-modal-room");
     const subjectModalTeacher  = document.getElementById("subject-modal-teacher");
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
+    const subjectModalAverage  = document.getElementById("subject-modal-average-value");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
 
     const homeworkCache = new Map();
@@ -172,10 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const lessonDate  = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
         const dateLabel   = lessonDate ? formatFullDateLabel(lessonDate) : (dayLabels[dayKey] || "");
 
-        if (subjectModalTitle)      subjectModalTitle.textContent     = subjectName;
         if (subjectModalShortName)  subjectModalShortName.textContent = shortName || "No short name";
         if (subjectModalRoom)       subjectModalRoom.textContent      = room;
         if (subjectModalTeacher)    subjectModalTeacher.textContent   = teacher;
+        if (subjectModalAverage)    subjectModalAverage.textContent   = "N";
         if (subjectModalLesson) {
             const lbl = lessonOrder ? `Lesson #${lessonOrder}` : "Lesson";
             subjectModalLesson.textContent = dateLabel ? `${lbl} • ${dateLabel}` : lbl;
