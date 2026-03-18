@@ -84,12 +84,13 @@ public class HomeWorkApiController {
     }
 
     private HomeworkDTO toHomeworkDTO(Homework homework){
-        Long subjectId = homework.getSubject() != null ? homework.getSubject().getId() : null;
+        Long daySubjectId = homework.getDaySubject() != null ? homework.getDaySubject().getId() : null;
         return new HomeworkDTO(
+                homework.getId(),
                 homework.getTitle(),
                 homework.getDetails(),
                 homework.getPriority(),
-                subjectId,
+                daySubjectId,
                 homework.getStatus(),
                 homework.getWeekStart()
         );

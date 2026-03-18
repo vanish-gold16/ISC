@@ -75,7 +75,7 @@
                                         <div class="hub-timetable__cell hub-timetable__cell--filled"
                                              th:if="${!lesson.empty}"
                                              th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}"
-                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">
+                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-day-subject-id=${lesson.daySubjectId},data-subject-id=${lesson.subjectId},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName}">
                                             <div class="hub-timetable__cell-top">
                                                 <span class="hub-timetable__order"
                                                       th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
