@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
 
     <title th:text="${title} ?: 'ISC | ScholarHub'">ISC | ScholarHub</title>
@@ -138,9 +140,19 @@
             <label class="subject-modal__field">
                 <span>Priority</span>
                 <select class="input homework-modal__select" id="homework-priority">
-                    <option value="low">Low priority</option>
-                    <option value="medium">Medium priority</option>
-                    <option value="high">High priority</option>
+                    <option value="_00FF00">Low priority</option>
+                    <option value="_FFFF00">Medium priority</option>
+                    <option value="_FF0000">High priority</option>
+                </select>
+            </label>
+
+            <label class="subject-modal__field">
+                <span>Status</span>
+                <select class="input homework-modal__select" id="homework-status">
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Non_completed">Not completed</option>
+                    <option value="Graded">Graded</option>
                 </select>
             </label>
 
@@ -152,6 +164,8 @@
         </div>
     </div>
 </div>
+
+<div class="homework-toast-stack" data-homework-toasts aria-live="polite"></div>
 
 <script src="/js/private/scholar-hub-week-nav.js"></script>
 </body>

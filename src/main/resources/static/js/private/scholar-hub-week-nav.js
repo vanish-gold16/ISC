@@ -19,53 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
         SUNDAY: "Sunday"
     };
 
-    const homeworkStorageKey = "scholarHubHomeworkStore";
+    const priorityMap = new Map([
+        ["_00FF00", { label: "Low priority", color: "#00FF00" }],
+        ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
+        ["_FF0000", { label: "High priority", color: "#FF0000" }]
+    ]);
+
     const homeworkModal = document.getElementById("homework-modal");
     const homeworkTitleInput = document.getElementById("homework-title");
     const homeworkDetailsInput = document.getElementById("homework-details");
     const homeworkPriorityInput = document.getElementById("homework-priority");
+    const homeworkStatusInput = document.getElementById("homework-status");
     const homeworkContext = document.getElementById("homework-modal-context");
     const homeworkSaveButton = document.getElementById("homework-save");
     const homeworkDeleteButton = document.getElementById("homework-delete");
     const closeHomeworkTriggers = Array.from(document.querySelectorAll("[data-close-homework-modal]"));
-    let homeworkStore = readHomeworkStore();
+    const toastStack = document.querySelector("[data-homework-toasts]");
+
+    const homeworkCache = new Map();
     let activeLessonCell = null;
-
-    function readHomeworkStore() {
-        try {
-            const rawValue = window.localStorage.getItem(homeworkStorageKey);
-            if (!rawValue) {
-                return {};
-            }
-            const parsedValue = JSON.parse(rawValue);
-            return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
-        } catch (error) {
-            return {};
-        }
-    }
-
-    function persistHomeworkStore() {
-        try {
-            window.localStorage.setItem(homeworkStorageKey, JSON.stringify(homeworkStore));
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    function getMonday(date) {
-        const monday = new Date(date);
-        const day = monday.getDay();
-        const diff = day === 0 ? -6 : 1 - day;
-        monday.setHours(0, 0, 0, 0);
-        monday.setDate(monday.getDate() + diff);
-        return monday;
-    }
-
-    function addDays(date, days) {
-        const nextDate = new Date(date);
-        nextDate.setDate(nextDate.getDate() + days);
-        return nextDate;
-    }
 
     function formatDateLabel(date) {
         return new Intl.DateTimeFormat("ru-RU", {
@@ -89,48 +61,167 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${year}-${month}-${day}`;
     }
 
-    function buildHomeworkKey(cell) {
-        const weekStart = cell.dataset.weekStart;
-        const dayKey = cell.dataset.dayKey;
-        const lessonOrder = cell.dataset.lessonOrder;
-        if (!weekStart || !dayKey || !lessonOrder) {
+    function getMonday(date) {
+        const monday = new Date(date);
+        const day = monday.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        monday.setHours(0, 0, 0, 0);
+        monday.setDate(monday.getDate() + diff);
+        return monday;
+    }
+
+    function addDays(date, days) {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + days);
+        return nextDate;
+    }
+
+    function getPriorityColor(priority) {
+        if (!priority) {
             return null;
         }
-        return `${weekStart}|${dayKey}|${lessonOrder}`;
+        if (priorityMap.has(priority)) {
+            return priorityMap.get(priority).color;
+        }
+        if (priority.startsWith("_")) {
+            return `#${priority.slice(1)}`;
+        }
+        if (priority.startsWith("#")) {
+            return priority;
+        }
+        return null;
     }
 
-    function getHomeworkEntry(cell) {
-        const key = buildHomeworkKey(cell);
-        return key ? homeworkStore[key] || null : null;
+    function getCsrfHeaders() {
+        const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content");
+        const headerName = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content");
+        if (!token || !headerName) {
+            return {};
+        }
+        return { [headerName]: token };
     }
 
-    function renderHomeworkIndicator(cell) {
+    async function requestJson(url, options = {}) {
+        const headers = {
+            "Content-Type": "application/json",
+            ...getCsrfHeaders(),
+            ...(options.headers || {})
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (!response.ok) {
+            const fallback = await response.text();
+            throw new Error(fallback || `Request failed: ${response.status}`);
+        }
+        if (response.status === 204) {
+            return null;
+        }
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+            return response.json();
+        }
+        return null;
+    }
+
+    function makeCacheKey(weekStart, daySubjectId) {
+        if (!weekStart || !daySubjectId) {
+            return null;
+        }
+        return `${weekStart}|${daySubjectId}`;
+    }
+
+    function getLessonIdentifiers(cell) {
+        if (!cell) {
+            return null;
+        }
+        const weekStart = cell.dataset.weekStart || "";
+        const daySubjectId = cell.dataset.daySubjectId || "";
+        return { weekStart, daySubjectId };
+    }
+
+    function getCachedHomework(cell) {
+        const identifiers = getLessonIdentifiers(cell);
+        if (!identifiers) {
+            return null;
+        }
+        const key = makeCacheKey(identifiers.weekStart, identifiers.daySubjectId);
+        return key ? homeworkCache.get(key) || null : null;
+    }
+
+    function setHomeworkIndicator(cell, homework) {
         const indicator = cell.querySelector("[data-homework-indicator]");
         if (!indicator) {
             return;
         }
 
-        indicator.classList.remove(
-            "hidden",
-            "hub-timetable__homework-dot--low",
-            "hub-timetable__homework-dot--medium",
-            "hub-timetable__homework-dot--high"
-        );
+        indicator.classList.remove("hidden");
+        indicator.style.removeProperty("--homework-color");
 
-        const homework = getHomeworkEntry(cell);
         if (!homework || (!homework.title && !homework.details)) {
             indicator.classList.add("hidden");
             return;
         }
 
-        indicator.classList.add(`hub-timetable__homework-dot--${homework.priority || "low"}`);
+        const color = getPriorityColor(homework.priority);
+        if (color) {
+            indicator.style.setProperty("--homework-color", color);
+        }
     }
 
     function refreshHomeworkIndicators(scope) {
         const root = scope || document;
         root.querySelectorAll(".hub-timetable__cell--filled[data-week-start]").forEach((cell) => {
-            renderHomeworkIndicator(cell);
+            const homework = getCachedHomework(cell);
+            setHomeworkIndicator(cell, homework);
         });
+    }
+
+    function showToast(type, message) {
+        if (!toastStack) {
+            return;
+        }
+        const toast = document.createElement("div");
+        toast.className = `homework-toast homework-toast--${type}`;
+        toast.innerHTML = `
+            <p class="homework-toast__title">Homework</p>
+            <p class="homework-toast__message">${message}</p>
+        `;
+        toastStack.appendChild(toast);
+
+        window.setTimeout(() => {
+            toast.classList.add("is-leaving");
+            window.setTimeout(() => toast.remove(), 220);
+        }, 2600);
+    }
+
+    async function loadHomeworkForWeek(weekStart, scope) {
+        if (!weekStart) {
+            return;
+        }
+        try {
+            const data = await requestJson(`/scholar-hub/homework?weekStart=${encodeURIComponent(weekStart)}`, {
+                method: "GET"
+            });
+            const list = Array.isArray(data) ? data : [];
+            const prefix = `${weekStart}|`;
+            Array.from(homeworkCache.keys()).forEach((key) => {
+                if (key.startsWith(prefix)) {
+                    homeworkCache.delete(key);
+                }
+            });
+            list.forEach((item) => {
+                if (!item || !item.daySubjectId) {
+                    return;
+                }
+                const key = makeCacheKey(weekStart, item.daySubjectId);
+                if (key) {
+                    homeworkCache.set(key, item);
+                }
+            });
+            refreshHomeworkIndicators(scope);
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to load homework for the selected week.");
+        }
     }
 
     function closeHomeworkModal() {
@@ -148,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         activeLessonCell = cell;
-        const homework = getHomeworkEntry(cell);
+        const homework = getCachedHomework(cell);
         const subjectName = cell.dataset.subjectShortName || cell.dataset.subjectName || "Lesson";
         const lessonOrder = cell.dataset.lessonOrder || "";
         const lessonDate = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
@@ -157,7 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
         homeworkContext.textContent = `${subjectName} • lesson ${lessonOrder} • ${dateLabel}`;
         homeworkTitleInput.value = homework ? homework.title || "" : "";
         homeworkDetailsInput.value = homework ? homework.details || "" : "";
-        homeworkPriorityInput.value = homework ? homework.priority || "low" : "low";
+        homeworkPriorityInput.value = homework?.priority || homeworkPriorityInput.value || "_00FF00";
+        if (homeworkStatusInput) {
+            homeworkStatusInput.value = homework?.status || homeworkStatusInput.value || "Pending";
+        }
         if (homeworkDeleteButton) {
             homeworkDeleteButton.disabled = !homework;
         }
@@ -167,56 +261,92 @@ document.addEventListener("DOMContentLoaded", () => {
         window.setTimeout(() => homeworkTitleInput.focus(), 0);
     }
 
-    function saveHomework() {
+    async function saveHomework() {
         if (!activeLessonCell || !homeworkTitleInput || !homeworkDetailsInput || !homeworkPriorityInput) {
             return;
         }
 
-        const key = buildHomeworkKey(activeLessonCell);
-        if (!key) {
+        const identifiers = getLessonIdentifiers(activeLessonCell);
+        if (!identifiers || !identifiers.weekStart) {
+            showToast("error", "Homework week is missing. Update schedule context first.");
+            return;
+        }
+        if (!identifiers.daySubjectId) {
+            showToast("error", "Day subject id is missing. Backend needs to expose it in schedule cells.");
             return;
         }
 
         const title = String(homeworkTitleInput.value || "").trim();
         const details = String(homeworkDetailsInput.value || "").trim();
-        const priority = homeworkPriorityInput.value || "low";
+        const priority = homeworkPriorityInput.value || "_00FF00";
+        const status = homeworkStatusInput ? (homeworkStatusInput.value || "Pending") : "Pending";
 
-        if (!title && !details) {
-            delete homeworkStore[key];
-            persistHomeworkStore();
-            refreshHomeworkIndicators();
-            closeHomeworkModal();
+        if (!title) {
+            showToast("error", "Homework title is required.");
             return;
         }
 
-        homeworkStore[key] = {
+        const payload = {
             title,
             details,
             priority,
-            subjectName: activeLessonCell.dataset.subjectName || "",
-            weekStart: activeLessonCell.dataset.weekStart || "",
-            dayKey: activeLessonCell.dataset.dayKey || "",
-            lessonOrder: activeLessonCell.dataset.lessonOrder || ""
+            daySubjectId: Number(identifiers.daySubjectId),
+            status,
+            weekStart: identifiers.weekStart
         };
-        persistHomeworkStore();
-        refreshHomeworkIndicators();
-        closeHomeworkModal();
+
+        const cached = getCachedHomework(activeLessonCell);
+        const homeworkId = cached && cached.id ? cached.id : null;
+
+        try {
+            if (homeworkId) {
+                await requestJson(`/scholar-hub/homework/${encodeURIComponent(homeworkId)}`, {
+                    method: "PUT",
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                await requestJson("/scholar-hub/homework", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+            }
+            await loadHomeworkForWeek(identifiers.weekStart, activeLessonCell.closest(".hub-timetable"));
+            showToast("success", "Homework saved.");
+            closeHomeworkModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to save homework.");
+        }
     }
 
-    function deleteHomework() {
+    async function deleteHomework() {
         if (!activeLessonCell) {
             return;
         }
 
-        const key = buildHomeworkKey(activeLessonCell);
-        if (!key) {
+        const identifiers = getLessonIdentifiers(activeLessonCell);
+        if (!identifiers || !identifiers.weekStart) {
+            showToast("error", "Homework week is missing. Update schedule context first.");
             return;
         }
 
-        delete homeworkStore[key];
-        persistHomeworkStore();
-        refreshHomeworkIndicators();
-        closeHomeworkModal();
+        const cached = getCachedHomework(activeLessonCell);
+        if (!cached || !cached.id) {
+            showToast("error", "Homework id is missing. Backend needs to return it for delete.");
+            return;
+        }
+
+        try {
+            await requestJson(`/scholar-hub/homework/${encodeURIComponent(cached.id)}`, {
+                method: "DELETE"
+            });
+            await loadHomeworkForWeek(identifiers.weekStart, activeLessonCell.closest(".hub-timetable"));
+            showToast("success", "Homework deleted.");
+            closeHomeworkModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to delete homework.");
+        }
     }
 
     document.querySelectorAll("[data-week-nav]").forEach((weekNav) => {
@@ -258,6 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cell.dataset.lessonDate = lessonDate.toISOString();
             });
 
+            void loadHomeworkForWeek(toIsoDate(monday), timetable);
             refreshHomeworkIndicators(timetable);
         }
 
@@ -308,11 +439,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (homeworkSaveButton) {
-        homeworkSaveButton.addEventListener("click", saveHomework);
+        homeworkSaveButton.addEventListener("click", () => {
+            void saveHomework();
+        });
     }
 
     if (homeworkDeleteButton) {
-        homeworkDeleteButton.addEventListener("click", deleteHomework);
+        homeworkDeleteButton.addEventListener("click", () => {
+            void deleteHomework();
+        });
     }
 
     document.addEventListener("keydown", (event) => {
@@ -320,6 +455,4 @@ document.addEventListener("DOMContentLoaded", () => {
             closeHomeworkModal();
         }
     });
-
-    refreshHomeworkIndicators();
 });
