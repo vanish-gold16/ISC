@@ -65,9 +65,12 @@ public class Day {
     }
 
     public void setLessons(List<DaySubject> lessons) {
-        this.lessons.clear();
-        if (lessons != null) {
-            this.lessons.addAll(lessons);
+        List<DaySubject> nextLessons = lessons == null ? List.of() : lessons;
+        this.lessons.removeIf(existingLesson -> !nextLessons.contains(existingLesson));
+        for (DaySubject lesson : nextLessons) {
+            if (!this.lessons.contains(lesson)) {
+                this.lessons.add(lesson);
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["_FF0000", { label: "High priority",   color: "#FF0000" }]
     ]);
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
+    const gradedHomeworkIndicatorColor = "#215cc9";
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -264,22 +265,32 @@ document.addEventListener("DOMContentLoaded", () => {
         return getHighestPriorityHomework(getCachedHomeworks(cell));
     }
 
+    function getIndicatorHomework(cell) {
+        const visibleHomeworks = getCachedHomeworks(cell).filter((homework) => {
+            if (!homework || (!homework.title && !homework.details)) return false;
+            return homework.status !== "Completed";
+        });
+        return getHighestPriorityHomework(visibleHomeworks);
+    }
+
     function setHomeworkIndicator(cell, homework) {
         const indicator = cell.querySelector("[data-homework-indicator]");
         if (!indicator) return;
         indicator.classList.remove("hidden");
         indicator.style.removeProperty("--homework-color");
-        if (!homework || (!homework.title && !homework.details)) {
+        if (!homework || (!homework.title && !homework.details) || homework.status === "Completed") {
             indicator.classList.add("hidden");
             return;
         }
-        const color = getPriorityColor(homework.priority);
+        const color = homework.status === "Graded"
+            ? gradedHomeworkIndicatorColor
+            : getPriorityColor(homework.priority);
         if (color) indicator.style.setProperty("--homework-color", color);
     }
 
     function refreshHomeworkIndicators(scope) {
         (scope || document).querySelectorAll(".hub-timetable__cell--filled[data-week-start]").forEach((cell) => {
-            setHomeworkIndicator(cell, getCachedHomework(cell));
+            setHomeworkIndicator(cell, getIndicatorHomework(cell));
         });
     }
 

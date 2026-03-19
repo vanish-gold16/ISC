@@ -143,6 +143,7 @@ public class SubjectApiController {
                     });
             subject.setTeachers(List.of(teacher));
         }
+        subjectsRepository.save(subject);
     }
 
     private SubjectOptionDTO toOption(Subject subject) {

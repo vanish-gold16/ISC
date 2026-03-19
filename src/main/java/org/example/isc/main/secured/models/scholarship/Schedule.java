@@ -54,9 +54,12 @@ public class Schedule {
     }
 
     public void setDays(List<Day> days) {
-        this.days.clear();
-        if (days != null) {
-            this.days.addAll(days);
+        List<Day> nextDays = days == null ? List.of() : days;
+        this.days.removeIf(existingDay -> !nextDays.contains(existingDay));
+        for (Day day : nextDays) {
+            if (!this.days.contains(day)) {
+                this.days.add(day);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ import org.example.isc.main.secured.models.scholarship.Subject;
 import org.example.isc.main.secured.models.scholarship.Teacher;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.example.isc.main.secured.repositories.scholarhub.TeachersRepository;
@@ -25,13 +26,19 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 public class HubService {
+
+    private record PreparedDayUpdate(Day day, List<DaySubject> lessons) {}
 
     private static final int DEFAULT_LESSON_SLOTS = 8;
 
@@ -40,12 +47,14 @@ public class HubService {
     private final SchedulesRepository schedulesRepository;
     private final SubjectsRepository subjectsRepository;
     private final TeachersRepository teachersRepository;
+    private final HomeworkRepository homeworkRepository;
 
-    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository) {
+    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository, HomeworkRepository homeworkRepository) {
         this.userRepository = userRepository;
         this.schedulesRepository = schedulesRepository;
         this.subjectsRepository = subjectsRepository;
         this.teachersRepository = teachersRepository;
+        this.homeworkRepository = homeworkRepository;
     }
 
     @Transactional
@@ -64,49 +73,87 @@ public class HubService {
             schedule.setUser(me);
         }
 
-        List<Day> newDays = new ArrayList<>();
+        Map<DayOfWeek, Day> existingDaysByWeek = new HashMap<>();
+        List<Day> existingDays = schedule.getDays() == null ? List.of() : new ArrayList<>(schedule.getDays());
+        for (Day existingDay : existingDays) {
+            if (existingDay.getDayOfWeek() != null) {
+                existingDaysByWeek.put(existingDay.getDayOfWeek(), existingDay);
+            }
+        }
+
+        List<PreparedDayUpdate> preparedDays = new ArrayList<>();
+        Set<Long> lessonIdsToClearHomework = new HashSet<>();
         List<NewDayForm> dayForms = scheduleForm.getDays() == null ? List.of() : scheduleForm.getDays();
         for(NewDayForm dayForm : dayForms){
             if(dayForm.getDayOfWeek() == null) continue;
 
-            Day day = new Day();
-            day.setSchedule(schedule);
+            Day day = existingDaysByWeek.remove(dayForm.getDayOfWeek());
+            if(day == null){
+                day = new Day();
+                day.setSchedule(schedule);
+            }
             day.setDayOfWeek(dayForm.getDayOfWeek());
 
+            Map<Long, DaySubject> existingLessonsByOrder = new HashMap<>();
+            List<DaySubject> currentLessons = day.getLessons() == null ? List.of() : new ArrayList<>(day.getLessons());
+            for (DaySubject existingLesson : currentLessons) {
+                if (existingLesson.getLessonOrder() != null) {
+                    existingLessonsByOrder.put(existingLesson.getLessonOrder(), existingLesson);
+                }
+            }
             List<DaySubject> lessons = new ArrayList<>();
             if(dayForm.getLessons() != null){
                 for (NewLessonRequest lessonForm : dayForm.getLessons()){
                     String subjectName = normalize(lessonForm.getSubjectName());
                     if(subjectName == null) continue;
 
-                    Subject subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, subjectName)
-                            .orElseGet(() -> {
-                                Subject newSubject = new Subject();
-                                newSubject.setUser(me);
-                                newSubject.setFullName(subjectName);
-                                newSubject.setShortName(resolveShortName(lessonForm, subjectName));
-                                newSubject.setRoom(normalize(lessonForm.getRoom()));
-                                newSubject.setTeachers(resolveTeachers(lessonForm));
-                                return subjectsRepository.save(newSubject);
-                            });
+                    Subject subject = resolveSubject(me, lessonForm, subjectName);
+                    Long lessonOrder = lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null;
+                    DaySubject lesson = lessonOrder != null ? existingLessonsByOrder.remove(lessonOrder) : null;
+                    if (lesson == null) {
+                        lesson = new DaySubject();
+                    } else {
+                        Long existingSubjectId = lesson.getSubject() != null ? lesson.getSubject().getId() : null;
+                        if (lesson.getId() != null && !Objects.equals(existingSubjectId, subject.getId())) {
+                            lessonIdsToClearHomework.add(lesson.getId());
+                        }
+                    }
 
-                    if (normalize(lessonForm.getShortName()) != null) subject.setShortName(resolveShortName(lessonForm, subjectName));
-                    if (normalize(lessonForm.getRoom()) != null) subject.setRoom(normalize(lessonForm.getRoom()));
-                    if(normalizeColor(lessonForm.getColor()) != null) subject.setColor(normalizeColor(lessonForm.getColor()));
-                    if (normalize(lessonForm.getTeacher()) != null) subject.setTeachers(resolveTeachers(lessonForm));
-                    subject = subjectsRepository.save(subject);
-
-                    DaySubject lesson = new DaySubject();
                     lesson.setDay(day);
                     lesson.setSubject(subject);
-                    lesson.setLessonOrder(lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null);
+                    lesson.setLessonOrder(lessonOrder);
                     lesson.setRoom(normalize(lessonForm.getRoom()));
 
                     lessons.add(lesson);
                 }
             }
-            day.setLessons(lessons);
-            newDays.add(day);
+
+            for (DaySubject removedLesson : existingLessonsByOrder.values()) {
+                if (removedLesson.getId() != null) {
+                    lessonIdsToClearHomework.add(removedLesson.getId());
+                }
+            }
+            preparedDays.add(new PreparedDayUpdate(day, lessons));
+        }
+
+        for (Day removedDay : existingDaysByWeek.values()) {
+            List<DaySubject> removedLessons = removedDay.getLessons() == null ? List.of() : removedDay.getLessons();
+            for (DaySubject removedLesson : removedLessons) {
+                if (removedLesson.getId() != null) {
+                    lessonIdsToClearHomework.add(removedLesson.getId());
+                }
+            }
+        }
+
+        if (!lessonIdsToClearHomework.isEmpty()) {
+            homeworkRepository.deleteAllByDueDaySubjectIdIn(lessonIdsToClearHomework);
+            homeworkRepository.flush();
+        }
+
+        List<Day> newDays = new ArrayList<>();
+        for (PreparedDayUpdate preparedDay : preparedDays) {
+            preparedDay.day().setLessons(preparedDay.lessons());
+            newDays.add(preparedDay.day());
         }
 
         schedule.setDays(newDays);
@@ -277,6 +324,25 @@ public class HubService {
     private String resolveShortName(NewLessonRequest lessonForm, String subjectName) {
         String shortName = normalize(lessonForm.getShortName());
         return shortName != null ? shortName : buildShortName(subjectName);
+    }
+
+    private Subject resolveSubject(User me, NewLessonRequest lessonForm, String subjectName) {
+        Subject subject = subjectsRepository.findByUserAndResolvedNameIgnoreCase(me, subjectName)
+                .orElseGet(() -> {
+                    Subject newSubject = new Subject();
+                    newSubject.setUser(me);
+                    newSubject.setFullName(subjectName);
+                    newSubject.setShortName(resolveShortName(lessonForm, subjectName));
+                    newSubject.setRoom(normalize(lessonForm.getRoom()));
+                    newSubject.setTeachers(resolveTeachers(lessonForm));
+                    return subjectsRepository.save(newSubject);
+                });
+
+        if (normalize(lessonForm.getShortName()) != null) subject.setShortName(resolveShortName(lessonForm, subjectName));
+        if (normalize(lessonForm.getRoom()) != null) subject.setRoom(normalize(lessonForm.getRoom()));
+        if(normalizeColor(lessonForm.getColor()) != null) subject.setColor(normalizeColor(lessonForm.getColor()));
+        if (normalize(lessonForm.getTeacher()) != null) subject.setTeachers(resolveTeachers(lessonForm));
+        return subjectsRepository.save(subject);
     }
 
     private List<Teacher> resolveTeachers(NewLessonRequest lessonForm) {
