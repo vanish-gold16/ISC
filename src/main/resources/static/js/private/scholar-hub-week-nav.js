@@ -32,8 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalTeacher  = document.getElementById("subject-modal-teacher");
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
+    const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
+    const subjectUpcomingDate = document.getElementById("subject-modal-upcoming-date");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
+    const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
     const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
     const subjectSideHomeworkContext = document.getElementById("subject-side-homework-context");
     const subjectSideHomeworkTitleInput = document.getElementById("subject-side-homework-title-input");
@@ -43,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectSideHomeworkSaveButton = document.getElementById("subject-side-homework-save");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
+    const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
@@ -209,6 +213,52 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectSideHomeworkStatusInput) subjectSideHomeworkStatusInput.value = "Pending";
     }
 
+    function resetSubjectUpcomingLayer() {
+        if (!subjectUpcomingLayer) return;
+        subjectUpcomingLayer.classList.add("hidden");
+        subjectUpcomingLayer.setAttribute("aria-hidden", "true");
+        subjectUpcomingLayer.removeAttribute("style");
+    }
+
+    function isSubjectSideModalOpen() {
+        return !!subjectSideModal && !subjectSideModal.classList.contains("hidden");
+    }
+
+    function isSubjectUpcomingLayerOpen() {
+        return !!subjectUpcomingLayer && !subjectUpcomingLayer.classList.contains("hidden");
+    }
+
+    function getNextUpcomingHomework(cell) {
+        if (!cell) return null;
+        const subjectId = cell.dataset.subjectId;
+        if (!subjectId) return null;
+
+        const currentTime = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate).getTime() : Number.NEGATIVE_INFINITY;
+        const candidates = Array.from(document.querySelectorAll(".hub-timetable__cell--filled[data-week-start]"))
+            .filter((candidate) => candidate.dataset.subjectId === subjectId)
+            .map((candidate) => {
+                const homework = getCachedHomework(candidate);
+                const lessonDate = candidate.dataset.lessonDate ? new Date(candidate.dataset.lessonDate) : null;
+                return { cell: candidate, homework, lessonDate };
+            })
+            .filter((entry) => entry.homework && entry.lessonDate && entry.lessonDate.getTime() >= currentTime)
+            .sort((left, right) => {
+                const dateDiff = left.lessonDate - right.lessonDate;
+                if (dateDiff !== 0) return dateDiff;
+                return Number(left.cell.dataset.lessonOrder || "0") - Number(right.cell.dataset.lessonOrder || "0");
+            });
+
+        return candidates[0] || null;
+    }
+
+    function updateSubjectUpcomingWidget() {
+        if (!subjectUpcomingDate) return;
+        const nextHomework = getNextUpcomingHomework(activeLessonCell);
+        subjectUpcomingDate.textContent = nextHomework
+            ? formatDateLabel(nextHomework.lessonDate)
+            : "No upcoming homework yet";
+    }
+
     function getSubjectSideTriggerRect() {
         if (!subjectSideTrigger) return null;
         const rect = subjectSideTrigger.getBoundingClientRect();
@@ -243,6 +293,44 @@ document.addEventListener("DOMContentLoaded", () => {
         window.setTimeout(() => {
             resetSubjectSideModal();
         }, closeMs + 30);
+    }
+
+    function closeSubjectUpcomingLayer() {
+        if (!subjectUpcomingLayer || subjectUpcomingLayer.classList.contains("hidden")) return;
+
+        const closeMs = 480;
+        const layerRect = subjectUpcomingLayer.getBoundingClientRect();
+        const triggerRect = subjectUpcomingWidget ? subjectUpcomingWidget.getBoundingClientRect() : null;
+
+        if (triggerRect && layerRect.width && layerRect.height) {
+            const translateX = triggerRect.left - layerRect.left;
+            const translateY = triggerRect.top - layerRect.top;
+            const scaleX = Math.max(triggerRect.width / layerRect.width, 0.18);
+            const scaleY = Math.max(triggerRect.height / layerRect.height, 0.18);
+
+            subjectUpcomingLayer.style.transition = [
+                `opacity ${closeMs}ms cubic-bezier(0.4,0,0.2,1)`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`,
+            ].join(",");
+            subjectUpcomingLayer.style.opacity = "0";
+            subjectUpcomingLayer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectUpcomingLayer.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
+            subjectUpcomingLayer.style.opacity = "0";
+            subjectUpcomingLayer.style.transform = "translateX(16px) scale(0.94)";
+        }
+
+        window.setTimeout(() => {
+            resetSubjectUpcomingLayer();
+        }, closeMs + 30);
+    }
+
+    function toggleSubjectSideModal() {
+        if (isSubjectSideModalOpen()) {
+            closeSubjectSideModal();
+            return;
+        }
+        openSubjectSideModal();
     }
 
     function openSubjectSideModal() {
@@ -301,6 +389,58 @@ document.addEventListener("DOMContentLoaded", () => {
         window.setTimeout(() => {
             subjectSideHomeworkTitleInput?.focus();
         }, Math.round(openMs * 0.72));
+    }
+
+    function openSubjectUpcomingLayer() {
+        if (!subjectUpcomingLayer || !subjectDialogLayout || !subjectUpcomingWidget) return;
+        if (!subjectUpcomingLayer.classList.contains("hidden")) return;
+
+        const overlap = 180;
+        const top = subjectDialogLayout.top + 20;
+        const left = Math.max(subjectDialogLayout.left + subjectDialogLayout.width - overlap, 24);
+        const room = window.innerWidth - left - 24;
+        if (room < 320) return;
+
+        const width = Math.min(620, room);
+        const maxHeight = `calc(100vh - ${top + 24}px)`;
+        const triggerRect = subjectUpcomingWidget.getBoundingClientRect();
+        const openMs = 620;
+
+        subjectUpcomingLayer.classList.remove("hidden");
+        subjectUpcomingLayer.setAttribute("aria-hidden", "false");
+        Object.assign(subjectUpcomingLayer.style, {
+            position: "fixed",
+            top: `${top}px`,
+            left: `${left}px`,
+            width: `${width}px`,
+            maxHeight,
+            opacity: "0",
+            transform: "translateX(0) scale(1)",
+            transformOrigin: "top left",
+            transition: "none",
+        });
+
+        const layerRect = subjectUpcomingLayer.getBoundingClientRect();
+        if (triggerRect && layerRect.width && layerRect.height) {
+            const translateX = triggerRect.left - layerRect.left;
+            const translateY = triggerRect.top - layerRect.top;
+            const scaleX = Math.max(triggerRect.width / layerRect.width, 0.18);
+            const scaleY = Math.max(triggerRect.height / layerRect.height, 0.18);
+            subjectUpcomingLayer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectUpcomingLayer.style.transform = "translateX(18px) scale(0.94)";
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                subjectUpcomingLayer.style.transition = [
+                    `opacity ${Math.round(openMs * 0.8)}ms cubic-bezier(0.2,0.8,0.2,1)`,
+                    `transform ${openMs}ms cubic-bezier(0.18,0.9,0.2,1)`,
+                ].join(",");
+                subjectUpcomingLayer.style.opacity = "1";
+                subjectUpcomingLayer.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
     }
 
     function getLessonContext(cell) {
@@ -440,6 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cell || cardAnimBusy) return;
         cardAnimBusy = true;
         activeLessonCell = cell;
+        updateSubjectUpcomingWidget();
 
         const rect     = cell.getBoundingClientRect();
         const SCALE    = 1.13;
@@ -554,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         subjectDialogLayout = { top: dTop, left: dLeft, width: dWidth, maxHeight: dMaxH };
         resetSubjectSideModal();
+        resetSubjectUpcomingLayer();
 
         /* Kick animation — double rAF ensures a paint flush before transitions */
         requestAnimationFrame(() => {
@@ -613,6 +755,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dialog.style.opacity    = "0";
             dialog.style.transform  = "translateX(18px)";
         }
+        closeSubjectUpcomingLayer();
         closeSubjectSideModal();
         // Fade out backdrop over same duration as card return
         if (backdrop) {
@@ -645,6 +788,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.setAttribute("aria-hidden", "true");
                 if (dialog)   dialog.removeAttribute("style");
                 resetSubjectSideModal();
+                resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
                 if (subjectModalPreview) subjectModalPreview.removeAttribute("style");
                 subjectDialogLayout = null;
@@ -658,6 +802,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cardAnimBusy = false;
                 if (dialog)   dialog.removeAttribute("style");
                 resetSubjectSideModal();
+                resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
                 subjectDialogLayout = null;
             }, 260);
@@ -690,6 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
             refreshHomeworkIndicators(scope);
+            updateSubjectUpcomingWidget();
         } catch (error) {
             console.error(error);
             showToast("error", "Failed to load homework for the selected week.");
@@ -862,14 +1008,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     closeHomeworkTriggers.forEach((t) => t.addEventListener("click", closeHomeworkModal));
-    closeSubjectTriggers.forEach((t)  => t.addEventListener("click", closeSubjectModal));
+    closeSubjectTriggers.forEach((t)  => t.addEventListener("click", (event) => {
+        if (event.currentTarget.classList.contains("subject-modal__backdrop")) {
+            if (isSubjectUpcomingLayerOpen()) {
+                closeSubjectUpcomingLayer();
+                return;
+            }
+            if (isSubjectSideModalOpen()) {
+                closeSubjectSideModal();
+                return;
+            }
+        }
+        closeSubjectModal();
+    }));
     closeSubjectSideTriggers.forEach((t) => t.addEventListener("click", closeSubjectSideModal));
+    closeSubjectUpcomingTriggers.forEach((t) => t.addEventListener("click", closeSubjectUpcomingLayer));
 
     if (subjectSideTrigger) {
         subjectSideTrigger.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            openSubjectSideModal();
+            toggleSubjectSideModal();
+        });
+    }
+
+    if (subjectUpcomingWidget) {
+        subjectUpcomingWidget.addEventListener("click", (event) => {
+            if (event.target.closest("[data-open-subject-side-modal]")) return;
+            if (isSubjectUpcomingLayerOpen()) {
+                closeSubjectUpcomingLayer();
+            } else {
+                openSubjectUpcomingLayer();
+            }
+        });
+
+        subjectUpcomingWidget.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            if (isSubjectUpcomingLayerOpen()) {
+                closeSubjectUpcomingLayer();
+            } else {
+                openSubjectUpcomingLayer();
+            }
         });
     }
 
@@ -882,6 +1062,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (homeworkModal && !homeworkModal.classList.contains("hidden")) closeHomeworkModal();
+            else if (isSubjectUpcomingLayerOpen()) closeSubjectUpcomingLayer();
             else if (subjectSideModal && !subjectSideModal.classList.contains("hidden")) closeSubjectSideModal();
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
         }

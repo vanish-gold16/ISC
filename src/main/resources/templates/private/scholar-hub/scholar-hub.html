@@ -200,8 +200,9 @@
                     <p class="subject-detail-widget__label">Grades</p>
                     <div class="subject-detail-widget__empty" id="subject-modal-grades"></div>
                 </div>
-                <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming">
+                <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming" id="subject-modal-upcoming-widget" role="button" tabindex="0" aria-label="Open upcoming homework">
                     <p class="subject-detail-widget__label">Upcoming homework and tests</p>
+                    <p class="subject-detail-widget__date" id="subject-modal-upcoming-date">No upcoming homework yet</p>
                     <button class="subject-detail-widget__icon-button" type="button" aria-label="Open homework panel" data-open-subject-side-modal>
                         <img class="subject-detail-widget__icon" src="/images/private/icons/homework.png" alt="" />
                     </button>
@@ -277,6 +278,18 @@
                     <button class="btn btn--primary" type="button" id="subject-side-homework-save">Save homework</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--upcoming hidden" id="subject-modal-upcoming-layer" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Upcoming homework list">
+        <div class="subject-detail-modal__content subject-detail-modal__content--upcoming-layer">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__kicker">Upcoming homework</p>
+                    <h3 class="subject-detail-modal__side-title">Upcoming homework and tests</h3>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-upcoming-modal>x</button>
+            </div>
+            <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming-empty"></div>
         </div>
     </div>
 </div>
