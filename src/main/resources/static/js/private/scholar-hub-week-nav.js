@@ -764,6 +764,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openSubjectHomeworkDetailModal(entry, triggerElement) {
         if (!subjectHomeworkDetailModal || !subjectDialogLayout || !entry?.homework) return;
+        const isSameHomework =
+            isSubjectHomeworkDetailModalOpen() &&
+            activeHomeworkDetailEntry?.homework?.id &&
+            activeHomeworkDetailEntry.homework.id === entry.homework.id;
+
+        if (isSameHomework) {
+            closeSubjectHomeworkDetailModal();
+            return;
+        }
+
         activeHomeworkDetailEntry = entry;
         activeHomeworkDetailTrigger = triggerElement || null;
 
