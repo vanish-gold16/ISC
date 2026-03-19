@@ -12,11 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const priorityMap = new Map([
         ["_00FF00", { label: "Low priority",    color: "#00FF00" }],
         ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
-        ["_FF0000", { label: "High priority",   color: "#FF0000" }],
-        ["_6B21A8", { label: "Test",            color: "#6B21A8" }]
+        ["_FF0000", { label: "High priority",   color: "#FF0000" }]
     ]);
     const defaultHomeworkPriority = "_00FF00";
-    const testHomeworkPriority = "_6B21A8";
+    const testHomeworkStoredPriority = "_FF0000";
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
 
@@ -70,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
     const closeSubjectHomeworkDetailTriggers = Array.from(document.querySelectorAll("[data-close-subject-homework-detail-modal]"));
-    const weekCurrentBadge = document.querySelector("[data-week-current-badge]");
+    const homeworkFormRoots = Array.from(document.querySelectorAll("[data-homework-form-root]"));
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
@@ -126,8 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getPriorityRank(priority) {
         switch (priority) {
-            case "_6B21A8":
-                return 4;
             case "_FF0000":
                 return 3;
             case "_FFFF00":
@@ -137,10 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
             default:
                 return 0;
         }
-    }
-
-    function isTestPriority(priority) {
-        return priority === testHomeworkPriority;
     }
 
     function formatHomeworkStatus(status) {
@@ -226,30 +219,75 @@ document.addEventListener("DOMContentLoaded", () => {
     function syncPriorityPicker(inputId) {
         const input = document.getElementById(inputId);
         const picker = document.querySelector(`[data-priority-picker="${inputId}"]`);
-        const testToggle = document.querySelector(`[data-priority-test-toggle="${inputId}"]`);
         if (!input || !picker) return;
 
-        const useTestPriority = isTestPriority(input.value);
-        picker.classList.toggle("priority-picker--hidden", useTestPriority);
-        if (testToggle) testToggle.checked = useTestPriority;
-
         picker.querySelectorAll("[data-priority-value]").forEach((button) => {
-            const active = !useTestPriority && button.dataset.priorityValue === input.value;
+            const active = button.dataset.priorityValue === input.value;
             button.classList.toggle("is-selected", active);
             button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+
+        document.querySelectorAll(`[data-homework-form-root][data-priority-input-id="${inputId}"]`).forEach((root) => {
+            syncHomeworkFormMode(root);
         });
     }
 
     function setPriorityValue(input, value) {
         if (!input) return;
         const nextValue = value || defaultHomeworkPriority;
-        if (!isTestPriority(nextValue)) {
-            input.dataset.standardPriority = nextValue;
-        } else if (!input.dataset.standardPriority) {
-            input.dataset.standardPriority = defaultHomeworkPriority;
-        }
+        input.dataset.standardPriority = nextValue;
         input.value = nextValue;
         if (input.id) syncPriorityPicker(input.id);
+    }
+
+    function syncHomeworkFormMode(root) {
+        if (!root) return;
+        const inputId = root.getAttribute("data-priority-input-id");
+        const input = inputId ? document.getElementById(inputId) : null;
+        if (!input) return;
+
+        const mode = root.dataset.homeworkMode || "homework";
+        root.dataset.homeworkMode = mode;
+
+        root.querySelectorAll("[data-homework-mode-trigger]").forEach((button) => {
+            const active = button.getAttribute("data-homework-mode-trigger") === mode;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-selected", active ? "true" : "false");
+        });
+
+        const titleLabel = root.querySelector("[data-homework-title-label]");
+        if (titleLabel) titleLabel.textContent = mode === "test" ? "Test title" : "Homework title";
+
+        const titleInput = root.querySelector("[data-homework-title-input]");
+        if (titleInput) {
+            titleInput.placeholder = mode === "test"
+                ? "For example: algebra test"
+                : "For example: solve exercises 1-8";
+        }
+
+        const priorityField = root.querySelector("[data-homework-priority-field]");
+        if (priorityField) priorityField.classList.toggle("is-hidden", mode === "test");
+    }
+
+    function setHomeworkFormMode(root, mode) {
+        if (!root) return;
+        const inputId = root.getAttribute("data-priority-input-id");
+        const input = inputId ? document.getElementById(inputId) : null;
+        if (!input) return;
+
+        const previousMode = root.dataset.homeworkMode || "homework";
+        root.dataset.homeworkMode = mode;
+
+        if (mode === "test") {
+            if (previousMode !== "test") {
+                input.dataset.standardPriority = input.value || defaultHomeworkPriority;
+            }
+            input.value = testHomeworkStoredPriority;
+            if (input.id) syncPriorityPicker(input.id);
+            return;
+        }
+
+        setPriorityValue(input, input.dataset.standardPriority || defaultHomeworkPriority);
     }
 
     function getCsrfHeaders() {
@@ -1058,6 +1096,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function populateSubjectSideHomeworkForm() {
         if (!activeLessonCell) return;
         const lessonContext = getLessonContext(activeLessonCell);
+        const subjectSideHomeworkFormRoot = document.querySelector('[data-priority-input-id="subject-side-homework-priority"]');
 
         if (subjectSideHomeworkPanelTitle) {
             subjectSideHomeworkPanelTitle.textContent = "Add homework";
@@ -1072,6 +1111,10 @@ document.addEventListener("DOMContentLoaded", () => {
             subjectSideHomeworkDetailsInput.value = "";
         }
         setPriorityValue(subjectSideHomeworkPriorityInput, defaultHomeworkPriority);
+        if (subjectSideHomeworkFormRoot) {
+            subjectSideHomeworkFormRoot.dataset.homeworkMode = "homework";
+            syncHomeworkFormMode(subjectSideHomeworkFormRoot);
+        }
         if (subjectSideHomeworkStatusInput) {
             subjectSideHomeworkStatusInput.value = "Pending";
         }
@@ -1104,7 +1147,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         if (!payload.title) {
-            showToast("error", "Homework title is required.");
+            showToast("error", "Title is required.");
             return;
         }
 
@@ -1151,7 +1194,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         if (!payload.title) {
-            showToast("error", "Homework title is required.");
+            showToast("error", "Title is required.");
             return;
         }
 
@@ -1525,11 +1568,16 @@ document.addEventListener("DOMContentLoaded", () => {
         activeLessonCell  = cell;
         const homework    = getCachedHomework(cell);
         const lessonContext = getLessonContext(cell);
+        const homeworkFormRoot = document.querySelector('[data-priority-input-id="homework-priority"]');
 
         homeworkContext.textContent    = lessonContext.context;
         homeworkTitleInput.value       = homework ? homework.title   || "" : "";
         homeworkDetailsInput.value     = homework ? homework.details || "" : "";
         setPriorityValue(homeworkPriorityInput, homework?.priority || defaultHomeworkPriority);
+        if (homeworkFormRoot) {
+            homeworkFormRoot.dataset.homeworkMode = "homework";
+            syncHomeworkFormMode(homeworkFormRoot);
+        }
         if (homeworkStatusInput)  homeworkStatusInput.value  = homework?.status || homeworkStatusInput.value || "Pending";
         if (homeworkDeleteButton) homeworkDeleteButton.disabled = !homework;
 
@@ -1549,7 +1597,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const details  = String(homeworkDetailsInput.value || "").trim();
         const priority = homeworkPriorityInput.value || defaultHomeworkPriority;
         const status   = homeworkStatusInput ? (homeworkStatusInput.value || "Pending") : "Pending";
-        if (!title) { showToast("error", "Homework title is required."); return; }
+        if (!title) { showToast("error", "Title is required."); return; }
 
         const payload = {
             title, details, priority,
@@ -1598,6 +1646,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll("[data-week-nav]").forEach((weekNav) => {
         const rangeLabel = weekNav.querySelector("[data-week-range]");
+        const weekStateBadge = weekNav.querySelector("[data-week-current-badge]");
+        const currentWeekButton = weekNav.querySelector("[data-week-current-action]");
         const timetable  = weekNav.parentElement?.querySelector(".hub-timetable");
         if (!rangeLabel || !timetable) return;
 
@@ -1609,14 +1659,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const firstIdx = dayIndexes.length > 0 ? dayIndexes[0]                      : 0;
         const lastIdx  = dayIndexes.length > 0 ? dayIndexes[dayIndexes.length - 1]  : 5;
         const url = new URL(window.location.href);
-        let weekOffset = 0;
+        let weekOffset = Number.parseInt(url.searchParams.get("weekOffset") || "0", 10);
+        if (Number.isNaN(weekOffset)) weekOffset = 0;
 
         function applyWeekContext() {
             const monday = getMonday(new Date());
             monday.setDate(monday.getDate() + weekOffset * 7);
             rangeLabel.textContent = `${formatDateLabel(addDays(monday, firstIdx))}-${formatDateLabel(addDays(monday, lastIdx))}`;
-            if (weekCurrentBadge) {
-                weekCurrentBadge.classList.toggle("hidden", weekOffset !== 0);
+            if (weekStateBadge) {
+                const showWeekStateBadge = weekOffset === 0 || Math.abs(weekOffset) === 1;
+                weekStateBadge.classList.toggle("hidden", !showWeekStateBadge);
+                if (showWeekStateBadge) {
+                    const weekState = weekOffset === 0 ? "current" : (weekOffset < 0 ? "previous" : "next");
+                    weekStateBadge.dataset.weekState = weekState;
+                    weekStateBadge.textContent = weekState === "current"
+                        ? "Current week"
+                        : (weekState === "previous" ? "Previous week" : "Next week");
+                }
+            }
+            if (currentWeekButton) {
+                currentWeekButton.classList.toggle("hidden", weekOffset === 0);
             }
             timetable.querySelectorAll(".hub-timetable__cell--filled").forEach((cell) => {
                 const idx = dayOrder[cell.dataset.dayKey];
@@ -1644,6 +1706,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
+        if (currentWeekButton) {
+            currentWeekButton.addEventListener("click", () => {
+                if (weekOffset === 0) return;
+                weekOffset = 0;
+                applyWeekContext();
+                syncUrl();
+            });
+        }
+
         applyWeekContext();
         syncUrl();
     });
@@ -1666,21 +1737,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    document.querySelectorAll("[data-priority-test-toggle]").forEach((toggle) => {
-        const inputId = toggle.getAttribute("data-priority-test-toggle");
-        const input = inputId ? document.getElementById(inputId) : null;
-        if (!input) return;
+    homeworkFormRoots.forEach((root) => {
+        syncHomeworkFormMode(root);
 
-        toggle.addEventListener("change", () => {
-            if (toggle.checked) {
-                if (!isTestPriority(input.value)) {
-                    input.dataset.standardPriority = input.value || defaultHomeworkPriority;
-                }
-                setPriorityValue(input, testHomeworkPriority);
-                return;
-            }
-
-            setPriorityValue(input, input.dataset.standardPriority || defaultHomeworkPriority);
+        root.querySelectorAll("[data-homework-mode-trigger]").forEach((button) => {
+            button.addEventListener("click", () => {
+                setHomeworkFormMode(root, button.getAttribute("data-homework-mode-trigger") || "homework");
+            });
         });
     });
 

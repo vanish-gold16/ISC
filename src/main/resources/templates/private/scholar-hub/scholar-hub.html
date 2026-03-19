@@ -27,7 +27,10 @@
                         </button>
                         <div class="week-switcher__range-block">
                             <h3 class="week-switcher__range" data-week-range>16.03-21.03</h3>
-                            <span class="week-switcher__current-badge hidden" data-week-current-badge>Current week</span>
+                            <div class="week-switcher__status-row">
+                                <span class="week-switcher__current-badge" data-week-current-badge data-week-state="current">Current week</span>
+                                <button class="week-switcher__current-button hidden" type="button" data-week-current-action>To current week</button>
+                            </div>
                         </div>
                         <button class="week-switcher__button" type="button" data-week-shift="1" aria-label="Next week">
                             <img class="week-switcher__button-icon week-switcher__button-icon--right"
@@ -122,7 +125,7 @@
 
 <div class="subject-modal homework-modal hidden" id="homework-modal" aria-hidden="true">
     <div class="subject-modal__backdrop" data-close-homework-modal></div>
-    <div class="subject-modal__dialog homework-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="homework-modal-title">
+    <div class="subject-modal__dialog homework-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="homework-modal-title" data-homework-form-root data-priority-input-id="homework-priority">
         <div class="subject-modal__head">
             <div>
                 <p class="subject-modal__eyebrow">Homework</p>
@@ -132,10 +135,15 @@
             <button class="subject-modal__close" type="button" aria-label="Close" data-close-homework-modal>x</button>
         </div>
 
+        <div class="homework-form-tabs" role="tablist" aria-label="Homework type">
+            <button class="homework-form-tabs__button is-active" type="button" data-homework-mode-trigger="homework" role="tab" aria-selected="true">Homework</button>
+            <button class="homework-form-tabs__button" type="button" data-homework-mode-trigger="test" role="tab" aria-selected="false">Test</button>
+        </div>
+
         <div class="subject-modal__body">
             <label class="subject-modal__field">
-                <span>Homework title</span>
-                <input class="input" id="homework-title" type="text" placeholder="For example: solve exercises 1-8" />
+                <span data-homework-title-label>Homework title</span>
+                <input class="input" id="homework-title" type="text" data-homework-title-input placeholder="For example: solve exercises 1-8" />
             </label>
 
             <label class="subject-modal__field">
@@ -143,14 +151,8 @@
                 <textarea class="homework-modal__textarea input" id="homework-details" placeholder="Additional notes, files, deadlines"></textarea>
             </label>
 
-            <label class="subject-modal__field">
-                <div class="subject-modal__field-head">
-                    <span>Priority</span>
-                    <label class="priority-test-toggle">
-                        <input class="priority-test-toggle__input" type="checkbox" data-priority-test-toggle="homework-priority" />
-                        <span>Тест</span>
-                    </label>
-                </div>
+            <label class="subject-modal__field" data-homework-priority-field>
+                <span>Priority</span>
                 <input id="homework-priority" type="hidden" value="_00FF00" />
                 <div class="priority-picker" data-priority-picker="homework-priority">
                     <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
@@ -232,7 +234,7 @@
             </div>
         </div>
     </div>
-    <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--side hidden" id="subject-modal-side" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Homework panel">
+    <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--side hidden" id="subject-modal-side" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Homework panel" data-homework-form-root data-priority-input-id="subject-side-homework-priority">
         <div class="subject-detail-modal__content subject-detail-modal__content--side">
             <div class="subject-detail-modal__head">
                 <div>
@@ -242,10 +244,15 @@
                 </div>
                 <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-side-modal>x</button>
             </div>
+            <div class="homework-form-tabs" role="tablist" aria-label="Homework type">
+                <button class="homework-form-tabs__button is-active" type="button" data-homework-mode-trigger="homework" role="tab" aria-selected="true">Homework</button>
+                <button class="homework-form-tabs__button" type="button" data-homework-mode-trigger="test" role="tab" aria-selected="false">Test</button>
+            </div>
+
             <div class="subject-modal__body subject-modal__body--side">
                 <label class="subject-modal__field">
-                    <span>Homework title</span>
-                    <input class="input" id="subject-side-homework-title-input" type="text" placeholder="For example: solve exercises 1-8" />
+                    <span data-homework-title-label>Homework title</span>
+                    <input class="input" id="subject-side-homework-title-input" type="text" data-homework-title-input placeholder="For example: solve exercises 1-8" />
                 </label>
 
                 <label class="subject-modal__field">
@@ -253,14 +260,8 @@
                     <textarea class="homework-modal__textarea input" id="subject-side-homework-details" placeholder="Additional notes, files, deadlines"></textarea>
                 </label>
 
-                <label class="subject-modal__field">
-                    <div class="subject-modal__field-head">
-                        <span>Priority</span>
-                        <label class="priority-test-toggle">
-                            <input class="priority-test-toggle__input" type="checkbox" data-priority-test-toggle="subject-side-homework-priority" />
-                            <span>Тест</span>
-                        </label>
-                    </div>
+                <label class="subject-modal__field" data-homework-priority-field>
+                    <span>Priority</span>
                     <input id="subject-side-homework-priority" type="hidden" value="_00FF00" />
                     <div class="priority-picker" data-priority-picker="subject-side-homework-priority">
                         <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
@@ -348,13 +349,7 @@
                 </label>
 
                 <label class="subject-modal__field">
-                    <div class="subject-modal__field-head">
-                        <span>Priority</span>
-                        <label class="priority-test-toggle">
-                            <input class="priority-test-toggle__input" type="checkbox" data-priority-test-toggle="subject-homework-detail-priority" />
-                            <span>Тест</span>
-                        </label>
-                    </div>
+                    <span>Priority</span>
                     <input id="subject-homework-detail-priority" type="hidden" value="_00FF00" />
                     <div class="priority-picker" data-priority-picker="subject-homework-detail-priority">
                         <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
