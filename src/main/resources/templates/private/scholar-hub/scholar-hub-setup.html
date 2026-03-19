@@ -319,10 +319,10 @@
         let currentSubjectResults = [];
         let subjectSearchAbortController = null;
         let draftSubjectColor = DEFAULT_SUBJECT_COLOR;
-        let activeColorSubjectName = null;
+        let activeColorCard = null;
         let subjectModalMode = 'add';
         let editingSubjectId = null;
-        let editingSubjectKey = null;
+        let editingSlot = null;
         const subjectColorRegistry = new Map();
 
         function normalizeSubjectName(value) {
@@ -419,58 +419,6 @@
             }
         }
 
-        function updateSubjectColorEverywhere(subjectName, color) {
-            const resolvedColor = rememberSubjectColor(subjectName, color);
-            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
-                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(subjectName)) {
-                    applyCardColor(card, resolvedColor);
-                }
-            });
-            syncPayload();
-        }
-
-        async function persistSubjectColor(subjectName, color) {
-            const referenceCard = Array.from(document.querySelectorAll('.subject-card')).find((card) => {
-                return normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(subjectName);
-            });
-
-            if (!referenceCard) {
-                return;
-            }
-
-            const response = await fetch('/scholar-hub/subjects', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': getCsrfToken()
-                },
-                body: JSON.stringify({
-                    fullName: referenceCard.dataset.subjectName,
-                    shortName: referenceCard.dataset.shortName,
-                    teacherName: referenceCard.dataset.teacher || null,
-                    room: referenceCard.dataset.room || null,
-                    color
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Color update failed with status ' + response.status);
-            }
-
-            const savedSubject = await response.json();
-            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
-                if (normalizeSubjectKey(card.dataset.subjectName) === normalizeSubjectKey(savedSubject.fullName)) {
-                    card.dataset.subjectId = savedSubject.id || '';
-                    const editLink = card.querySelector('.subject-card__edit');
-                    if (editLink) {
-                        editLink.href = '#';
-                    }
-                }
-            });
-            updateSubjectColorEverywhere(savedSubject.fullName, savedSubject.color || color);
-        }
-
         function getCsrfToken() {
             return csrfInput ? csrfInput.value : '';
         }
@@ -478,7 +426,7 @@
         function openCreatePanel(subjectName) {
             setSubjectModalMode('add');
             editingSubjectId = null;
-            editingSubjectKey = null;
+            editingSlot = null;
             const normalizedName = normalizeSubjectName(subjectName);
             subjectCreatePanel.classList.remove('hidden');
             subjectCreatePanel.setAttribute('aria-hidden', 'false');
@@ -493,7 +441,8 @@
         function openEditPanel(card) {
             setSubjectModalMode('edit');
             editingSubjectId = card.dataset.subjectId ? Number(card.dataset.subjectId) : null;
-            editingSubjectKey = normalizeSubjectKey(card.dataset.subjectName);
+            editingSlot = card.closest('.lesson-slot');
+            activeSlot = null;
 
             subjectModal.classList.remove('hidden');
             subjectModal.setAttribute('aria-hidden', 'false');
@@ -517,7 +466,7 @@
         function openSubjectModal(slot) {
             activeSlot = slot;
             editingSubjectId = null;
-            editingSubjectKey = null;
+            editingSlot = null;
             setSubjectModalMode('add');
             subjectModal.classList.remove('hidden');
             subjectModal.setAttribute('aria-hidden', 'false');
@@ -533,7 +482,7 @@
             closeCreatePanel();
             currentSubjectResults = [];
             editingSubjectId = null;
-            editingSubjectKey = null;
+            editingSlot = null;
             setSubjectModalMode('add');
         }
 
@@ -701,32 +650,19 @@
             }
         }
 
-        function updateSubjectEverywhere(originalSubjectKey, updatedSubject) {
-            const subjectColor = rememberSubjectColor(updatedSubject.fullName, updatedSubject.color);
+        function updateEditingSlot(updatedSubject) {
+            if (!editingSlot) {
+                return;
+            }
 
-            Array.from(document.querySelectorAll('.subject-card')).forEach((card) => {
-                if (normalizeSubjectKey(card.dataset.subjectName) !== originalSubjectKey) {
-                    return;
-                }
-
-                card.dataset.subjectId = updatedSubject.id || '';
-                card.dataset.subjectName = updatedSubject.fullName;
-                card.dataset.shortName = updatedSubject.shortName || updatedSubject.fullName;
-                card.dataset.teacher = updatedSubject.teacherName || '';
-                card.dataset.room = updatedSubject.room || '';
-                applyCardColor(card, subjectColor);
-
-                const editLink = card.querySelector('.subject-card__edit');
-                if (editLink) {
-                    editLink.href = '#';
-                }
-
-                card.querySelector('.subject-card__name').textContent = updatedSubject.shortName || updatedSubject.fullName;
-                card.querySelector('.subject-card__teacher').textContent = updatedSubject.teacherName || 'Teacher not set';
-                card.querySelector('.subject-card__room').textContent = updatedSubject.room || 'Room not set';
+            renderCard(editingSlot, {
+                id: '',
+                fullName: updatedSubject.fullName,
+                shortName: updatedSubject.shortName,
+                teacher: updatedSubject.teacherName,
+                room: updatedSubject.room,
+                color: rememberSubjectColor(updatedSubject.fullName, updatedSubject.color)
             });
-
-            syncPayload();
         }
 
         slots.forEach((slot) => {
@@ -755,7 +691,7 @@
                     if (!card) {
                         return;
                     }
-                    activeColorSubjectName = card.dataset.subjectName;
+                    activeColorCard = card;
                     subjectCardColorInput.value = card.dataset.color || resolveSubjectColor(card.dataset.subjectName);
                     subjectCardColorInput.click();
                     return;
@@ -837,25 +773,15 @@
         });
 
         subjectCardColorInput.addEventListener('input', () => {
-            if (!activeColorSubjectName) {
+            if (!activeColorCard) {
                 return;
             }
-            updateSubjectColorEverywhere(activeColorSubjectName, subjectCardColorInput.value);
+            applyCardColor(activeColorCard, subjectCardColorInput.value);
+            syncPayload();
         });
 
-        subjectCardColorInput.addEventListener('change', async () => {
-            const subjectName = activeColorSubjectName;
-            activeColorSubjectName = null;
-
-            if (!subjectName) {
-                return;
-            }
-
-            try {
-                await persistSubjectColor(subjectName, subjectCardColorInput.value);
-            } catch (error) {
-                console.error(error);
-            }
+        subjectCardColorInput.addEventListener('change', () => {
+            activeColorCard = null;
         });
 
         subjectCreateSave.addEventListener('click', async () => {
@@ -875,7 +801,20 @@
             subjectCreateSave.textContent = 'Saving...';
 
             try {
-                const response = await fetch(subjectModalMode === 'edit' ? '/scholar-hub/subjects/edit' : '/scholar-hub/subjects', {
+                if (subjectModalMode === 'edit') {
+                    updateEditingSlot({
+                        id: null,
+                        fullName: draftSubject.fullName,
+                        shortName: draftSubject.shortName,
+                        teacherName: draftSubject.teacher,
+                        room: draftSubject.room,
+                        color: draftSubject.color
+                    });
+                    closeSubjectModal();
+                    return;
+                }
+
+                const response = await fetch('/scholar-hub/subjects', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -897,22 +836,14 @@
                 }
 
                 const savedSubject = await response.json();
-                if (subjectModalMode === 'edit') {
-                    updateSubjectEverywhere(editingSubjectKey, {
-                        ...savedSubject,
-                        color: resolveSubjectColor(savedSubject.fullName, savedSubject.color || draftSubject.color)
-                    });
-                    closeSubjectModal();
-                } else {
-                    insertSubjectIntoActiveSlot({
-                        id: savedSubject.id,
-                        fullName: savedSubject.fullName,
-                        shortName: savedSubject.shortName,
-                        teacher: savedSubject.teacherName,
-                        room: savedSubject.room,
-                        color: resolveSubjectColor(savedSubject.fullName, savedSubject.color || draftSubject.color)
-                    });
-                }
+                insertSubjectIntoActiveSlot({
+                    id: savedSubject.id,
+                    fullName: savedSubject.fullName,
+                    shortName: savedSubject.shortName,
+                    teacher: savedSubject.teacherName,
+                    room: savedSubject.room,
+                    color: resolveSubjectColor(savedSubject.fullName, savedSubject.color || draftSubject.color)
+                });
             } catch (error) {
                 if (subjectModalMode === 'edit') {
                     subjectCreatePanelTitle.textContent = 'Could not save changes right now';
