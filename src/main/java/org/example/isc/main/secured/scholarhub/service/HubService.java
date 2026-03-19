@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 public class HubService {
 
+    private static final int DEFAULT_LESSON_SLOTS = 8;
+
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SchedulesRepository schedulesRepository;
@@ -149,6 +151,8 @@ public class HubService {
                 .mapToInt(day -> day.lessons().size())
                 .max()
                 .orElse(0);
+        int minSlotCount = previewLimitPerDay > 0 ? previewLimitPerDay : DEFAULT_LESSON_SLOTS;
+        maxLessonSlots = Math.max(maxLessonSlots, minSlotCount);
 
         List<ScheduleDayView> paddedDays = days.stream()
                 .map(day -> new ScheduleDayView(
