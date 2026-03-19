@@ -175,3 +175,32 @@ BEGIN
 END;
 $$;
 @@
+
+DO $$
+BEGIN
+    IF to_regclass('public.homeworks') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'homeworks_priority_check'
+          AND conrelid = 'homeworks'::regclass
+    ) THEN
+        ALTER TABLE homeworks DROP CONSTRAINT homeworks_priority_check;
+    END IF;
+
+    ALTER TABLE homeworks
+        ADD CONSTRAINT homeworks_priority_check
+            CHECK (
+                priority IS NULL OR priority IN (
+                    '_00FF00',
+                    '_FFFF00',
+                    '_FF0000',
+                    '_6B21A8'
+                )
+            );
+END;
+$$;
+@@

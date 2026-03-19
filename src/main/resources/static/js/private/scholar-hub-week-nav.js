@@ -12,10 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const priorityMap = new Map([
         ["_00FF00", { label: "Low priority",    color: "#00FF00" }],
         ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
-        ["_FF0000", { label: "High priority",   color: "#FF0000" }]
+        ["_FF0000", { label: "High priority",   color: "#FF0000" }],
+        ["_6B21A8", { label: "Test",            color: "#6B21A8" }]
     ]);
     const defaultHomeworkPriority = "_00FF00";
-    const testHomeworkStoredPriority = "_FF0000";
+    const testHomeworkStoredPriority = "_6B21A8";
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
 
@@ -125,6 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getPriorityRank(priority) {
         switch (priority) {
+            case "_6B21A8":
+                return 4;
             case "_FF0000":
                 return 3;
             case "_FFFF00":
