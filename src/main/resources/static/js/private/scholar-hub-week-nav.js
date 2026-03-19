@@ -779,11 +779,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const baseMaxHeight = isSubjectUpcomingLayerOpen()
             ? subjectUpcomingLayer.style.maxHeight
             : subjectDialogLayout.maxHeight;
-        const overlap = 34;
-        const left = baseLeft + baseWidth - overlap;
-        const room = window.innerWidth - left - 24;
-        if (room < 280) return;
-        const width = Math.min(390, room);
+        const desiredWidth = Math.min(390, window.innerWidth - 48);
+        const preferredOverlap = 34;
+        const preferredLeft = baseLeft + baseWidth - preferredOverlap;
+        const preferredRoom = window.innerWidth - preferredLeft - 24;
+        let width = Math.min(desiredWidth, Math.max(preferredRoom, 280));
+        let left = preferredLeft;
+
+        if (preferredRoom < 280) {
+            width = desiredWidth;
+            left = Math.max(baseLeft + baseWidth - width - 88, 24);
+        }
+
+        const maxLeft = Math.max(window.innerWidth - width - 24, 24);
+        left = Math.min(left, maxLeft);
         const top = Math.max(baseTop + 10, 20);
         const openMs = 680;
 
