@@ -34,6 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
+    const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
+    const subjectSideHomeworkContext = document.getElementById("subject-side-homework-context");
+    const subjectSideHomeworkTitleInput = document.getElementById("subject-side-homework-title-input");
+    const subjectSideHomeworkDetailsInput = document.getElementById("subject-side-homework-details");
+    const subjectSideHomeworkPriorityInput = document.getElementById("subject-side-homework-priority");
+    const subjectSideHomeworkStatusInput = document.getElementById("subject-side-homework-status");
+    const subjectSideHomeworkSaveButton = document.getElementById("subject-side-homework-save");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
 
@@ -163,6 +170,12 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectSideModal.classList.add("hidden");
         subjectSideModal.setAttribute("aria-hidden", "true");
         subjectSideModal.removeAttribute("style");
+        if (subjectSideHomeworkPanelTitle) subjectSideHomeworkPanelTitle.textContent = "Add homework";
+        if (subjectSideHomeworkContext) subjectSideHomeworkContext.textContent = "Current lesson";
+        if (subjectSideHomeworkTitleInput) subjectSideHomeworkTitleInput.value = "";
+        if (subjectSideHomeworkDetailsInput) subjectSideHomeworkDetailsInput.value = "";
+        if (subjectSideHomeworkPriorityInput) subjectSideHomeworkPriorityInput.value = "_00FF00";
+        if (subjectSideHomeworkStatusInput) subjectSideHomeworkStatusInput.value = "Pending";
     }
 
     function getSubjectSideTriggerRect() {
@@ -202,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openSubjectSideModal() {
-        if (!subjectSideModal || !subjectDialogLayout) return;
+        if (!subjectSideModal || !subjectDialogLayout || !activeLessonCell) return;
         if (!subjectSideModal.classList.contains("hidden")) return;
 
         const overlap = 26;
@@ -215,6 +228,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const sideWidth = Math.min(sideMaxWidth, sideRoom);
         const triggerRect = getSubjectSideTriggerRect();
         const openMs = 680;
+
+        populateSubjectSideHomeworkForm();
 
         subjectSideModal.classList.remove("hidden");
         subjectSideModal.setAttribute("aria-hidden", "false");
@@ -251,6 +266,99 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectSideModal.style.transform = "translate(0, 0) scale(1)";
             });
         });
+
+        window.setTimeout(() => {
+            subjectSideHomeworkTitleInput?.focus();
+        }, Math.round(openMs * 0.72));
+    }
+
+    function getLessonContext(cell) {
+        const subjectName = cell.dataset.subjectShortName || cell.dataset.subjectName || "Lesson";
+        const lessonOrder = cell.dataset.lessonOrder || "";
+        const lessonDate = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
+        const dateLabel = lessonDate
+            ? formatFullDateLabel(lessonDate)
+            : (dayLabels[cell.dataset.dayKey] || "Current day");
+
+        return {
+            subjectName,
+            lessonOrder,
+            dateLabel,
+            context: `${subjectName} • lesson ${lessonOrder} • ${dateLabel}`,
+        };
+    }
+
+    function populateSubjectSideHomeworkForm() {
+        if (!activeLessonCell) return;
+        const lessonContext = getLessonContext(activeLessonCell);
+
+        if (subjectSideHomeworkPanelTitle) {
+            subjectSideHomeworkPanelTitle.textContent = "Add homework";
+        }
+        if (subjectSideHomeworkContext) {
+            subjectSideHomeworkContext.textContent = lessonContext.context;
+        }
+        if (subjectSideHomeworkTitleInput) {
+            subjectSideHomeworkTitleInput.value = "";
+        }
+        if (subjectSideHomeworkDetailsInput) {
+            subjectSideHomeworkDetailsInput.value = "";
+        }
+        if (subjectSideHomeworkPriorityInput) {
+            subjectSideHomeworkPriorityInput.value = "_00FF00";
+        }
+        if (subjectSideHomeworkStatusInput) {
+            subjectSideHomeworkStatusInput.value = "Pending";
+        }
+    }
+
+    function buildSubjectSideHomeworkPayload() {
+        if (!activeLessonCell || !subjectSideHomeworkTitleInput || !subjectSideHomeworkDetailsInput || !subjectSideHomeworkPriorityInput) {
+            return null;
+        }
+
+        const ids = getLessonIdentifiers(activeLessonCell);
+        if (!ids || !ids.weekStart || !ids.daySubjectId) return null;
+
+        return {
+            title: String(subjectSideHomeworkTitleInput.value || "").trim(),
+            details: String(subjectSideHomeworkDetailsInput.value || "").trim(),
+            priority: subjectSideHomeworkPriorityInput.value || "_00FF00",
+            daySubjectId: Number(ids.daySubjectId),
+            status: subjectSideHomeworkStatusInput ? (subjectSideHomeworkStatusInput.value || "Pending") : "Pending",
+            weekStart: ids.weekStart,
+        };
+    }
+
+    async function saveSubjectSideHomework() {
+        if (!activeLessonCell || !subjectSideHomeworkSaveButton) return;
+        const payload = buildSubjectSideHomeworkPayload();
+        if (!payload) {
+            showToast("error", "Homework context is missing.");
+            return;
+        }
+        if (!payload.title) {
+            showToast("error", "Homework title is required.");
+            return;
+        }
+
+        try {
+            subjectSideHomeworkSaveButton.disabled = true;
+            subjectSideHomeworkSaveButton.textContent = "Saving...";
+            await requestJson("/scholar-hub/homework", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            await loadHomeworkForWeek(payload.weekStart, activeLessonCell.closest(".hub-timetable"));
+            showToast("success", "Homework saved.");
+            closeSubjectSideModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to save homework.");
+        } finally {
+            subjectSideHomeworkSaveButton.disabled = false;
+            subjectSideHomeworkSaveButton.textContent = "Save homework";
+        }
     }
 
     /* ─────────────────────────────────────────────────
@@ -302,6 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function animateSubjectOpen(cell) {
         if (!cell || cardAnimBusy) return;
         cardAnimBusy = true;
+        activeLessonCell = cell;
 
         const rect     = cell.getBoundingClientRect();
         const SCALE    = 1.13;
@@ -565,14 +674,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!homeworkModal || !homeworkTitleInput || !homeworkDetailsInput || !homeworkPriorityInput || !homeworkContext) return;
         activeLessonCell  = cell;
         const homework    = getCachedHomework(cell);
-        const subjectName = cell.dataset.subjectShortName || cell.dataset.subjectName || "Lesson";
-        const lessonOrder = cell.dataset.lessonOrder || "";
-        const lessonDate  = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
-        const dateLabel   = lessonDate
-            ? formatFullDateLabel(lessonDate)
-            : (dayLabels[cell.dataset.dayKey] || "Current day");
+        const lessonContext = getLessonContext(cell);
 
-        homeworkContext.textContent    = `${subjectName} • lesson ${lessonOrder} • ${dateLabel}`;
+        homeworkContext.textContent    = lessonContext.context;
         homeworkTitleInput.value       = homework ? homework.title   || "" : "";
         homeworkDetailsInput.value     = homework ? homework.details || "" : "";
         homeworkPriorityInput.value    = homework?.priority || homeworkPriorityInput.value || "_00FF00";
@@ -724,6 +828,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (homeworkSaveButton)   homeworkSaveButton.addEventListener("click",   () => { void saveHomework(); });
     if (homeworkDeleteButton) homeworkDeleteButton.addEventListener("click", () => { void deleteHomework(); });
+    if (subjectSideHomeworkSaveButton) {
+        subjectSideHomeworkSaveButton.addEventListener("click", () => { void saveSubjectSideHomework(); });
+    }
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {

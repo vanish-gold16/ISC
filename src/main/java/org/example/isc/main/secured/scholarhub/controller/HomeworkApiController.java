@@ -18,14 +18,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/scholar-hub/homework")
-public class HomeWorkApiController {
+public class HomeworkApiController {
 
     private final UserRepository userRepository;
     private final HomeworkRepository homeworkRepository;
     private final DaySubjectRepository daySubjectRepository;
     private final HomeworkService homeworkService;
 
-    public HomeWorkApiController(UserRepository userRepository, HomeworkRepository homeworkRepository, DaySubjectRepository daySubjectRepository, HomeworkService homeworkService) {
+    public HomeworkApiController(UserRepository userRepository, HomeworkRepository homeworkRepository, DaySubjectRepository daySubjectRepository, HomeworkService homeworkService) {
         this.userRepository = userRepository;
         this.homeworkRepository = homeworkRepository;
         this.daySubjectRepository = daySubjectRepository;

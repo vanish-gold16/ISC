@@ -212,10 +212,48 @@
     <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--side hidden" id="subject-modal-side" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Homework panel">
         <div class="subject-detail-modal__content subject-detail-modal__content--side">
             <div class="subject-detail-modal__head">
-                <p class="subject-detail-modal__kicker">Homework</p>
+                <div>
+                    <p class="subject-detail-modal__kicker">Homework</p>
+                    <h3 class="subject-detail-modal__side-title" id="subject-side-homework-title">Add homework</h3>
+                    <p class="homework-modal__context" id="subject-side-homework-context">Current lesson</p>
+                </div>
                 <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-side-modal>x</button>
             </div>
-            <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--side-empty"></div>
+            <div class="subject-modal__body subject-modal__body--side">
+                <label class="subject-modal__field">
+                    <span>Homework title</span>
+                    <input class="input" id="subject-side-homework-title-input" type="text" placeholder="For example: solve exercises 1-8" />
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Details</span>
+                    <textarea class="homework-modal__textarea input" id="subject-side-homework-details" placeholder="Additional notes, files, deadlines"></textarea>
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Priority</span>
+                    <select class="input homework-modal__select" id="subject-side-homework-priority">
+                        <option value="_00FF00">Low priority</option>
+                        <option value="_FFFF00">Medium priority</option>
+                        <option value="_FF0000">High priority</option>
+                    </select>
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Status</span>
+                    <select class="input homework-modal__select" id="subject-side-homework-status">
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Non_completed">Not completed</option>
+                        <option value="Graded">Graded</option>
+                    </select>
+                </label>
+
+                <div class="subject-create-panel__actions">
+                    <button class="btn btn--ghost" type="button" data-close-subject-side-modal>Cancel</button>
+                    <button class="btn btn--primary" type="button" id="subject-side-homework-save">Save homework</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

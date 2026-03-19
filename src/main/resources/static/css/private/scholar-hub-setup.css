@@ -1808,10 +1808,22 @@ body {
 
 .subject-detail-modal__content--side {
     min-height: 280px;
+    flex: 1 1 auto;
 }
 
 .subject-detail-widget--side-empty {
     min-height: 220px;
+}
+
+.subject-detail-modal__side-title {
+    margin: 6px 0 0;
+    font-size: 24px;
+    line-height: 1.05;
+    color: #10213f;
+}
+
+.subject-modal__body--side {
+    padding-right: 0;
 }
 
 .subject-detail-widget__value {
