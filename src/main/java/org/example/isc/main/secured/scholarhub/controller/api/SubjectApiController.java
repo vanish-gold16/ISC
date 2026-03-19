@@ -1,4 +1,4 @@
-package org.example.isc.main.secured.scholarhub.controller;
+package org.example.isc.main.secured.scholarhub.controller.api;
 
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.scholarship.NewSubjectDTO;
