@@ -65,7 +65,8 @@ public class HubService {
         }
 
         List<Day> newDays = new ArrayList<>();
-        for(NewDayForm dayForm : scheduleForm.getDays()){
+        List<NewDayForm> dayForms = scheduleForm.getDays() == null ? List.of() : scheduleForm.getDays();
+        for(NewDayForm dayForm : dayForms){
             if(dayForm.getDayOfWeek() == null) continue;
 
             Day day = new Day();
@@ -147,12 +148,14 @@ public class HubService {
                     );
                 }).toList();
 
-        int maxLessonSlots = days.stream()
-                .mapToInt(day -> day.lessons().size())
-                .max()
-                .orElse(0);
         int minSlotCount = previewLimitPerDay > 0 ? previewLimitPerDay : DEFAULT_LESSON_SLOTS;
-        maxLessonSlots = Math.max(maxLessonSlots, minSlotCount);
+        int maxLessonSlots = Math.max(
+                days.stream()
+                        .mapToInt(day -> day.lessons().size())
+                        .max()
+                        .orElse(0),
+                minSlotCount
+        );
 
         List<ScheduleDayView> paddedDays = days.stream()
                 .map(day -> new ScheduleDayView(

@@ -32,7 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalTeacher  = document.getElementById("subject-modal-teacher");
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
+    const subjectSideModal     = document.getElementById("subject-modal-side");
+    const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
+    const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
@@ -40,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
     let cardAnimBusy   = false;
+    let subjectDialogLayout = null;
 
     /* ─────────────────────────────────────────────────
        UTILS
@@ -152,6 +156,62 @@ document.addEventListener("DOMContentLoaded", () => {
             toast.classList.add("is-leaving");
             window.setTimeout(() => toast.remove(), 220);
         }, 2600);
+    }
+
+    function resetSubjectSideModal() {
+        if (!subjectSideModal) return;
+        subjectSideModal.classList.add("hidden");
+        subjectSideModal.setAttribute("aria-hidden", "true");
+        subjectSideModal.removeAttribute("style");
+    }
+
+    function closeSubjectSideModal() {
+        if (!subjectSideModal || subjectSideModal.classList.contains("hidden")) return;
+
+        subjectSideModal.style.transition = "opacity 200ms ease, transform 200ms cubic-bezier(0.4,0,1,1)";
+        subjectSideModal.style.opacity = "0";
+        subjectSideModal.style.transform = "translateX(18px)";
+
+        window.setTimeout(() => {
+            resetSubjectSideModal();
+        }, 220);
+    }
+
+    function openSubjectSideModal() {
+        if (!subjectSideModal || !subjectDialogLayout) return;
+        if (!subjectSideModal.classList.contains("hidden")) return;
+
+        const GAP = 24;
+        const sideMinWidth = 240;
+        const sideMaxWidth = 360;
+        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width + GAP;
+        const sideRoom = window.innerWidth - sideLeft - 32;
+        if (sideRoom < sideMinWidth) return;
+
+        const sideWidth = Math.min(sideMaxWidth, sideRoom);
+        subjectSideModal.classList.remove("hidden");
+        subjectSideModal.setAttribute("aria-hidden", "false");
+        Object.assign(subjectSideModal.style, {
+            position: "fixed",
+            top: `${subjectDialogLayout.top}px`,
+            left: `${sideLeft}px`,
+            width: `${sideWidth}px`,
+            maxHeight: subjectDialogLayout.maxHeight,
+            opacity: "0",
+            transform: "translateX(28px)",
+            transition: "none",
+        });
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                subjectSideModal.style.transition = [
+                    "opacity 360ms cubic-bezier(0.25,0.8,0.25,1)",
+                    "transform 360ms cubic-bezier(0.25,0.8,0.25,1)",
+                ].join(",");
+                subjectSideModal.style.opacity = "1";
+                subjectSideModal.style.transform = "translateX(0)";
+            });
+        });
     }
 
     /* ─────────────────────────────────────────────────
@@ -271,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectModal.classList.remove("hidden");
         subjectModal.setAttribute("aria-hidden", "false");
 
-        const dialog   = subjectModal.querySelector(".subject-detail-modal__dialog");
+        const dialog   = subjectModal.querySelector(".subject-detail-modal__dialog:not(.subject-detail-modal__dialog--side)");
         const backdrop = subjectModal.querySelector(".subject-modal__backdrop");
 
         if (backdrop) {
@@ -315,6 +375,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 transition:"none",
             });
         }
+        subjectDialogLayout = { top: dTop, left: dLeft, width: dWidth, maxHeight: dMaxH };
+        resetSubjectSideModal();
 
         /* Kick animation — double rAF ensures a paint flush before transitions */
         requestAnimationFrame(() => {
@@ -364,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cardAnimBusy)  return;
         cardAnimBusy = true;
 
-        const dialog   = subjectModal.querySelector(".subject-detail-modal__dialog");
+        const dialog   = subjectModal.querySelector(".subject-detail-modal__dialog:not(.subject-detail-modal__dialog--side)");
         const backdrop = subjectModal.querySelector(".subject-modal__backdrop");
         const CLOSE_MS = 540;
 
@@ -374,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dialog.style.opacity    = "0";
             dialog.style.transform  = "translateX(18px)";
         }
+        closeSubjectSideModal();
         // Fade out backdrop over same duration as card return
         if (backdrop) {
             backdrop.style.transition = `opacity ${CLOSE_MS}ms ease`;
@@ -404,8 +467,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.classList.add("hidden");
                 subjectModal.setAttribute("aria-hidden", "true");
                 if (dialog)   dialog.removeAttribute("style");
+                resetSubjectSideModal();
                 if (backdrop) backdrop.removeAttribute("style");
                 if (subjectModalPreview) subjectModalPreview.removeAttribute("style");
+                subjectDialogLayout = null;
             }, 60 + CLOSE_MS + 40);
 
         } else {
@@ -415,7 +480,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.setAttribute("aria-hidden", "true");
                 cardAnimBusy = false;
                 if (dialog)   dialog.removeAttribute("style");
+                resetSubjectSideModal();
                 if (backdrop) backdrop.removeAttribute("style");
+                subjectDialogLayout = null;
             }, 260);
         }
     }
@@ -606,6 +673,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closeHomeworkTriggers.forEach((t) => t.addEventListener("click", closeHomeworkModal));
     closeSubjectTriggers.forEach((t)  => t.addEventListener("click", closeSubjectModal));
+    closeSubjectSideTriggers.forEach((t) => t.addEventListener("click", closeSubjectSideModal));
+
+    if (subjectSideTrigger) {
+        subjectSideTrigger.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openSubjectSideModal();
+        });
+    }
 
     if (homeworkSaveButton)   homeworkSaveButton.addEventListener("click",   () => { void saveHomework(); });
     if (homeworkDeleteButton) homeworkDeleteButton.addEventListener("click", () => { void deleteHomework(); });
@@ -613,6 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (homeworkModal && !homeworkModal.classList.contains("hidden")) closeHomeworkModal();
+            else if (subjectSideModal && !subjectSideModal.classList.contains("hidden")) closeSubjectSideModal();
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
         }
     });
