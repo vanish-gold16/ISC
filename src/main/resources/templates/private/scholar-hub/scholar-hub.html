@@ -314,6 +314,64 @@
             </div>
         </div>
     </div>
+    <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--homework-detail hidden" id="subject-modal-homework-detail" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Homework details">
+        <div class="subject-detail-modal__content subject-detail-modal__content--homework-detail">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__kicker">Homework details</p>
+                    <h3 class="subject-detail-modal__side-title" id="subject-homework-detail-title-heading">Homework</h3>
+                    <p class="homework-modal__context" id="subject-homework-detail-context">Current lesson</p>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-homework-detail-modal>x</button>
+            </div>
+            <div class="subject-modal__body subject-modal__body--side">
+                <label class="subject-modal__field">
+                    <span>Homework title</span>
+                    <input class="input" id="subject-homework-detail-title" type="text" placeholder="Homework title" />
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Description</span>
+                    <textarea class="homework-modal__textarea input" id="subject-homework-detail-details" placeholder="Homework description"></textarea>
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Priority</span>
+                    <input id="subject-homework-detail-priority" type="hidden" value="_00FF00" />
+                    <div class="priority-picker" data-priority-picker="subject-homework-detail-priority">
+                        <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--low"></span>
+                            <span>Low</span>
+                        </button>
+                        <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
+                            <span>Medium</span>
+                        </button>
+                        <button class="priority-picker__option" type="button" data-priority-value="_FF0000" aria-label="High priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--high"></span>
+                            <span>High</span>
+                        </button>
+                    </div>
+                </label>
+
+                <label class="subject-modal__field">
+                    <span>Status</span>
+                    <select class="input homework-modal__select" id="subject-homework-detail-status">
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Non_completed">Not completed</option>
+                        <option value="Graded">Graded</option>
+                    </select>
+                </label>
+
+                <div class="subject-create-panel__actions">
+                    <button class="btn btn--ghost" type="button" id="subject-homework-detail-delete">Delete</button>
+                    <button class="btn btn--ghost" type="button" data-close-subject-homework-detail-modal>Cancel</button>
+                    <button class="btn btn--primary" type="button" id="subject-homework-detail-save">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="homework-toast-stack" data-homework-toasts aria-live="polite"></div>

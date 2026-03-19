@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
+    const subjectHomeworkDetailModal = document.getElementById("subject-modal-homework-detail");
     const subjectCurrentGroup = document.getElementById("subject-current-group");
     const subjectPastGroup = document.getElementById("subject-past-group");
     const subjectCurrentList = document.getElementById("subject-current-list");
@@ -46,6 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectCurrentEmpty = document.getElementById("subject-current-empty");
     const subjectPastEmpty = document.getElementById("subject-past-empty");
     const subjectHomeworkTabButtons = Array.from(document.querySelectorAll("[data-subject-homework-tab]"));
+    const subjectHomeworkDetailHeading = document.getElementById("subject-homework-detail-title-heading");
+    const subjectHomeworkDetailContext = document.getElementById("subject-homework-detail-context");
+    const subjectHomeworkDetailTitleInput = document.getElementById("subject-homework-detail-title");
+    const subjectHomeworkDetailDetailsInput = document.getElementById("subject-homework-detail-details");
+    const subjectHomeworkDetailPriorityInput = document.getElementById("subject-homework-detail-priority");
+    const subjectHomeworkDetailStatusInput = document.getElementById("subject-homework-detail-status");
+    const subjectHomeworkDetailSaveButton = document.getElementById("subject-homework-detail-save");
+    const subjectHomeworkDetailDeleteButton = document.getElementById("subject-homework-detail-delete");
     const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
     const subjectSideHomeworkContext = document.getElementById("subject-side-homework-context");
     const subjectSideHomeworkTitleInput = document.getElementById("subject-side-homework-title-input");
@@ -56,11 +65,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
+    const closeSubjectHomeworkDetailTriggers = Array.from(document.querySelectorAll("[data-close-subject-homework-detail-modal]"));
     const weekCurrentBadge = document.querySelector("[data-week-current-badge]");
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
     let subjectUpcomingTab = "current";
+    let activeHomeworkDetailEntry = null;
+    let activeHomeworkDetailTrigger = null;
 
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
@@ -133,6 +145,40 @@ document.addEventListener("DOMContentLoaded", () => {
     function closeAllStatusMenus() {
         document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
             menu.removeAttribute("open");
+        });
+    }
+
+    function animateStatusMenuOpen(statusMenu) {
+        if (!statusMenu?.open) return;
+        const badge = statusMenu.querySelector(".subject-homework-item__status-badge");
+        const dropdown = statusMenu.querySelector(".subject-homework-item__status-dropdown");
+        if (!badge || !dropdown) return;
+
+        const badgeRect = badge.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        if (!badgeRect.width || !badgeRect.height || !dropdownRect.width || !dropdownRect.height) return;
+
+        const translateX = badgeRect.left - dropdownRect.left;
+        const translateY = badgeRect.top + (badgeRect.height / 2) - (dropdownRect.top + dropdownRect.height / 2);
+        const scaleX = Math.max(badgeRect.width / dropdownRect.width, 0.14);
+        const scaleY = Math.max(badgeRect.height / dropdownRect.height, 0.26);
+
+        dropdown.style.transition = "none";
+        dropdown.style.opacity = "0";
+        dropdown.style.visibility = "visible";
+        dropdown.style.pointerEvents = "none";
+        dropdown.style.transform = `translateY(-50%) translateX(${translateX}px) scale(${scaleX}, ${scaleY})`;
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                dropdown.style.transition = [
+                    "opacity 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    "transform 560ms cubic-bezier(0.18, 0.9, 0.2, 1)"
+                ].join(", ");
+                dropdown.style.opacity = "1";
+                dropdown.style.pointerEvents = "auto";
+                dropdown.style.transform = "translateY(-50%) translateX(0) scale(1)";
+            });
         });
     }
 
@@ -264,6 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function resetSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer) return;
+        closeSubjectHomeworkDetailModal(true);
         subjectUpcomingLayer.classList.add("hidden");
         subjectUpcomingLayer.setAttribute("aria-hidden", "true");
         subjectUpcomingLayer.removeAttribute("style");
@@ -277,6 +324,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function isSubjectUpcomingLayerOpen() {
         return !!subjectUpcomingLayer && !subjectUpcomingLayer.classList.contains("hidden");
+    }
+
+    function isSubjectHomeworkDetailModalOpen() {
+        return !!subjectHomeworkDetailModal && !subjectHomeworkDetailModal.classList.contains("hidden");
     }
 
     function getNextUpcomingHomework(cell) {
@@ -446,14 +497,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         statusMenu.appendChild(statusDropdown);
         statusMenu.addEventListener("toggle", () => {
-            if (!statusMenu.open) return;
+            if (!statusMenu.open) {
+                statusDropdown.style.removeProperty("transition");
+                statusDropdown.style.removeProperty("opacity");
+                statusDropdown.style.removeProperty("visibility");
+                statusDropdown.style.removeProperty("pointer-events");
+                statusDropdown.style.removeProperty("transform");
+                return;
+            }
             document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
                 if (menu !== statusMenu) menu.removeAttribute("open");
             });
+            animateStatusMenuOpen(statusMenu);
         });
         meta.appendChild(statusMenu);
 
         item.appendChild(meta);
+        item.addEventListener("click", (event) => {
+            if (event.target.closest(".subject-homework-item__status-menu")) return;
+            openSubjectHomeworkDetailModal(entry, item);
+        });
         return item;
     }
 
@@ -601,6 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer || subjectUpcomingLayer.classList.contains("hidden")) return;
+        closeSubjectHomeworkDetailModal(true);
 
         const closeMs = 480;
         const layerRect = subjectUpcomingLayer.getBoundingClientRect();
@@ -627,6 +691,143 @@ document.addEventListener("DOMContentLoaded", () => {
         window.setTimeout(() => {
             resetSubjectUpcomingLayer();
         }, closeMs + 30);
+    }
+
+    function resetSubjectHomeworkDetailModal() {
+        if (!subjectHomeworkDetailModal) return;
+        subjectHomeworkDetailModal.classList.add("hidden");
+        subjectHomeworkDetailModal.setAttribute("aria-hidden", "true");
+        subjectHomeworkDetailModal.removeAttribute("style");
+        if (subjectHomeworkDetailHeading) subjectHomeworkDetailHeading.textContent = "Homework";
+        if (subjectHomeworkDetailContext) subjectHomeworkDetailContext.textContent = "Current lesson";
+        if (subjectHomeworkDetailTitleInput) subjectHomeworkDetailTitleInput.value = "";
+        if (subjectHomeworkDetailDetailsInput) subjectHomeworkDetailDetailsInput.value = "";
+        setPriorityValue(subjectHomeworkDetailPriorityInput, "_00FF00");
+        if (subjectHomeworkDetailStatusInput) subjectHomeworkDetailStatusInput.value = "Pending";
+        activeHomeworkDetailEntry = null;
+        activeHomeworkDetailTrigger = null;
+    }
+
+    function closeSubjectHomeworkDetailModal(force = false) {
+        if (!subjectHomeworkDetailModal || subjectHomeworkDetailModal.classList.contains("hidden")) return;
+        if (force) {
+            resetSubjectHomeworkDetailModal();
+            return;
+        }
+
+        const closeMs = 520;
+        const panelRect = subjectHomeworkDetailModal.getBoundingClientRect();
+        const triggerRect = activeHomeworkDetailTrigger?.getBoundingClientRect();
+
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.12);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.12);
+            subjectHomeworkDetailModal.style.transition = [
+                `opacity ${closeMs}ms cubic-bezier(0.4,0,0.2,1)`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`
+            ].join(",");
+            subjectHomeworkDetailModal.style.opacity = "0";
+            subjectHomeworkDetailModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectHomeworkDetailModal.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
+            subjectHomeworkDetailModal.style.opacity = "0";
+            subjectHomeworkDetailModal.style.transform = "translateX(18px) scale(0.94)";
+        }
+
+        window.setTimeout(() => {
+            resetSubjectHomeworkDetailModal();
+        }, closeMs + 30);
+    }
+
+    function populateSubjectHomeworkDetailModal(entry) {
+        if (!entry) return;
+        const context = getLessonContext(entry.cell);
+        if (subjectHomeworkDetailHeading) {
+            subjectHomeworkDetailHeading.textContent = entry.homework.title || "Homework";
+        }
+        if (subjectHomeworkDetailContext) {
+            subjectHomeworkDetailContext.textContent = context.context;
+        }
+        if (subjectHomeworkDetailTitleInput) {
+            subjectHomeworkDetailTitleInput.value = entry.homework.title || "";
+        }
+        if (subjectHomeworkDetailDetailsInput) {
+            subjectHomeworkDetailDetailsInput.value = entry.homework.details || "";
+        }
+        setPriorityValue(subjectHomeworkDetailPriorityInput, entry.homework.priority || "_00FF00");
+        if (subjectHomeworkDetailStatusInput) {
+            subjectHomeworkDetailStatusInput.value = entry.homework.status || "Pending";
+        }
+    }
+
+    function openSubjectHomeworkDetailModal(entry, triggerElement) {
+        if (!subjectHomeworkDetailModal || !subjectDialogLayout || !entry?.homework) return;
+        activeHomeworkDetailEntry = entry;
+        activeHomeworkDetailTrigger = triggerElement || null;
+
+        const baseLeft = isSubjectUpcomingLayerOpen()
+            ? Number.parseFloat(subjectUpcomingLayer.style.left || "0")
+            : subjectDialogLayout.left;
+        const baseWidth = isSubjectUpcomingLayerOpen()
+            ? Number.parseFloat(subjectUpcomingLayer.style.width || "0")
+            : subjectDialogLayout.width;
+        const baseTop = isSubjectUpcomingLayerOpen()
+            ? Number.parseFloat(subjectUpcomingLayer.style.top || "0")
+            : subjectDialogLayout.top;
+        const baseMaxHeight = isSubjectUpcomingLayerOpen()
+            ? subjectUpcomingLayer.style.maxHeight
+            : subjectDialogLayout.maxHeight;
+        const overlap = 34;
+        const left = baseLeft + baseWidth - overlap;
+        const room = window.innerWidth - left - 24;
+        if (room < 280) return;
+        const width = Math.min(390, room);
+        const top = Math.max(baseTop + 10, 20);
+        const openMs = 680;
+
+        populateSubjectHomeworkDetailModal(entry);
+        subjectHomeworkDetailModal.classList.remove("hidden");
+        subjectHomeworkDetailModal.setAttribute("aria-hidden", "false");
+        Object.assign(subjectHomeworkDetailModal.style, {
+            position: "fixed",
+            top: `${top}px`,
+            left: `${left}px`,
+            width: `${width}px`,
+            maxHeight: baseMaxHeight || `calc(100vh - ${top + 24}px)`,
+            opacity: "0",
+            transform: "translateX(0) scale(1)",
+            transformOrigin: "top left",
+            transition: "none"
+        });
+
+        const panelRect = subjectHomeworkDetailModal.getBoundingClientRect();
+        const triggerRect = triggerElement?.getBoundingClientRect();
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.12);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.12);
+            subjectHomeworkDetailModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectHomeworkDetailModal.style.transform = "translateX(22px) scale(0.92)";
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                subjectHomeworkDetailModal.style.transition = [
+                    `opacity ${Math.round(openMs * 0.82)}ms cubic-bezier(0.2,0.8,0.2,1)`,
+                    `transform ${openMs}ms cubic-bezier(0.18,0.9,0.2,1)`
+                ].join(",");
+                subjectHomeworkDetailModal.style.opacity = "1";
+                subjectHomeworkDetailModal.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
+
+        window.setTimeout(() => {
+            subjectHomeworkDetailTitleInput?.focus();
+        }, Math.round(openMs * 0.72));
     }
 
     function toggleSubjectSideModal() {
@@ -838,6 +1039,79 @@ document.addEventListener("DOMContentLoaded", () => {
         } finally {
             subjectSideHomeworkSaveButton.disabled = false;
             subjectSideHomeworkSaveButton.textContent = "Save homework";
+        }
+    }
+
+    function buildSubjectHomeworkDetailPayload() {
+        if (!activeHomeworkDetailEntry || !subjectHomeworkDetailTitleInput || !subjectHomeworkDetailDetailsInput || !subjectHomeworkDetailPriorityInput) {
+            return null;
+        }
+
+        return {
+            title: String(subjectHomeworkDetailTitleInput.value || "").trim(),
+            details: String(subjectHomeworkDetailDetailsInput.value || "").trim(),
+            priority: subjectHomeworkDetailPriorityInput.value || "_00FF00",
+            subjectId: Number(activeHomeworkDetailEntry.homework.subjectId ?? activeHomeworkDetailEntry.cell?.dataset?.subjectId),
+            dueDaySubjectId: Number(activeHomeworkDetailEntry.homework.dueDaySubjectId ?? activeHomeworkDetailEntry.homework.daySubjectId ?? activeHomeworkDetailEntry.cell?.dataset?.daySubjectId),
+            status: subjectHomeworkDetailStatusInput ? (subjectHomeworkDetailStatusInput.value || "Pending") : "Pending",
+            weekStart: activeHomeworkDetailEntry.homework.weekStart || activeHomeworkDetailEntry.cell?.dataset?.weekStart || activeLessonCell?.dataset?.weekStart || ""
+        };
+    }
+
+    async function saveSubjectHomeworkDetail() {
+        if (!activeHomeworkDetailEntry?.homework?.id || !subjectHomeworkDetailSaveButton) return;
+        const payload = buildSubjectHomeworkDetailPayload();
+        if (!payload) {
+            showToast("error", "Homework context is missing.");
+            return;
+        }
+        if (!payload.title) {
+            showToast("error", "Homework title is required.");
+            return;
+        }
+
+        try {
+            subjectHomeworkDetailSaveButton.disabled = true;
+            subjectHomeworkDetailSaveButton.textContent = "Saving...";
+            await requestJson(`/scholar-hub/homework/${encodeURIComponent(activeHomeworkDetailEntry.homework.id)}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
+            await loadHomeworkForWeek(payload.weekStart, activeLessonCell?.closest(".hub-timetable"));
+            showToast("success", "Homework updated.");
+            closeSubjectHomeworkDetailModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to update homework.");
+        } finally {
+            subjectHomeworkDetailSaveButton.disabled = false;
+            subjectHomeworkDetailSaveButton.textContent = "Save changes";
+        }
+    }
+
+    async function deleteSubjectHomeworkDetail() {
+        if (!activeHomeworkDetailEntry?.homework?.id || !subjectHomeworkDetailDeleteButton) return;
+        const weekStart = activeHomeworkDetailEntry.homework.weekStart || activeHomeworkDetailEntry.cell?.dataset?.weekStart || activeLessonCell?.dataset?.weekStart;
+        if (!weekStart) {
+            showToast("error", "Homework week is missing.");
+            return;
+        }
+
+        try {
+            subjectHomeworkDetailDeleteButton.disabled = true;
+            subjectHomeworkDetailDeleteButton.textContent = "Deleting...";
+            await requestJson(`/scholar-hub/homework/${encodeURIComponent(activeHomeworkDetailEntry.homework.id)}`, {
+                method: "DELETE"
+            });
+            await loadHomeworkForWeek(weekStart, activeLessonCell?.closest(".hub-timetable"));
+            showToast("success", "Homework deleted.");
+            closeSubjectHomeworkDetailModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to delete homework.");
+        } finally {
+            subjectHomeworkDetailDeleteButton.disabled = false;
+            subjectHomeworkDetailDeleteButton.textContent = "Delete";
         }
     }
 
@@ -1326,6 +1600,10 @@ document.addEventListener("DOMContentLoaded", () => {
     closeHomeworkTriggers.forEach((t) => t.addEventListener("click", closeHomeworkModal));
     closeSubjectTriggers.forEach((t)  => t.addEventListener("click", (event) => {
         if (event.currentTarget.classList.contains("subject-modal__backdrop")) {
+            if (isSubjectHomeworkDetailModalOpen()) {
+                closeSubjectHomeworkDetailModal();
+                return;
+            }
             if (isSubjectUpcomingLayerOpen()) {
                 closeSubjectUpcomingLayer();
                 return;
@@ -1339,6 +1617,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
     closeSubjectSideTriggers.forEach((t) => t.addEventListener("click", closeSubjectSideModal));
     closeSubjectUpcomingTriggers.forEach((t) => t.addEventListener("click", closeSubjectUpcomingLayer));
+    closeSubjectHomeworkDetailTriggers.forEach((t) => t.addEventListener("click", () => closeSubjectHomeworkDetailModal()));
 
     if (subjectSideTrigger) {
         subjectSideTrigger.addEventListener("click", (e) => {
@@ -1385,10 +1664,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectSideHomeworkSaveButton) {
         subjectSideHomeworkSaveButton.addEventListener("click", () => { void saveSubjectSideHomework(); });
     }
+    if (subjectHomeworkDetailSaveButton) {
+        subjectHomeworkDetailSaveButton.addEventListener("click", () => { void saveSubjectHomeworkDetail(); });
+    }
+    if (subjectHomeworkDetailDeleteButton) {
+        subjectHomeworkDetailDeleteButton.addEventListener("click", () => { void deleteSubjectHomeworkDetail(); });
+    }
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (homeworkModal && !homeworkModal.classList.contains("hidden")) closeHomeworkModal();
+            else if (isSubjectHomeworkDetailModalOpen()) closeSubjectHomeworkDetailModal();
             else if (isSubjectUpcomingLayerOpen()) closeSubjectUpcomingLayer();
             else if (subjectSideModal && !subjectSideModal.classList.contains("hidden")) closeSubjectSideModal();
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
