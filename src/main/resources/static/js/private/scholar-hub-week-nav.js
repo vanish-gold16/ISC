@@ -158,14 +158,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
-    function makeCacheKey(weekStart, daySubjectId) {
-        if (!weekStart || !daySubjectId) return null;
-        return `${weekStart}|${daySubjectId}`;
+    function makeCacheKey(weekStart, dueDaySubjectId) {
+        if (!weekStart || !dueDaySubjectId) return null;
+        return `${weekStart}|${dueDaySubjectId}`;
     }
 
     function getLessonIdentifiers(cell) {
         if (!cell) return null;
-        return { weekStart: cell.dataset.weekStart || "", daySubjectId: cell.dataset.daySubjectId || "" };
+        return {
+            weekStart: cell.dataset.weekStart || "",
+            dueDaySubjectId: cell.dataset.daySubjectId || "",
+            subjectId: cell.dataset.subjectId || ""
+        };
     }
 
     function getScheduleCells() {
@@ -178,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function getCachedHomeworks(cell) {
         const ids = getLessonIdentifiers(cell);
         if (!ids) return [];
-        const key = makeCacheKey(ids.weekStart, ids.daySubjectId);
+        const key = makeCacheKey(ids.weekStart, ids.dueDaySubjectId);
         return key ? (homeworkCache.get(key) || []) : [];
     }
 
@@ -654,13 +658,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const ids = getLessonIdentifiers(activeLessonCell);
-        if (!ids || !ids.weekStart || !ids.daySubjectId) return null;
+        if (!ids || !ids.weekStart || !ids.dueDaySubjectId || !ids.subjectId) return null;
 
         return {
             title: String(subjectSideHomeworkTitleInput.value || "").trim(),
             details: String(subjectSideHomeworkDetailsInput.value || "").trim(),
             priority: subjectSideHomeworkPriorityInput.value || "_00FF00",
-            daySubjectId: Number(ids.daySubjectId),
+            subjectId: Number(ids.subjectId),
+            dueDaySubjectId: Number(ids.dueDaySubjectId),
             status: subjectSideHomeworkStatusInput ? (subjectSideHomeworkStatusInput.value || "Pending") : "Pending",
             weekStart: ids.weekStart,
         };
@@ -993,8 +998,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (key.startsWith(prefix)) homeworkCache.delete(key);
             });
             list.forEach((item) => {
-                if (!item || !item.daySubjectId) return;
-                const key = makeCacheKey(weekStart, item.daySubjectId);
+                const dueDaySubjectId = item?.dueDaySubjectId ?? item?.daySubjectId;
+                if (!item || !dueDaySubjectId) return;
+                const key = makeCacheKey(weekStart, dueDaySubjectId);
                 if (!key) return;
                 const cached = homeworkCache.get(key) || [];
                 cached.push(item);
@@ -1038,7 +1044,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!activeLessonCell || !homeworkTitleInput || !homeworkDetailsInput || !homeworkPriorityInput) return;
         const ids = getLessonIdentifiers(activeLessonCell);
         if (!ids || !ids.weekStart)  { showToast("error", "Homework week is missing."); return; }
-        if (!ids.daySubjectId)       { showToast("error", "Day subject id is missing."); return; }
+        if (!ids.dueDaySubjectId)    { showToast("error", "Due day subject id is missing."); return; }
+        if (!ids.subjectId)          { showToast("error", "Subject id is missing."); return; }
 
         const title    = String(homeworkTitleInput.value || "").trim();
         const details  = String(homeworkDetailsInput.value || "").trim();
@@ -1048,7 +1055,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const payload = {
             title, details, priority,
-            daySubjectId: Number(ids.daySubjectId),
+            subjectId: Number(ids.subjectId),
+            dueDaySubjectId: Number(ids.dueDaySubjectId),
             status,
             weekStart: ids.weekStart
         };

@@ -22,7 +22,10 @@ public class HomeworkDTO {
     private HomeworkPriorityEnum priority;
 
     @NotNull
-    private Long daySubjectId;
+    private Long subjectId;
+
+    @NotNull
+    private Long dueDaySubjectId;
 
     @NotNull
     private HomeworkStatusEnum status;
@@ -30,18 +33,21 @@ public class HomeworkDTO {
     @NotNull
     private LocalDate weekStart;
 
-    public HomeworkDTO() {
-    }
 
-    public HomeworkDTO(Long id, String title, String details, HomeworkPriorityEnum priority, Long daySubjectId, HomeworkStatusEnum status, LocalDate weekStart) {
+    public HomeworkDTO(Long id, String title, String details, HomeworkPriorityEnum priority, Long subjectId, Long dueDaySubjectId, HomeworkStatusEnum status, LocalDate weekStart) {
         this.id = id;
         this.title = title;
         this.details = details;
         this.priority = priority;
-        this.daySubjectId = daySubjectId;
+        this.subjectId = subjectId;
+        this.dueDaySubjectId = dueDaySubjectId;
         this.status = status;
         this.weekStart = weekStart;
     }
+
+    public HomeworkDTO() {
+    }
+
 
     public Long getId() {
         return id;
@@ -75,14 +81,6 @@ public class HomeworkDTO {
         this.priority = priority;
     }
 
-    public Long getDaySubjectId() {
-        return daySubjectId;
-    }
-
-    public void setDaySubjectId(Long daySubjectId) {
-        this.daySubjectId = daySubjectId;
-    }
-
     public HomeworkStatusEnum getStatus() {
         return status;
     }
@@ -97,5 +95,21 @@ public class HomeworkDTO {
 
     public void setWeekStart(LocalDate weekStart) {
         this.weekStart = weekStart;
+    }
+
+    public Long getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(Long subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public Long getDueDaySubjectId() {
+        return dueDaySubjectId;
+    }
+
+    public void setDueDaySubjectId(Long dueDaySubjectId) {
+        this.dueDaySubjectId = dueDaySubjectId;
     }
 }

@@ -145,3 +145,33 @@ BEGIN
 END;
 $$;
 @@
+
+DO $$
+BEGIN
+    IF to_regclass('public.homeworks') IS NULL OR to_regclass('public.day_subject') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'homeworks'
+          AND column_name = 'subject_id'
+    ) AND EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'homeworks'
+          AND column_name = 'due_day_subject_id'
+    ) THEN
+        UPDATE homeworks hw
+        SET subject_id = ds.subject
+        FROM day_subject ds
+        WHERE hw.subject_id IS NULL
+          AND hw.due_day_subject_id IS NOT NULL
+          AND ds.id = hw.due_day_subject_id;
+    END IF;
+END;
+$$;
+@@

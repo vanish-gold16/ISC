@@ -10,9 +10,9 @@ import java.util.List;
 public interface HomeworkRepository extends JpaRepository<Homework, Long> {
     List<Homework> findAllByWeekStart(LocalDate weekStart);
 
-    List<Homework> findAllByWeekStartAndDaySubject(LocalDate weekStart, DaySubject daySubject);
-
     List<Homework> findAllByWeekStartAndSubjectId(LocalDate weekStart, Long subjectId);
+
+    List<Homework> findAllByWeekStartAndDueDaySubjectId(LocalDate weekStart, Long dueDaySubjectId);
 
     Homework getById(Long id);
 }

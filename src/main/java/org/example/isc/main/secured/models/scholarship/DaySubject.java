@@ -2,8 +2,6 @@ package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
 
-import java.util.List;
-
 @Entity
 public class DaySubject {
 
@@ -22,20 +20,16 @@ public class DaySubject {
     @Column(name = "lesson_order")
     private Long lessonOrder;
 
-    @OneToMany(mappedBy = "daySubject", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Homework> homeworks;
-
     @Column(name = "room")
     private String room;
 
     public DaySubject() {
     }
 
-    public DaySubject(Day day, Subject subject, Long lessonOrder, List<Homework> homeworks) {
+    public DaySubject(Day day, Subject subject, Long lessonOrder) {
         this.day = day;
         this.subject = subject;
         this.lessonOrder = lessonOrder;
-        this.homeworks = homeworks;
     }
 
     public Long getId() {
@@ -60,14 +54,6 @@ public class DaySubject {
 
     public void setSubject(Subject subject) {
         this.subject = subject;
-    }
-
-    public List<Homework> getHomeworks() {
-        return homeworks;
-    }
-
-    public void setHomeworks(List<Homework> homeworks) {
-        this.homeworks = homeworks;
     }
 
     public Long getLessonOrder() {

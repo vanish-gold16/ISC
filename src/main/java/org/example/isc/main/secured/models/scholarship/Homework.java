@@ -3,7 +3,6 @@ package org.example.isc.main.secured.models.scholarship;
 import jakarta.persistence.*;
 import org.example.isc.main.enums.HomeworkPriorityEnum;
 import org.example.isc.main.enums.HomeworkStatusEnum;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 
@@ -15,6 +14,12 @@ public class Homework {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "subject_id")
+    private Long subjectId;
+
+    @Column(name = "due_day_subject_id")
+    private Long dueDaySubjectId;
+
     @Column(name = "title")
     private String title;
 
@@ -25,17 +30,9 @@ public class Homework {
     @Column(name = "priority")
     private HomeworkPriorityEnum priority;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subject")
-    private Subject subject;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private HomeworkStatusEnum status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "day_subject")
-    private DaySubject daySubject;
 
     @Column(name = "week_start")
     private LocalDate weekStart;
@@ -43,11 +40,20 @@ public class Homework {
     public Homework() {
     }
 
-    public Homework(String title, String details, HomeworkPriorityEnum priority, Subject subject, HomeworkStatusEnum status, LocalDate weekStart) {
+    public Homework(Long subjectId, Long dueDaySubjectId, String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart) {
+        this.subjectId = subjectId;
+        this.dueDaySubjectId = dueDaySubjectId;
         this.title = title;
         this.details = details;
         this.priority = priority;
-        this.subject = subject;
+        this.status = status;
+        this.weekStart = weekStart;
+    }
+
+    public Homework(String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart) {
+        this.title = title;
+        this.details = details;
+        this.priority = priority;
         this.status = status;
         this.weekStart = weekStart;
     }
@@ -60,28 +66,12 @@ public class Homework {
         this.id = id;
     }
 
-    public Subject getSubject() {
-        return subject;
-    }
-
-    public void setSubject(Subject subject) {
-        this.subject = subject;
-    }
-
     public HomeworkStatusEnum getStatus() {
         return status;
     }
 
     public void setStatus(HomeworkStatusEnum status) {
         this.status = status;
-    }
-
-    public DaySubject getDaySubject() {
-        return daySubject;
-    }
-
-    public void setDaySubject(DaySubject daySubject) {
-        this.daySubject = daySubject;
     }
 
     public LocalDate getWeekStart() {
@@ -114,5 +104,21 @@ public class Homework {
 
     public void setPriority(HomeworkPriorityEnum priority) {
         this.priority = priority;
+    }
+
+    public Long getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(Long subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public Long getDueDaySubjectId() {
+        return dueDaySubjectId;
+    }
+
+    public void setDueDaySubjectId(Long dueDaySubjectId) {
+        this.dueDaySubjectId = dueDaySubjectId;
     }
 }
