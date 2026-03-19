@@ -104,6 +104,9 @@
                         </div>
 
                         <div class="hub-preview-card__footer">
+                            <button class="hub-preview-card__footer-action hub-preview-card__footer-action--icon" type="button" data-open-week-homework-modal aria-label="Open all homework for the selected week">
+                                <img class="hub-preview-card__footer-icon hub-preview-card__footer-icon--all-homework" src="/images/private/icons/all_homework.png" alt="" />
+                            </button>
                             <a class="hub-preview-card__footer-action"
                                th:href="@{/scholar-hub/schedule/setup}"
                                href="/scholar-hub/schedule/setup"
@@ -159,7 +162,7 @@
                         <span class="priority-picker__swatch priority-picker__swatch--low"></span>
                         <span>Low</span>
                     </button>
-                    <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                    <button class="priority-picker__option" type="button" data-priority-value="_D97706" aria-label="Medium priority">
                         <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
                         <span>Medium</span>
                     </button>
@@ -268,7 +271,7 @@
                             <span class="priority-picker__swatch priority-picker__swatch--low"></span>
                             <span>Low</span>
                         </button>
-                        <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                        <button class="priority-picker__option" type="button" data-priority-value="_D97706" aria-label="Medium priority">
                             <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
                             <span>Medium</span>
                         </button>
@@ -356,7 +359,7 @@
                             <span class="priority-picker__swatch priority-picker__swatch--low"></span>
                             <span>Low</span>
                         </button>
-                        <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                        <button class="priority-picker__option" type="button" data-priority-value="_D97706" aria-label="Medium priority">
                             <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
                             <span>Medium</span>
                         </button>
@@ -382,6 +385,26 @@
                     <button class="btn btn--ghost" type="button" data-close-subject-homework-detail-modal>Cancel</button>
                     <button class="btn btn--primary" type="button" id="subject-homework-detail-save">Save changes</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="subject-modal subject-detail-modal homework-modal hidden" id="week-homework-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-week-homework-modal></div>
+    <div class="subject-modal__dialog homework-modal__dialog subject-detail-modal__dialog week-homework-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="week-homework-modal-title">
+        <div class="subject-detail-modal__content week-homework-modal__content">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__kicker">Week overview</p>
+                    <h3 class="subject-detail-modal__side-title" id="week-homework-modal-title">All homework</h3>
+                    <p class="homework-modal__context" id="week-homework-modal-context">Selected week</p>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-week-homework-modal>x</button>
+            </div>
+            <div class="subject-modal__body week-homework-modal__body">
+                <div class="week-homework-modal__list" id="week-homework-list"></div>
+                <p class="subject-modal__empty hidden" id="week-homework-empty">No homework for this week yet.</p>
             </div>
         </div>
     </div>

@@ -11,7 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const priorityMap = new Map([
         ["_00FF00", { label: "Low priority",    color: "#00FF00" }],
-        ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
+        ["_D97706", { label: "Medium priority", color: "#D97706" }],
+        ["_FFFF00", { label: "Medium priority", color: "#D97706" }],
         ["_FF0000", { label: "High priority",   color: "#FF0000" }],
         ["_6B21A8", { label: "Test",            color: "#6B21A8" }]
     ]);
@@ -29,6 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeworkSaveButton   = document.getElementById("homework-save");
     const homeworkDeleteButton = document.getElementById("homework-delete");
     const closeHomeworkTriggers= Array.from(document.querySelectorAll("[data-close-homework-modal]"));
+    const weekHomeworkModal = document.getElementById("week-homework-modal");
+    const weekHomeworkContext = document.getElementById("week-homework-modal-context");
+    const weekHomeworkList = document.getElementById("week-homework-list");
+    const weekHomeworkEmpty = document.getElementById("week-homework-empty");
+    const openWeekHomeworkTriggers = Array.from(document.querySelectorAll("[data-open-week-homework-modal]"));
+    const closeWeekHomeworkTriggers = Array.from(document.querySelectorAll("[data-close-week-homework-modal]"));
     const toastStack           = document.querySelector("[data-homework-toasts]");
     const subjectModal         = document.getElementById("subject-modal");
     const subjectModalPreview  = document.getElementById("subject-modal-preview");
@@ -77,6 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let subjectUpcomingTab = "current";
     let activeHomeworkDetailEntry = null;
     let activeHomeworkDetailTrigger = null;
+    let activeWeekTimetable = null;
+    let activeWeekHomeworkTrigger = null;
 
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
@@ -130,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return 4;
             case "_FF0000":
                 return 3;
+            case "_D97706":
             case "_FFFF00":
                 return 2;
             case "_00FF00":
@@ -146,6 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
             default:
                 return status || "Pending";
         }
+    }
+
+    function normalizePriorityValue(priority) {
+        return priority === "_FFFF00" ? "_D97706" : priority;
     }
 
     function resetStatusDropdownAnimation(dropdown) {
@@ -237,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setPriorityValue(input, value) {
         if (!input) return;
-        const nextValue = value || defaultHomeworkPriority;
+        const nextValue = normalizePriorityValue(value || defaultHomeworkPriority);
         input.dataset.standardPriority = nextValue;
         input.value = nextValue;
         if (input.id) syncPriorityPicker(input.id);
@@ -357,6 +371,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return getHighestPriorityHomework(getCachedHomeworks(cell));
     }
 
+    function getWeekHomeworkEntries(timetable) {
+        if (!timetable) return [];
+
+        return Array.from(timetable.querySelectorAll(".hub-timetable__cell--filled[data-week-start]"))
+            .flatMap((cell) => {
+                const lessonDate = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate) : null;
+                if (!lessonDate || Number.isNaN(lessonDate.getTime())) return [];
+
+                return getCachedHomeworks(cell).map((homework) => ({
+                    cell,
+                    homework,
+                    lessonDate,
+                    lessonOrder: Number(cell.dataset.lessonOrder || "0"),
+                    subjectName: cell.dataset.subjectShortName || cell.dataset.subjectName || "Subject"
+                }));
+            })
+            .sort((left, right) => {
+                const dateDiff = left.lessonDate - right.lessonDate;
+                if (dateDiff !== 0) return dateDiff;
+                const lessonDiff = left.lessonOrder - right.lessonOrder;
+                if (lessonDiff !== 0) return lessonDiff;
+                return String(left.homework.title || "").localeCompare(String(right.homework.title || ""));
+            });
+    }
+
     function getIndicatorHomework(cell) {
         const visibleHomeworks = getCachedHomeworks(cell).filter((homework) => {
             if (!homework || (!homework.title && !homework.details)) return false;
@@ -396,6 +435,173 @@ document.addEventListener("DOMContentLoaded", () => {
             toast.classList.add("is-leaving");
             window.setTimeout(() => toast.remove(), 220);
         }, 2600);
+    }
+
+    function buildWeekHomeworkItem(entry) {
+        const item = document.createElement("article");
+        item.className = "week-homework-modal__item";
+
+        const color = entry.homework.status === "Graded"
+            ? gradedHomeworkIndicatorColor
+            : getPriorityColor(entry.homework.priority);
+        if (color) item.style.setProperty("--week-homework-color", color);
+
+        const top = document.createElement("div");
+        top.className = "week-homework-modal__top";
+
+        const date = document.createElement("p");
+        date.className = "week-homework-modal__date";
+        date.textContent = formatDateLabel(entry.lessonDate);
+
+        const subject = document.createElement("p");
+        subject.className = "week-homework-modal__subject";
+        subject.textContent = entry.subjectName;
+
+        const title = document.createElement("p");
+        title.className = "week-homework-modal__title";
+        title.textContent = entry.homework.title || "Homework";
+
+        top.append(date, subject, title);
+        item.appendChild(top);
+
+        if (entry.homework.details) {
+            const details = document.createElement("p");
+            details.className = "week-homework-modal__details";
+            details.textContent = entry.homework.details;
+            item.appendChild(details);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "week-homework-modal__meta";
+
+        const lessonBadge = document.createElement("span");
+        lessonBadge.className = "subject-homework-item__badge";
+        lessonBadge.textContent = `Lesson ${entry.lessonOrder || "-"}`;
+
+        const statusBadge = document.createElement("span");
+        statusBadge.className = "subject-homework-item__status-badge";
+        statusBadge.dataset.status = entry.homework.status || "Pending";
+        statusBadge.textContent = formatHomeworkStatus(entry.homework.status);
+
+        meta.append(lessonBadge, statusBadge);
+        item.appendChild(meta);
+
+        return item;
+    }
+
+    function renderWeekHomeworkModal() {
+        if (!weekHomeworkList || !weekHomeworkEmpty || !activeWeekTimetable) return;
+
+        const entries = getWeekHomeworkEntries(activeWeekTimetable);
+        weekHomeworkList.innerHTML = "";
+        entries.forEach((entry) => weekHomeworkList.appendChild(buildWeekHomeworkItem(entry)));
+        weekHomeworkEmpty.classList.toggle("hidden", entries.length > 0);
+
+        const firstCell = activeWeekTimetable.querySelector(".hub-timetable__cell--filled[data-week-start]");
+        if (weekHomeworkContext && firstCell?.dataset.weekStart) {
+            const monday = new Date(firstCell.dataset.weekStart);
+            const sunday = addDays(monday, 6);
+            weekHomeworkContext.textContent = `${formatDateLabel(monday)}-${formatDateLabel(sunday)}`;
+        } else if (weekHomeworkContext) {
+            weekHomeworkContext.textContent = "Selected week";
+        }
+    }
+
+    function resetWeekHomeworkModal() {
+        if (!weekHomeworkModal) return;
+        weekHomeworkModal.classList.add("hidden");
+        weekHomeworkModal.setAttribute("aria-hidden", "true");
+        weekHomeworkModal.removeAttribute("style");
+        const dialog = weekHomeworkModal.querySelector(".week-homework-modal__dialog");
+        const backdrop = weekHomeworkModal.querySelector(".subject-modal__backdrop");
+        dialog?.removeAttribute("style");
+        backdrop?.removeAttribute("style");
+    }
+
+    function closeWeekHomeworkModal() {
+        if (!weekHomeworkModal || weekHomeworkModal.classList.contains("hidden")) return;
+
+        const dialog = weekHomeworkModal.querySelector(".week-homework-modal__dialog");
+        const backdrop = weekHomeworkModal.querySelector(".subject-modal__backdrop");
+        const triggerRect = activeWeekHomeworkTrigger?.getBoundingClientRect();
+        const panelRect = dialog?.getBoundingClientRect();
+        const closeMs = 420;
+
+        if (backdrop) {
+            backdrop.style.transition = `opacity ${closeMs}ms ease`;
+            backdrop.style.opacity = "0";
+        }
+
+        if (dialog && panelRect?.width && panelRect?.height && triggerRect?.width && triggerRect?.height) {
+            const translateX = (triggerRect.left + triggerRect.width / 2) - (panelRect.left + panelRect.width / 2);
+            const translateY = (triggerRect.top + triggerRect.height / 2) - (panelRect.top + panelRect.height / 2);
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+
+            dialog.style.transition = [
+                `opacity ${Math.round(closeMs * 0.72)}ms ease`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`
+            ].join(",");
+            dialog.style.opacity = "0";
+            dialog.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else if (dialog) {
+            dialog.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`;
+            dialog.style.opacity = "0";
+            dialog.style.transform = "translateY(18px) scale(0.94)";
+        }
+
+        window.setTimeout(() => {
+            resetWeekHomeworkModal();
+        }, closeMs + 30);
+    }
+
+    function openWeekHomeworkModal(timetable, triggerElement = null) {
+        if (!weekHomeworkModal || !timetable) return;
+        activeWeekTimetable = timetable;
+        activeWeekHomeworkTrigger = triggerElement;
+        renderWeekHomeworkModal();
+        weekHomeworkModal.classList.remove("hidden");
+        weekHomeworkModal.setAttribute("aria-hidden", "false");
+
+        const dialog = weekHomeworkModal.querySelector(".week-homework-modal__dialog");
+        const backdrop = weekHomeworkModal.querySelector(".subject-modal__backdrop");
+        const triggerRect = triggerElement?.getBoundingClientRect();
+
+        if (backdrop) {
+            backdrop.style.transition = "none";
+            backdrop.style.opacity = "0";
+        }
+
+        if (!dialog) return;
+
+        dialog.style.transition = "none";
+        dialog.style.opacity = "0";
+
+        if (triggerRect?.width && triggerRect?.height) {
+            const panelRect = dialog.getBoundingClientRect();
+            const translateX = (triggerRect.left + triggerRect.width / 2) - (panelRect.left + panelRect.width / 2);
+            const translateY = (triggerRect.top + triggerRect.height / 2) - (panelRect.top + panelRect.height / 2);
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+            dialog.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            dialog.style.transform = "translateY(18px) scale(0.94)";
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (backdrop) {
+                    backdrop.style.transition = "opacity 320ms ease";
+                    backdrop.style.opacity = "1";
+                }
+                dialog.style.transition = [
+                    "opacity 280ms ease",
+                    "transform 520ms cubic-bezier(0.18,0.9,0.2,1)"
+                ].join(",");
+                dialog.style.opacity = "1";
+                dialog.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
     }
 
     function resetSubjectSideModal() {
@@ -1553,6 +1759,9 @@ document.addEventListener("DOMContentLoaded", () => {
             refreshHomeworkIndicators(scope);
             updateSubjectUpcomingWidget();
             renderSubjectUpcomingLayer();
+            if (activeWeekTimetable && scope === activeWeekTimetable && !weekHomeworkModal?.classList.contains("hidden")) {
+                renderWeekHomeworkModal();
+            }
         } catch (error) {
             console.error(error);
             showToast("error", "Failed to load homework for the selected week.");
@@ -1725,6 +1934,18 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ─────────────────────────────────────────────────
        EVENT LISTENERS
     ───────────────────────────────────────────────── */
+
+    openWeekHomeworkTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+            const timetable = document.querySelector("#schedule-preview .hub-timetable");
+            if (!timetable) return;
+            openWeekHomeworkModal(timetable, trigger);
+        });
+    });
+
+    closeWeekHomeworkTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", closeWeekHomeworkModal);
+    });
 
     document.querySelectorAll("[data-priority-picker]").forEach((picker) => {
         const inputId = picker.getAttribute("data-priority-picker");

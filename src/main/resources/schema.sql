@@ -191,11 +191,16 @@ BEGIN
         ALTER TABLE homeworks DROP CONSTRAINT homeworks_priority_check;
     END IF;
 
+    UPDATE homeworks
+    SET priority = '_D97706'
+    WHERE priority = '_FFFF00';
+
     ALTER TABLE homeworks
         ADD CONSTRAINT homeworks_priority_check
             CHECK (
                 priority IS NULL OR priority IN (
                     '_00FF00',
+                    '_D97706',
                     '_FFFF00',
                     '_FF0000',
                     '_6B21A8'
