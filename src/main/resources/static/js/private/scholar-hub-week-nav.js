@@ -165,30 +165,57 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectSideModal.removeAttribute("style");
     }
 
+    function getSubjectSideTriggerRect() {
+        if (!subjectSideTrigger) return null;
+        const rect = subjectSideTrigger.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        return rect;
+    }
+
     function closeSubjectSideModal() {
         if (!subjectSideModal || subjectSideModal.classList.contains("hidden")) return;
+        const closeMs = 520;
+        const panelRect = subjectSideModal.getBoundingClientRect();
+        const triggerRect = getSubjectSideTriggerRect();
 
-        subjectSideModal.style.transition = "opacity 200ms ease, transform 200ms cubic-bezier(0.4,0,1,1)";
-        subjectSideModal.style.opacity = "0";
-        subjectSideModal.style.transform = "translateX(18px)";
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+
+            subjectSideModal.style.transition = [
+                `opacity ${closeMs}ms cubic-bezier(0.4,0,0.2,1)`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`,
+            ].join(",");
+            subjectSideModal.style.opacity = "0";
+            subjectSideModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectSideModal.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
+            subjectSideModal.style.opacity = "0";
+            subjectSideModal.style.transform = "translateX(18px) scale(0.92)";
+        }
 
         window.setTimeout(() => {
             resetSubjectSideModal();
-        }, 220);
+        }, closeMs + 30);
     }
 
     function openSubjectSideModal() {
         if (!subjectSideModal || !subjectDialogLayout) return;
         if (!subjectSideModal.classList.contains("hidden")) return;
 
-        const GAP = 24;
+        const overlap = 26;
         const sideMinWidth = 240;
         const sideMaxWidth = 360;
-        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width + GAP;
-        const sideRoom = window.innerWidth - sideLeft - 32;
+        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width - overlap;
+        const sideRoom = window.innerWidth - sideLeft - 24;
         if (sideRoom < sideMinWidth) return;
 
         const sideWidth = Math.min(sideMaxWidth, sideRoom);
+        const triggerRect = getSubjectSideTriggerRect();
+        const openMs = 680;
+
         subjectSideModal.classList.remove("hidden");
         subjectSideModal.setAttribute("aria-hidden", "false");
         Object.assign(subjectSideModal.style, {
@@ -198,18 +225,30 @@ document.addEventListener("DOMContentLoaded", () => {
             width: `${sideWidth}px`,
             maxHeight: subjectDialogLayout.maxHeight,
             opacity: "0",
-            transform: "translateX(28px)",
+            transform: "translateX(0) scale(1)",
+            transformOrigin: "top left",
             transition: "none",
         });
+
+        const panelRect = subjectSideModal.getBoundingClientRect();
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+            subjectSideModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectSideModal.style.transform = "translateX(24px) scale(0.92)";
+        }
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 subjectSideModal.style.transition = [
-                    "opacity 360ms cubic-bezier(0.25,0.8,0.25,1)",
-                    "transform 360ms cubic-bezier(0.25,0.8,0.25,1)",
+                    `opacity ${Math.round(openMs * 0.82)}ms cubic-bezier(0.2,0.8,0.2,1)`,
+                    `transform ${openMs}ms cubic-bezier(0.18,0.9,0.2,1)`,
                 ].join(",");
                 subjectSideModal.style.opacity = "1";
-                subjectSideModal.style.transform = "translateX(0)";
+                subjectSideModal.style.transform = "translate(0, 0) scale(1)";
             });
         });
     }

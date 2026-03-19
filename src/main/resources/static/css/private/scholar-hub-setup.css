@@ -1109,6 +1109,7 @@ body {
 
 .subject-detail-modal__dialog--side {
     padding: 22px 24px;
+    z-index: 86;
 }
 
 .subject-detail-modal__dialog--side.hidden {
