@@ -79,8 +79,10 @@
                                             <div class="hub-timetable__cell-top">
                                                 <span class="hub-timetable__order"
                                                       th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
-                                                <span class="hub-timetable__room"
-                                                      th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
+                                                <div class="hub-timetable__cell-meta">
+                                                    <span class="hub-timetable__room"
+                                                          th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
+                                                </div>
                                             </div>
                                             <div class="hub-timetable__cell-body">
                                                 <div>
@@ -90,6 +92,7 @@
                                                        th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher'}">Teacher</p>
                                                 </div>
                                             </div>
+                                            <span class="hub-timetable__homework-dot hidden" data-homework-indicator></span>
                                         </div>
                                     </th:block>
                                 </div>
@@ -141,11 +144,21 @@
 
             <label class="subject-modal__field">
                 <span>Priority</span>
-                <select class="input homework-modal__select" id="homework-priority">
-                    <option value="_00FF00">Low priority</option>
-                    <option value="_FFFF00">Medium priority</option>
-                    <option value="_FF0000">High priority</option>
-                </select>
+                <input id="homework-priority" type="hidden" value="_00FF00" />
+                <div class="priority-picker" data-priority-picker="homework-priority">
+                    <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
+                        <span class="priority-picker__swatch priority-picker__swatch--low"></span>
+                        <span>Low</span>
+                    </button>
+                    <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                        <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
+                        <span>Medium</span>
+                    </button>
+                    <button class="priority-picker__option" type="button" data-priority-value="_FF0000" aria-label="High priority">
+                        <span class="priority-picker__swatch priority-picker__swatch--high"></span>
+                        <span>High</span>
+                    </button>
+                </div>
             </label>
 
             <label class="subject-modal__field">
@@ -232,11 +245,21 @@
 
                 <label class="subject-modal__field">
                     <span>Priority</span>
-                    <select class="input homework-modal__select" id="subject-side-homework-priority">
-                        <option value="_00FF00">Low priority</option>
-                        <option value="_FFFF00">Medium priority</option>
-                        <option value="_FF0000">High priority</option>
-                    </select>
+                    <input id="subject-side-homework-priority" type="hidden" value="_00FF00" />
+                    <div class="priority-picker" data-priority-picker="subject-side-homework-priority">
+                        <button class="priority-picker__option is-selected" type="button" data-priority-value="_00FF00" aria-label="Low priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--low"></span>
+                            <span>Low</span>
+                        </button>
+                        <button class="priority-picker__option" type="button" data-priority-value="_FFFF00" aria-label="Medium priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--medium"></span>
+                            <span>Medium</span>
+                        </button>
+                        <button class="priority-picker__option" type="button" data-priority-value="_FF0000" aria-label="High priority">
+                            <span class="priority-picker__swatch priority-picker__swatch--high"></span>
+                            <span>High</span>
+                        </button>
+                    </div>
                 </label>
 
                 <label class="subject-modal__field">

@@ -497,6 +497,8 @@ body {
     display: grid;
     gap: 3px;
     cursor: pointer;
+    position: relative;
+    padding-bottom: 12px;
 }
 
 .hub-timetable__cell--filled.is-animating {
@@ -521,6 +523,13 @@ body {
     color: #5973a3;
     font-size: 9px;
     font-weight: 800;
+}
+
+.hub-timetable__cell-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
 .hub-timetable__name {
@@ -583,23 +592,26 @@ body {
 }
 
 .hub-timetable__homework-dot {
-    width: 10px;
-    height: 10px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.52);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.52);
     background: var(--homework-color, #22c55e);
+    position: absolute;
+    right: 8px;
+    bottom: 7px;
 }
 
 .hub-timetable__homework-dot--low {
-    --homework-color: #22c55e;
+    --homework-color: #00FF00;
 }
 
 .hub-timetable__homework-dot--medium {
-    --homework-color: #f59e0b;
+    --homework-color: #FFFF00;
 }
 
 .hub-timetable__homework-dot--high {
-    --homework-color: #ef4444;
+    --homework-color: #FF0000;
 }
 
 .hub-timetable__order,
@@ -1420,6 +1432,65 @@ body {
 .homework-modal__select {
     padding-left: 14px;
     appearance: none;
+}
+
+.priority-picker {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.priority-picker__option {
+    border: 1px solid rgba(17, 32, 63, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.74);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #15305d;
+    cursor: pointer;
+    transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.priority-picker__option:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(17, 32, 63, 0.18);
+}
+
+.priority-picker__option.is-selected {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(17, 32, 63, 0.22);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.priority-picker__option:focus-visible {
+    outline: 2px solid rgba(84, 113, 179, 0.45);
+    outline-offset: 2px;
+}
+
+.priority-picker__swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.45);
+}
+
+.priority-picker__swatch--low {
+    background: #00FF00;
+}
+
+.priority-picker__swatch--medium {
+    background: #FFFF00;
+}
+
+.priority-picker__swatch--high {
+    background: #FF0000;
 }
 
 .homework-toast-stack {

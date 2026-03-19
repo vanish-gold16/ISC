@@ -92,8 +92,10 @@
                                             <div class="hub-timetable__cell-top">
                                                 <span class="hub-timetable__order"
                                                       th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
-                                                <span class="hub-timetable__room"
-                                                      th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
+                                                <div class="hub-timetable__cell-meta">
+                                                    <span class="hub-timetable__room"
+                                                          th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>
+                                                </div>
                                             </div>
                                             <div class="hub-timetable__cell-body">
                                                 <div>
@@ -103,6 +105,7 @@
                                                        th:text="${lesson.teacherName != null ? lesson.teacherName : 'Teacher'}">Teacher</p>
                                                 </div>
                                             </div>
+                                            <span class="hub-timetable__homework-dot hidden" data-homework-indicator></span>
                                         </div>
                                     </th:block>
                                 </div>
