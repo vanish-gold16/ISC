@@ -34,9 +34,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
     const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
     const subjectUpcomingDate = document.getElementById("subject-modal-upcoming-date");
+    const subjectUpcomingTitle = document.getElementById("subject-modal-upcoming-title");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
+    const subjectCurrentGroup = document.getElementById("subject-current-group");
+    const subjectPastGroup = document.getElementById("subject-past-group");
+    const subjectCurrentList = document.getElementById("subject-current-list");
+    const subjectPastList = document.getElementById("subject-past-list");
+    const subjectCurrentEmpty = document.getElementById("subject-current-empty");
     const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
     const subjectSideHomeworkContext = document.getElementById("subject-side-homework-context");
     const subjectSideHomeworkTitleInput = document.getElementById("subject-side-homework-title-input");
@@ -162,11 +168,30 @@ document.addEventListener("DOMContentLoaded", () => {
         return { weekStart: cell.dataset.weekStart || "", daySubjectId: cell.dataset.daySubjectId || "" };
     }
 
-    function getCachedHomework(cell) {
+    function getScheduleCells() {
+        const timetable = activeLessonCell?.closest(".hub-timetable");
+        return timetable
+            ? Array.from(timetable.querySelectorAll(".hub-timetable__cell--filled[data-week-start]"))
+            : [];
+    }
+
+    function getCachedHomeworks(cell) {
         const ids = getLessonIdentifiers(cell);
-        if (!ids) return null;
+        if (!ids) return [];
         const key = makeCacheKey(ids.weekStart, ids.daySubjectId);
-        return key ? homeworkCache.get(key) || null : null;
+        return key ? (homeworkCache.get(key) || []) : [];
+    }
+
+    function getHighestPriorityHomework(homeworks) {
+        if (!Array.isArray(homeworks) || homeworks.length === 0) return null;
+        return homeworks.reduce((best, item) => {
+            if (!best) return item;
+            return getPriorityRank(item.priority) > getPriorityRank(best.priority) ? item : best;
+        }, null);
+    }
+
+    function getCachedHomework(cell) {
+        return getHighestPriorityHomework(getCachedHomeworks(cell));
     }
 
     function setHomeworkIndicator(cell, homework) {
@@ -218,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectUpcomingLayer.classList.add("hidden");
         subjectUpcomingLayer.setAttribute("aria-hidden", "true");
         subjectUpcomingLayer.removeAttribute("style");
+        renderSubjectUpcomingLayer();
     }
 
     function isSubjectSideModalOpen() {
@@ -234,10 +260,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!subjectId) return null;
 
         const currentTime = cell.dataset.lessonDate ? new Date(cell.dataset.lessonDate).getTime() : Number.NEGATIVE_INFINITY;
-        const candidates = Array.from(document.querySelectorAll(".hub-timetable__cell--filled[data-week-start]"))
+        const candidates = getScheduleCells()
             .filter((candidate) => candidate.dataset.subjectId === subjectId)
             .map((candidate) => {
-                const homework = getCachedHomework(candidate);
+                const homework = getHighestPriorityHomework(
+                    getCachedHomeworks(candidate).filter((item) => item?.status === "Pending")
+                );
                 const lessonDate = candidate.dataset.lessonDate ? new Date(candidate.dataset.lessonDate) : null;
                 return { cell: candidate, homework, lessonDate };
             })
@@ -254,9 +282,131 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateSubjectUpcomingWidget() {
         if (!subjectUpcomingDate) return;
         const nextHomework = getNextUpcomingHomework(activeLessonCell);
-        subjectUpcomingDate.textContent = nextHomework
-            ? formatDateLabel(nextHomework.lessonDate)
-            : "No upcoming homework yet";
+        if (!nextHomework) {
+            subjectUpcomingDate.textContent = "No upcoming homework yet";
+            if (subjectUpcomingTitle) {
+                subjectUpcomingTitle.textContent = "";
+                subjectUpcomingTitle.classList.add("hidden");
+                subjectUpcomingTitle.style.removeProperty("--upcoming-chip-color");
+            }
+            return;
+        }
+
+        subjectUpcomingDate.textContent = formatDateLabel(nextHomework.lessonDate);
+        if (subjectUpcomingTitle) {
+            subjectUpcomingTitle.textContent = nextHomework.homework.title || "Homework";
+            subjectUpcomingTitle.classList.remove("hidden");
+            const color = getPriorityColor(nextHomework.homework.priority);
+            if (color) {
+                subjectUpcomingTitle.style.setProperty("--upcoming-chip-color", color);
+            } else {
+                subjectUpcomingTitle.style.removeProperty("--upcoming-chip-color");
+            }
+        }
+    }
+
+    function getSubjectHomeworkEntries() {
+        if (!activeLessonCell) return [];
+        const subjectId = activeLessonCell.dataset.subjectId;
+        if (!subjectId) return [];
+
+        return getScheduleCells()
+            .filter((candidate) => candidate.dataset.subjectId === subjectId)
+            .flatMap((candidate) => {
+                const lessonDate = candidate.dataset.lessonDate ? new Date(candidate.dataset.lessonDate) : null;
+                return getCachedHomeworks(candidate).map((homework) => ({
+                    cell: candidate,
+                    homework,
+                    lessonDate,
+                    lessonOrder: Number(candidate.dataset.lessonOrder || "0"),
+                }));
+            })
+            .filter((entry) => entry.homework && entry.lessonDate)
+            .sort((left, right) => {
+                const dateDiff = left.lessonDate - right.lessonDate;
+                if (dateDiff !== 0) return dateDiff;
+                return left.lessonOrder - right.lessonOrder;
+            });
+    }
+
+    function buildSubjectHomeworkItem(entry, isPast = false) {
+        const item = document.createElement("article");
+        item.className = `subject-homework-item${isPast ? " subject-homework-item--past" : ""}`;
+        const color = getPriorityColor(entry.homework.priority);
+        if (color) item.style.setProperty("--homework-item-color", color);
+
+        const top = document.createElement("div");
+        top.className = "subject-homework-item__top";
+
+        const date = document.createElement("p");
+        date.className = "subject-homework-item__date";
+        date.textContent = formatDateLabel(entry.lessonDate);
+
+        const title = document.createElement("p");
+        title.className = "subject-homework-item__title";
+        title.textContent = entry.homework.title || "Homework";
+
+        top.append(date, title);
+        item.appendChild(top);
+
+        if (entry.homework.details) {
+            const details = document.createElement("p");
+            details.className = "subject-homework-item__details";
+            details.textContent = entry.homework.details;
+            item.appendChild(details);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "subject-homework-item__meta";
+
+        const lessonBadge = document.createElement("span");
+        lessonBadge.className = "subject-homework-item__badge";
+        lessonBadge.textContent = `Lesson ${entry.lessonOrder || "-"}`;
+        meta.appendChild(lessonBadge);
+
+        const statusBadge = document.createElement("span");
+        statusBadge.className = "subject-homework-item__badge";
+        statusBadge.textContent = entry.homework.status || "Pending";
+        meta.appendChild(statusBadge);
+
+        item.appendChild(meta);
+        return item;
+    }
+
+    function renderSubjectHomeworkList(container, entries, isPast = false) {
+        if (!container) return;
+        container.innerHTML = "";
+        entries.forEach((entry) => container.appendChild(buildSubjectHomeworkItem(entry, isPast)));
+    }
+
+    function renderSubjectUpcomingLayer() {
+        const nowTime = activeLessonCell?.dataset.lessonDate
+            ? new Date(activeLessonCell.dataset.lessonDate).getTime()
+            : Number.NEGATIVE_INFINITY;
+        const entries = getSubjectHomeworkEntries();
+        const currentEntries = entries.filter((entry) =>
+            entry.homework.status !== "Completed" && entry.homework.status !== "Graded"
+        );
+        const pastEntries = entries.filter((entry) =>
+            entry.homework.status === "Completed" || entry.homework.status === "Graded"
+        );
+
+        renderSubjectHomeworkList(subjectCurrentList, currentEntries, false);
+        renderSubjectHomeworkList(subjectPastList, pastEntries, true);
+
+        if (subjectCurrentEmpty) {
+            subjectCurrentEmpty.classList.toggle("hidden", currentEntries.length > 0);
+        }
+        if (subjectPastGroup) {
+            subjectPastGroup.classList.toggle("hidden", pastEntries.length === 0);
+        }
+        if (subjectCurrentGroup) {
+            subjectCurrentGroup.classList.toggle("hidden", currentEntries.length === 0 && pastEntries.length > 0);
+        }
+
+        if (subjectCurrentList && currentEntries.length > 0) {
+            subjectCurrentList.dataset.scrollAnchor = String(nowTime);
+        }
     }
 
     function getSubjectSideTriggerRect() {
@@ -394,6 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function openSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer || !subjectDialogLayout || !subjectUpcomingWidget) return;
         if (!subjectUpcomingLayer.classList.contains("hidden")) return;
+        renderSubjectUpcomingLayer();
 
         const overlap = 180;
         const top = subjectDialogLayout.top + 20;
@@ -441,6 +592,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectUpcomingLayer.style.transform = "translate(0, 0) scale(1)";
             });
         });
+
+        window.setTimeout(() => {
+            if (subjectCurrentGroup && !subjectCurrentGroup.classList.contains("hidden")) {
+                subjectUpcomingLayer.scrollTop = Math.max(subjectCurrentGroup.offsetTop - 12, 0);
+            }
+        }, Math.round(openMs * 0.78));
     }
 
     function getLessonContext(cell) {
@@ -829,13 +986,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!item || !item.daySubjectId) return;
                 const key = makeCacheKey(weekStart, item.daySubjectId);
                 if (!key) return;
-                const cached = homeworkCache.get(key);
-                if (!cached || getPriorityRank(item.priority) > getPriorityRank(cached.priority)) {
-                    homeworkCache.set(key, item);
-                }
+                const cached = homeworkCache.get(key) || [];
+                cached.push(item);
+                homeworkCache.set(key, cached);
             });
             refreshHomeworkIndicators(scope);
             updateSubjectUpcomingWidget();
+            renderSubjectUpcomingLayer();
         } catch (error) {
             console.error(error);
             showToast("error", "Failed to load homework for the selected week.");

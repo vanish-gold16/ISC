@@ -202,11 +202,13 @@
                 </div>
                 <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming" id="subject-modal-upcoming-widget" role="button" tabindex="0" aria-label="Open upcoming homework">
                     <p class="subject-detail-widget__label">Upcoming homework and tests</p>
-                    <p class="subject-detail-widget__date" id="subject-modal-upcoming-date">No upcoming homework yet</p>
+                    <div class="subject-detail-widget__upcoming-preview" id="subject-modal-upcoming">
+                        <p class="subject-detail-widget__date" id="subject-modal-upcoming-date">No upcoming homework yet</p>
+                        <span class="subject-detail-widget__title-chip hidden" id="subject-modal-upcoming-title"></span>
+                    </div>
                     <button class="subject-detail-widget__icon-button" type="button" aria-label="Open homework panel" data-open-subject-side-modal>
                         <img class="subject-detail-widget__icon" src="/images/private/icons/homework.png" alt="" />
                     </button>
-                    <div class="subject-detail-widget__empty" id="subject-modal-upcoming"></div>
                 </div>
                 <div class="subject-detail-widget">
                     <p class="subject-detail-widget__label">Teacher</p>
@@ -289,7 +291,17 @@
                 </div>
                 <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-upcoming-modal>x</button>
             </div>
-            <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming-empty"></div>
+            <div class="subject-homework-feed">
+                <section class="subject-homework-section hidden" id="subject-past-group">
+                    <p class="subject-homework-section__label">Previous</p>
+                    <div class="subject-homework-list" id="subject-past-list"></div>
+                </section>
+                <section class="subject-homework-section" id="subject-current-group">
+                    <p class="subject-homework-section__label">Current</p>
+                    <div class="subject-homework-list" id="subject-current-list"></div>
+                    <p class="subject-modal__empty hidden" id="subject-current-empty">No current homework yet.</p>
+                </section>
+            </div>
         </div>
     </div>
 </div>
