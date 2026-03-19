@@ -1,8 +1,8 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
-import org.example.isc.main.enums.HomeworkPriorityEnum;
-import org.example.isc.main.enums.HomeworkStatusEnum;
+import org.example.isc.main.enums.scholarhub.HomeworkPriorityEnum;
+import org.example.isc.main.enums.scholarhub.HomeworkStatusEnum;
 
 import java.time.LocalDate;
 

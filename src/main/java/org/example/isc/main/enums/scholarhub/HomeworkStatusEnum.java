@@ -1,4 +1,4 @@
-package org.example.isc.main.enums;
+package org.example.isc.main.enums.scholarhub;
 
 public enum HomeworkStatusEnum {
     Pending,

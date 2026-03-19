@@ -2,8 +2,8 @@ package org.example.isc.main.dto.scholarship;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.example.isc.main.enums.HomeworkPriorityEnum;
-import org.example.isc.main.enums.HomeworkStatusEnum;
+import org.example.isc.main.enums.scholarhub.HomeworkPriorityEnum;
+import org.example.isc.main.enums.scholarhub.HomeworkStatusEnum;
 
 import java.time.LocalDate;
 

@@ -12,8 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const priorityMap = new Map([
         ["_00FF00", { label: "Low priority",    color: "#00FF00" }],
         ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
-        ["_FF0000", { label: "High priority",   color: "#FF0000" }]
+        ["_FF0000", { label: "High priority",   color: "#FF0000" }],
+        ["_6B21A8", { label: "Test",            color: "#6B21A8" }]
     ]);
+    const defaultHomeworkPriority = "_00FF00";
+    const testHomeworkPriority = "_6B21A8";
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
 
@@ -123,6 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getPriorityRank(priority) {
         switch (priority) {
+            case "_6B21A8":
+                return 4;
             case "_FF0000":
                 return 3;
             case "_FFFF00":
@@ -134,6 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function isTestPriority(priority) {
+        return priority === testHomeworkPriority;
+    }
+
     function formatHomeworkStatus(status) {
         switch (status) {
             case "Non_completed":
@@ -143,14 +152,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function resetStatusDropdownAnimation(dropdown) {
+        if (!dropdown) return;
+        dropdown.style.removeProperty("transition");
+        dropdown.style.removeProperty("opacity");
+        dropdown.style.removeProperty("visibility");
+        dropdown.style.removeProperty("pointer-events");
+        dropdown.style.removeProperty("transform");
+    }
+
+    function setStatusMenuOpen(statusMenu, isOpen) {
+        if (!statusMenu) return;
+
+        const trigger = statusMenu.querySelector(".subject-homework-item__status-summary");
+        const dropdown = statusMenu.querySelector(".subject-homework-item__status-dropdown");
+
+        if (!isOpen) {
+            statusMenu.classList.remove("is-open");
+            trigger?.setAttribute("aria-expanded", "false");
+            resetStatusDropdownAnimation(dropdown);
+            return;
+        }
+
+        document.querySelectorAll(".subject-homework-item__status-menu.is-open").forEach((menu) => {
+            if (menu !== statusMenu) setStatusMenuOpen(menu, false);
+        });
+
+        statusMenu.classList.add("is-open");
+        trigger?.setAttribute("aria-expanded", "true");
+        animateStatusMenuOpen(statusMenu);
+    }
+
     function closeAllStatusMenus() {
-        document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
-            menu.removeAttribute("open");
+        document.querySelectorAll(".subject-homework-item__status-menu.is-open").forEach((menu) => {
+            setStatusMenuOpen(menu, false);
         });
     }
 
     function animateStatusMenuOpen(statusMenu) {
-        if (!statusMenu?.open) return;
+        if (!statusMenu?.classList.contains("is-open")) return;
         const badge = statusMenu.querySelector(".subject-homework-item__status-badge");
         const dropdown = statusMenu.querySelector(".subject-homework-item__status-dropdown");
         if (!badge || !dropdown) return;
@@ -186,10 +226,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function syncPriorityPicker(inputId) {
         const input = document.getElementById(inputId);
         const picker = document.querySelector(`[data-priority-picker="${inputId}"]`);
+        const testToggle = document.querySelector(`[data-priority-test-toggle="${inputId}"]`);
         if (!input || !picker) return;
 
+        const useTestPriority = isTestPriority(input.value);
+        picker.classList.toggle("priority-picker--hidden", useTestPriority);
+        if (testToggle) testToggle.checked = useTestPriority;
+
         picker.querySelectorAll("[data-priority-value]").forEach((button) => {
-            const active = button.dataset.priorityValue === input.value;
+            const active = !useTestPriority && button.dataset.priorityValue === input.value;
             button.classList.toggle("is-selected", active);
             button.setAttribute("aria-pressed", active ? "true" : "false");
         });
@@ -197,7 +242,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setPriorityValue(input, value) {
         if (!input) return;
-        input.value = value || "_00FF00";
+        const nextValue = value || defaultHomeworkPriority;
+        if (!isTestPriority(nextValue)) {
+            input.dataset.standardPriority = nextValue;
+        } else if (!input.dataset.standardPriority) {
+            input.dataset.standardPriority = defaultHomeworkPriority;
+        }
+        input.value = nextValue;
         if (input.id) syncPriorityPicker(input.id);
     }
 
@@ -315,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectSideHomeworkContext) subjectSideHomeworkContext.textContent = "Current lesson";
         if (subjectSideHomeworkTitleInput) subjectSideHomeworkTitleInput.value = "";
         if (subjectSideHomeworkDetailsInput) subjectSideHomeworkDetailsInput.value = "";
-        setPriorityValue(subjectSideHomeworkPriorityInput, "_00FF00");
+        setPriorityValue(subjectSideHomeworkPriorityInput, defaultHomeworkPriority);
         if (subjectSideHomeworkStatusInput) subjectSideHomeworkStatusInput.value = "Pending";
     }
 
@@ -476,11 +527,14 @@ document.addEventListener("DOMContentLoaded", () => {
         lessonBadge.textContent = `Lesson ${entry.lessonOrder || "-"}`;
         meta.appendChild(lessonBadge);
 
-        const statusMenu = document.createElement("details");
+        const statusMenu = document.createElement("div");
         statusMenu.className = "subject-homework-item__status-menu";
 
-        const statusSummary = document.createElement("summary");
+        const statusSummary = document.createElement("button");
+        statusSummary.type = "button";
         statusSummary.className = "subject-homework-item__status-summary";
+        statusSummary.setAttribute("aria-haspopup", "menu");
+        statusSummary.setAttribute("aria-expanded", "false");
 
         const statusBadge = document.createElement("span");
         statusBadge.className = "subject-homework-item__status-badge";
@@ -506,21 +560,22 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             statusDropdown.appendChild(option);
         });
-        statusMenu.appendChild(statusDropdown);
-        statusMenu.addEventListener("toggle", () => {
-            if (!statusMenu.open) {
-                statusDropdown.style.removeProperty("transition");
-                statusDropdown.style.removeProperty("opacity");
-                statusDropdown.style.removeProperty("visibility");
-                statusDropdown.style.removeProperty("pointer-events");
-                statusDropdown.style.removeProperty("transform");
-                return;
-            }
-            document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
-                if (menu !== statusMenu) menu.removeAttribute("open");
-            });
-            animateStatusMenuOpen(statusMenu);
+
+        statusSummary.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setStatusMenuOpen(statusMenu, !statusMenu.classList.contains("is-open"));
         });
+
+        statusMenu.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            setStatusMenuOpen(statusMenu, false);
+            statusSummary.focus();
+        });
+
+        statusMenu.appendChild(statusDropdown);
         meta.appendChild(statusMenu);
 
         item.appendChild(meta);
@@ -537,7 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = {
             title: entry.homework.title || "",
             details: entry.homework.details || "",
-            priority: entry.homework.priority || "_00FF00",
+            priority: entry.homework.priority || defaultHomeworkPriority,
             subjectId: Number(entry.homework.subjectId ?? entry.cell?.dataset?.subjectId),
             dueDaySubjectId: Number(entry.homework.dueDaySubjectId ?? entry.homework.daySubjectId ?? entry.cell?.dataset?.daySubjectId),
             status,
@@ -565,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusBadge.textContent = formatHomeworkStatus(status);
             }
             await loadHomeworkForWeek(payload.weekStart, activeLessonCell.closest(".hub-timetable"));
-            statusMenu?.removeAttribute("open");
+            setStatusMenuOpen(statusMenu, false);
             showToast("success", "Homework status updated.");
         } catch (error) {
             console.error(error);
@@ -713,7 +768,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectHomeworkDetailContext) subjectHomeworkDetailContext.textContent = "Current lesson";
         if (subjectHomeworkDetailTitleInput) subjectHomeworkDetailTitleInput.value = "";
         if (subjectHomeworkDetailDetailsInput) subjectHomeworkDetailDetailsInput.value = "";
-        setPriorityValue(subjectHomeworkDetailPriorityInput, "_00FF00");
+        setPriorityValue(subjectHomeworkDetailPriorityInput, defaultHomeworkPriority);
         if (subjectHomeworkDetailStatusInput) subjectHomeworkDetailStatusInput.value = "Pending";
         activeHomeworkDetailEntry = null;
         activeHomeworkDetailTrigger = null;
@@ -767,7 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectHomeworkDetailDetailsInput) {
             subjectHomeworkDetailDetailsInput.value = entry.homework.details || "";
         }
-        setPriorityValue(subjectHomeworkDetailPriorityInput, entry.homework.priority || "_00FF00");
+        setPriorityValue(subjectHomeworkDetailPriorityInput, entry.homework.priority || defaultHomeworkPriority);
         if (subjectHomeworkDetailStatusInput) {
             subjectHomeworkDetailStatusInput.value = entry.homework.status || "Pending";
         }
@@ -1016,7 +1071,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectSideHomeworkDetailsInput) {
             subjectSideHomeworkDetailsInput.value = "";
         }
-        setPriorityValue(subjectSideHomeworkPriorityInput, "_00FF00");
+        setPriorityValue(subjectSideHomeworkPriorityInput, defaultHomeworkPriority);
         if (subjectSideHomeworkStatusInput) {
             subjectSideHomeworkStatusInput.value = "Pending";
         }
@@ -1033,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             title: String(subjectSideHomeworkTitleInput.value || "").trim(),
             details: String(subjectSideHomeworkDetailsInput.value || "").trim(),
-            priority: subjectSideHomeworkPriorityInput.value || "_00FF00",
+            priority: subjectSideHomeworkPriorityInput.value || defaultHomeworkPriority,
             subjectId: Number(ids.subjectId),
             dueDaySubjectId: Number(ids.dueDaySubjectId),
             status: subjectSideHomeworkStatusInput ? (subjectSideHomeworkStatusInput.value || "Pending") : "Pending",
@@ -1080,7 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             title: String(subjectHomeworkDetailTitleInput.value || "").trim(),
             details: String(subjectHomeworkDetailDetailsInput.value || "").trim(),
-            priority: subjectHomeworkDetailPriorityInput.value || "_00FF00",
+            priority: subjectHomeworkDetailPriorityInput.value || defaultHomeworkPriority,
             subjectId: Number(activeHomeworkDetailEntry.homework.subjectId ?? activeHomeworkDetailEntry.cell?.dataset?.subjectId),
             dueDaySubjectId: Number(activeHomeworkDetailEntry.homework.dueDaySubjectId ?? activeHomeworkDetailEntry.homework.daySubjectId ?? activeHomeworkDetailEntry.cell?.dataset?.daySubjectId),
             status: subjectHomeworkDetailStatusInput ? (subjectHomeworkDetailStatusInput.value || "Pending") : "Pending",
@@ -1474,7 +1529,7 @@ document.addEventListener("DOMContentLoaded", () => {
         homeworkContext.textContent    = lessonContext.context;
         homeworkTitleInput.value       = homework ? homework.title   || "" : "";
         homeworkDetailsInput.value     = homework ? homework.details || "" : "";
-        setPriorityValue(homeworkPriorityInput, homework?.priority || "_00FF00");
+        setPriorityValue(homeworkPriorityInput, homework?.priority || defaultHomeworkPriority);
         if (homeworkStatusInput)  homeworkStatusInput.value  = homework?.status || homeworkStatusInput.value || "Pending";
         if (homeworkDeleteButton) homeworkDeleteButton.disabled = !homework;
 
@@ -1492,7 +1547,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const title    = String(homeworkTitleInput.value || "").trim();
         const details  = String(homeworkDetailsInput.value || "").trim();
-        const priority = homeworkPriorityInput.value || "_00FF00";
+        const priority = homeworkPriorityInput.value || defaultHomeworkPriority;
         const status   = homeworkStatusInput ? (homeworkStatusInput.value || "Pending") : "Pending";
         if (!title) { showToast("error", "Homework title is required."); return; }
 
@@ -1606,8 +1661,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         picker.querySelectorAll("[data-priority-value]").forEach((button) => {
             button.addEventListener("click", () => {
-                setPriorityValue(input, button.dataset.priorityValue || "_00FF00");
+                setPriorityValue(input, button.dataset.priorityValue || defaultHomeworkPriority);
             });
+        });
+    });
+
+    document.querySelectorAll("[data-priority-test-toggle]").forEach((toggle) => {
+        const inputId = toggle.getAttribute("data-priority-test-toggle");
+        const input = inputId ? document.getElementById(inputId) : null;
+        if (!input) return;
+
+        toggle.addEventListener("change", () => {
+            if (toggle.checked) {
+                if (!isTestPriority(input.value)) {
+                    input.dataset.standardPriority = input.value || defaultHomeworkPriority;
+                }
+                setPriorityValue(input, testHomeworkPriority);
+                return;
+            }
+
+            setPriorityValue(input, input.dataset.standardPriority || defaultHomeworkPriority);
         });
     });
 
