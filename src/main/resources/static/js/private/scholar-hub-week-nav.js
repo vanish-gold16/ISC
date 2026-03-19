@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["_FFFF00", { label: "Medium priority", color: "#FFFF00" }],
         ["_FF0000", { label: "High priority",   color: "#FF0000" }]
     ]);
+    const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -43,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectCurrentList = document.getElementById("subject-current-list");
     const subjectPastList = document.getElementById("subject-past-list");
     const subjectCurrentEmpty = document.getElementById("subject-current-empty");
+    const subjectPastEmpty = document.getElementById("subject-past-empty");
+    const subjectHomeworkTabButtons = Array.from(document.querySelectorAll("[data-subject-homework-tab]"));
     const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
     const subjectSideHomeworkContext = document.getElementById("subject-side-homework-context");
     const subjectSideHomeworkTitleInput = document.getElementById("subject-side-homework-title-input");
@@ -53,9 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
+    const weekCurrentBadge = document.querySelector("[data-week-current-badge]");
 
     const homeworkCache = new Map();
     let activeLessonCell = null;
+    let subjectUpcomingTab = "current";
 
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
@@ -114,6 +119,21 @@ document.addEventListener("DOMContentLoaded", () => {
             default:
                 return 0;
         }
+    }
+
+    function formatHomeworkStatus(status) {
+        switch (status) {
+            case "Non_completed":
+                return "Not completed";
+            default:
+                return status || "Pending";
+        }
+    }
+
+    function closeAllStatusMenus() {
+        document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
+            menu.removeAttribute("open");
+        });
     }
 
     function syncPriorityPicker(inputId) {
@@ -247,6 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectUpcomingLayer.classList.add("hidden");
         subjectUpcomingLayer.setAttribute("aria-hidden", "true");
         subjectUpcomingLayer.removeAttribute("style");
+        setSubjectUpcomingTab("current");
         renderSubjectUpcomingLayer();
     }
 
@@ -348,6 +369,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return entry.lessonOrder < activeOrder;
     }
 
+    function isCurrentSubjectHomework(entry) {
+        if (!entry?.homework) return false;
+        return entry.homework.status === "Pending" && !isEntryBeforeActiveLesson(entry);
+    }
+
+    function isPreviousSubjectHomework(entry) {
+        if (!entry?.homework) return false;
+        return !isCurrentSubjectHomework(entry);
+    }
+
     function buildSubjectHomeworkItem(entry, isPast = false) {
         const item = document.createElement("article");
         item.className = `subject-homework-item${isPast ? " subject-homework-item--past" : ""}`;
@@ -383,13 +414,98 @@ document.addEventListener("DOMContentLoaded", () => {
         lessonBadge.textContent = `Lesson ${entry.lessonOrder || "-"}`;
         meta.appendChild(lessonBadge);
 
+        const statusMenu = document.createElement("details");
+        statusMenu.className = "subject-homework-item__status-menu";
+
+        const statusSummary = document.createElement("summary");
+        statusSummary.className = "subject-homework-item__status-summary";
+
         const statusBadge = document.createElement("span");
-        statusBadge.className = "subject-homework-item__badge";
-        statusBadge.textContent = entry.homework.status || "Pending";
-        meta.appendChild(statusBadge);
+        statusBadge.className = "subject-homework-item__status-badge";
+        statusBadge.dataset.status = entry.homework.status || "Pending";
+        statusBadge.textContent = formatHomeworkStatus(entry.homework.status);
+        statusSummary.appendChild(statusBadge);
+        statusMenu.appendChild(statusSummary);
+
+        const statusDropdown = document.createElement("div");
+        statusDropdown.className = "subject-homework-item__status-dropdown";
+
+        homeworkStatuses.forEach((status) => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = "subject-homework-item__status-option";
+            option.dataset.status = status;
+            option.textContent = formatHomeworkStatus(status);
+            option.disabled = status === (entry.homework.status || "Pending");
+            option.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                void updateHomeworkStatus(entry, status, statusMenu, statusBadge, statusDropdown);
+            });
+            statusDropdown.appendChild(option);
+        });
+        statusMenu.appendChild(statusDropdown);
+        statusMenu.addEventListener("toggle", () => {
+            if (!statusMenu.open) return;
+            document.querySelectorAll(".subject-homework-item__status-menu[open]").forEach((menu) => {
+                if (menu !== statusMenu) menu.removeAttribute("open");
+            });
+        });
+        meta.appendChild(statusMenu);
 
         item.appendChild(meta);
         return item;
+    }
+
+    async function updateHomeworkStatus(entry, status, statusMenu, statusBadge, statusDropdown) {
+        if (!entry?.homework?.id || !activeLessonCell) return;
+
+        const payload = {
+            title: entry.homework.title || "",
+            details: entry.homework.details || "",
+            priority: entry.homework.priority || "_00FF00",
+            subjectId: Number(entry.homework.subjectId ?? entry.cell?.dataset?.subjectId),
+            dueDaySubjectId: Number(entry.homework.dueDaySubjectId ?? entry.homework.daySubjectId ?? entry.cell?.dataset?.daySubjectId),
+            status,
+            weekStart: entry.homework.weekStart || entry.cell?.dataset?.weekStart || activeLessonCell.dataset.weekStart
+        };
+
+        if (!payload.subjectId || !payload.dueDaySubjectId || !payload.weekStart) {
+            showToast("error", "Homework update context is missing.");
+            return;
+        }
+
+        const previousStatus = entry.homework.status || "Pending";
+
+        try {
+            statusDropdown?.querySelectorAll("button").forEach((button) => {
+                button.disabled = true;
+            });
+            await requestJson(`/scholar-hub/homework/${encodeURIComponent(entry.homework.id)}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
+            entry.homework.status = status;
+            if (statusBadge) {
+                statusBadge.dataset.status = status;
+                statusBadge.textContent = formatHomeworkStatus(status);
+            }
+            await loadHomeworkForWeek(payload.weekStart, activeLessonCell.closest(".hub-timetable"));
+            statusMenu?.removeAttribute("open");
+            showToast("success", "Homework status updated.");
+        } catch (error) {
+            console.error(error);
+            entry.homework.status = previousStatus;
+            if (statusBadge) {
+                statusBadge.dataset.status = previousStatus;
+                statusBadge.textContent = formatHomeworkStatus(previousStatus);
+            }
+            showToast("error", "Failed to update homework status.");
+        } finally {
+            statusDropdown?.querySelectorAll("button").forEach((button) => {
+                button.disabled = button.dataset.status === (entry.homework.status || "Pending");
+            });
+        }
     }
 
     function renderSubjectHomeworkList(container, entries, isPast = false) {
@@ -400,14 +516,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderSubjectUpcomingLayer() {
         const entries = getSubjectHomeworkEntries();
-        const currentEntries = entries.filter((entry) =>
-            !isEntryBeforeActiveLesson(entry)
-            && entry.homework.status !== "Completed"
-            && entry.homework.status !== "Graded"
-        );
-        const pastEntries = entries.filter((entry) =>
-            isEntryBeforeActiveLesson(entry)
-        );
+        const currentEntries = entries
+            .filter(isCurrentSubjectHomework)
+            .sort((left, right) => {
+                const dateDiff = left.lessonDate - right.lessonDate;
+                if (dateDiff !== 0) return dateDiff;
+                return left.lessonOrder - right.lessonOrder;
+            });
+        const pastEntries = entries
+            .filter(isPreviousSubjectHomework)
+            .sort((left, right) => {
+                const dateDiff = right.lessonDate - left.lessonDate;
+                if (dateDiff !== 0) return dateDiff;
+                return right.lessonOrder - left.lessonOrder;
+            });
 
         renderSubjectHomeworkList(subjectCurrentList, currentEntries, false);
         renderSubjectHomeworkList(subjectPastList, pastEntries, true);
@@ -415,11 +537,29 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectCurrentEmpty) {
             subjectCurrentEmpty.classList.toggle("hidden", currentEntries.length > 0);
         }
-        if (subjectPastGroup) {
-            subjectPastGroup.classList.toggle("hidden", pastEntries.length === 0);
+        if (subjectPastEmpty) {
+            subjectPastEmpty.classList.toggle("hidden", pastEntries.length > 0);
         }
+        syncSubjectUpcomingTab();
+    }
+
+    function setSubjectUpcomingTab(tab) {
+        subjectUpcomingTab = tab === "past" ? "past" : "current";
+        syncSubjectUpcomingTab();
+    }
+
+    function syncSubjectUpcomingTab() {
+        subjectHomeworkTabButtons.forEach((button) => {
+            const isActive = button.dataset.subjectHomeworkTab === subjectUpcomingTab;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
         if (subjectCurrentGroup) {
-            subjectCurrentGroup.classList.toggle("hidden", currentEntries.length === 0 && pastEntries.length > 0);
+            subjectCurrentGroup.classList.toggle("hidden", subjectUpcomingTab !== "current");
+        }
+        if (subjectPastGroup) {
+            subjectPastGroup.classList.toggle("hidden", subjectUpcomingTab !== "past");
         }
     }
 
@@ -558,16 +698,17 @@ document.addEventListener("DOMContentLoaded", () => {
     function openSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer || !subjectDialogLayout || !subjectUpcomingWidget) return;
         if (!subjectUpcomingLayer.classList.contains("hidden")) return;
+        setSubjectUpcomingTab("current");
         renderSubjectUpcomingLayer();
 
-        const overlap = 180;
-        const top = subjectDialogLayout.top + 20;
+        const overlap = 220;
+        const top = Math.max(subjectDialogLayout.top + 8, 20);
         const left = Math.max(subjectDialogLayout.left + subjectDialogLayout.width - overlap, 24);
         const room = window.innerWidth - left - 24;
-        if (room < 320) return;
+        if (room < 360) return;
 
-        const width = Math.min(620, room);
-        const maxHeight = `calc(100vh - ${top + 24}px)`;
+        const width = Math.min(760, room);
+        const maxHeight = `calc(100vh - ${top + 18}px)`;
         const triggerRect = subjectUpcomingWidget.getBoundingClientRect();
         const openMs = 620;
 
@@ -608,9 +749,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.setTimeout(() => {
-            if (subjectCurrentGroup && !subjectCurrentGroup.classList.contains("hidden")) {
-                subjectUpcomingLayer.scrollTop = Math.max(subjectCurrentGroup.offsetTop - 12, 0);
-            }
+            subjectUpcomingLayer.scrollTop = 0;
         }, Math.round(openMs * 0.78));
     }
 
@@ -1111,13 +1250,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const firstIdx = dayIndexes.length > 0 ? dayIndexes[0]                      : 0;
         const lastIdx  = dayIndexes.length > 0 ? dayIndexes[dayIndexes.length - 1]  : 5;
         const url = new URL(window.location.href);
-        let weekOffset = Number.parseInt(url.searchParams.get("weekOffset") || "0", 10);
-        if (Number.isNaN(weekOffset)) weekOffset = 0;
+        let weekOffset = 0;
 
         function applyWeekContext() {
             const monday = getMonday(new Date());
             monday.setDate(monday.getDate() + weekOffset * 7);
             rangeLabel.textContent = `${formatDateLabel(addDays(monday, firstIdx))}-${formatDateLabel(addDays(monday, lastIdx))}`;
+            if (weekCurrentBadge) {
+                weekCurrentBadge.classList.toggle("hidden", weekOffset !== 0);
+            }
             timetable.querySelectorAll(".hub-timetable__cell--filled").forEach((cell) => {
                 const idx = dayOrder[cell.dataset.dayKey];
                 if (!Number.isInteger(idx)) return;
@@ -1227,6 +1368,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    subjectHomeworkTabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setSubjectUpcomingTab(button.dataset.subjectHomeworkTab || "current");
+        });
+    });
+
+    document.addEventListener("click", (event) => {
+        if (event.target.closest(".subject-homework-item__status-menu")) return;
+        closeAllStatusMenus();
+    });
 
     if (homeworkSaveButton)   homeworkSaveButton.addEventListener("click",   () => { void saveHomework(); });
     if (homeworkDeleteButton) homeworkDeleteButton.addEventListener("click", () => { void deleteHomework(); });

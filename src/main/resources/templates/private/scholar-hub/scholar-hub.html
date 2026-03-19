@@ -27,6 +27,7 @@
                         </button>
                         <div class="week-switcher__range-block">
                             <h3 class="week-switcher__range" data-week-range>16.03-21.03</h3>
+                            <span class="week-switcher__current-badge hidden" data-week-current-badge>Current week</span>
                         </div>
                         <button class="week-switcher__button" type="button" data-week-shift="1" aria-label="Next week">
                             <img class="week-switcher__button-icon week-switcher__button-icon--right"
@@ -291,12 +292,21 @@
                 </div>
                 <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-upcoming-modal>x</button>
             </div>
+            <div class="subject-homework-tabs" role="tablist" aria-label="Homework tabs">
+                <button class="subject-homework-tabs__button is-active" type="button" id="subject-homework-tab-current" data-subject-homework-tab="current" role="tab" aria-selected="true">
+                    Current
+                </button>
+                <button class="subject-homework-tabs__button" type="button" id="subject-homework-tab-past" data-subject-homework-tab="past" role="tab" aria-selected="false">
+                    Previous
+                </button>
+            </div>
             <div class="subject-homework-feed">
-                <section class="subject-homework-section hidden" id="subject-past-group">
+                <section class="subject-homework-section hidden" id="subject-past-group" role="tabpanel" aria-labelledby="subject-homework-tab-past">
                     <p class="subject-homework-section__label">Previous</p>
                     <div class="subject-homework-list" id="subject-past-list"></div>
+                    <p class="subject-modal__empty hidden" id="subject-past-empty">No previous homework yet.</p>
                 </section>
-                <section class="subject-homework-section" id="subject-current-group">
+                <section class="subject-homework-section" id="subject-current-group" role="tabpanel" aria-labelledby="subject-homework-tab-current">
                     <p class="subject-homework-section__label">Current</p>
                     <div class="subject-homework-list" id="subject-current-list"></div>
                     <p class="subject-modal__empty hidden" id="subject-current-empty">No current homework yet.</p>
