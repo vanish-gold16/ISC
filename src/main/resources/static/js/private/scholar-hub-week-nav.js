@@ -329,6 +329,21 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
+    function isEntryBeforeActiveLesson(entry) {
+        if (!activeLessonCell || !entry?.lessonDate) return false;
+        const activeLessonDate = activeLessonCell.dataset.lessonDate ? new Date(activeLessonCell.dataset.lessonDate) : null;
+        if (!activeLessonDate) return false;
+
+        const entryTime = entry.lessonDate.getTime();
+        const activeTime = activeLessonDate.getTime();
+        if (entryTime !== activeTime) {
+            return entryTime < activeTime;
+        }
+
+        const activeOrder = Number(activeLessonCell.dataset.lessonOrder || "0");
+        return entry.lessonOrder < activeOrder;
+    }
+
     function buildSubjectHomeworkItem(entry, isPast = false) {
         const item = document.createElement("article");
         item.className = `subject-homework-item${isPast ? " subject-homework-item--past" : ""}`;
@@ -380,15 +395,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderSubjectUpcomingLayer() {
-        const nowTime = activeLessonCell?.dataset.lessonDate
-            ? new Date(activeLessonCell.dataset.lessonDate).getTime()
-            : Number.NEGATIVE_INFINITY;
         const entries = getSubjectHomeworkEntries();
         const currentEntries = entries.filter((entry) =>
-            entry.homework.status !== "Completed" && entry.homework.status !== "Graded"
+            !isEntryBeforeActiveLesson(entry)
+            && entry.homework.status !== "Completed"
+            && entry.homework.status !== "Graded"
         );
         const pastEntries = entries.filter((entry) =>
-            entry.homework.status === "Completed" || entry.homework.status === "Graded"
+            isEntryBeforeActiveLesson(entry)
         );
 
         renderSubjectHomeworkList(subjectCurrentList, currentEntries, false);
@@ -402,10 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (subjectCurrentGroup) {
             subjectCurrentGroup.classList.toggle("hidden", currentEntries.length === 0 && pastEntries.length > 0);
-        }
-
-        if (subjectCurrentList && currentEntries.length > 0) {
-            subjectCurrentList.dataset.scrollAnchor = String(nowTime);
         }
     }
 
