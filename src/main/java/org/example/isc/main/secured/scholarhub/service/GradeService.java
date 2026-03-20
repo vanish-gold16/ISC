@@ -54,6 +54,7 @@ public class GradeService {
                 lesson,
                 gradeDTO.getSystem(),
                 gradeDTO.getReason(),
+                gradeDTO.getDescription(),
                 gradeDTO.getValue(),
                 converted
         ));

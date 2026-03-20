@@ -209,3 +209,32 @@ BEGIN
 END;
 $$;
 @@
+
+DO $$
+BEGIN
+    IF to_regclass('public.grades') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'grades'
+          AND column_name = 'task'
+    ) THEN
+        ALTER TABLE grades DROP COLUMN task;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'grades'
+          AND column_name = 'description'
+    ) THEN
+        ALTER TABLE grades ADD COLUMN description VARCHAR(2000);
+    END IF;
+END;
+$$;
+@@

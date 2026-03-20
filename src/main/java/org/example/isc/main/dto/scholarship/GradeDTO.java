@@ -20,6 +20,8 @@ public class GradeDTO {
     @NotNull
     private GradeReasonEnum reason;
 
+    private String description;
+
     @NotBlank
     private String value;
 
@@ -28,11 +30,12 @@ public class GradeDTO {
     public GradeDTO() {
     }
 
-    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, GradeReasonEnum reason, String value, BigDecimal converted) {
+    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, GradeReasonEnum reason, String description, String value, BigDecimal converted) {
         this.subjectId = subjectId;
         this.assignedDaySubjectId = assignedDaySubjectId;
         this.system = system;
         this.reason = reason;
+        this.description = description;
         this.value = value;
         this.converted = converted;
     }
@@ -83,5 +86,13 @@ public class GradeDTO {
 
     public void setReason(GradeReasonEnum reason) {
         this.reason = reason;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

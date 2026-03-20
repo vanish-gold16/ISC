@@ -227,7 +227,51 @@
             </div>
             <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-grades-modal>x</button>
         </div>
-        <div class="subject-modal__body subject-modal__body--side subject-modal__body--empty"></div>
+        <div class="subject-modal__body subject-modal__body--side">
+            <form class="grade-form" id="subject-grades-form">
+                <div class="grade-form__card grade-form__card--value">
+                    <label class="grade-form__card-head" for="subject-grade-value">
+                        <span class="grade-form__label">Grade</span>
+                    </label>
+                    <input class="grade-form__hero-input" id="subject-grade-value" type="text" inputmode="decimal" placeholder="5" />
+                    <div class="grade-form__card-footer">
+                    <label class="grade-form__system" for="subject-grade-system">
+                        <span class="grade-form__label">Grading system</span>
+                        <select class="grade-form__select" id="subject-grade-system">
+                            <option value="Numeric_Grading_1_to_5">1 to 5</option>
+                            <option value="Numeric_Grading_1_to_12">1 to 12</option>
+                            <option value="Numeric_Grading_1_to_10">1 to 10</option>
+                            <option value="Numeric_Grading_1_to_20">1 to 20</option>
+                            <option value="Numeric_Grading_5_to_1">5 to 1</option>
+                            <option value="Numeric_Grading_6_to_1">6 to 1</option>
+                            <option value="Percentage_Grading">Percentage</option>
+                            <option value="Letter_Grading">Letter</option>
+                            <option value="GPA_4_Point_Scale">GPA 4.0</option>
+                            <option value="Pass_Fail">Pass / Fail</option>
+                        </select>
+                    </label>
+                    </div>
+                </div>
+
+                <label class="grade-form__card" for="subject-grade-description">
+                    <span class="grade-form__label">Description</span>
+                    <textarea class="grade-form__card-input" id="subject-grade-description" placeholder="Optional details about feedback, mistakes, teacher notes"></textarea>
+                </label>
+
+                <label class="subject-modal__field" for="subject-grade-reason">
+                    <span>Reason</span>
+                    <select class="input homework-modal__select" id="subject-grade-reason">
+                        <option value="Exam">Exam</option>
+                        <option value="Activity">Activity</option>
+                    </select>
+                </label>
+
+                <div class="subject-create-panel__actions">
+                    <button class="btn btn--ghost" type="button" data-close-subject-grades-modal>Cancel</button>
+                    <button class="btn btn--primary" type="button" id="subject-grade-save">Save grade</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

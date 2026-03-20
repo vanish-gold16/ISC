@@ -1330,6 +1330,111 @@ body {
     display: none;
 }
 
+.grade-form {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+}
+
+.grade-form__card {
+    display: grid;
+    gap: 10px;
+    padding: 18px 18px 16px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(241, 247, 255, 0.44) 100%);
+    border: 1px solid rgba(210, 224, 248, 0.88);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56), 0 18px 36px rgba(15, 23, 42, 0.08);
+}
+
+.grade-form__card-head {
+    display: block;
+}
+
+.grade-form__label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6281b9;
+}
+
+.grade-form__card-input,
+.grade-form__hero-input,
+.grade-form__select {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+}
+
+.grade-form__hero-input {
+    width: 100%;
+    padding: 0;
+    height: 124px;
+    font-size: 52px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.grade-form__card-input {
+    width: 100%;
+    min-height: 124px;
+    resize: vertical;
+    padding: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.grade-form__hero-input::placeholder,
+.grade-form__card-input::placeholder {
+    color: rgba(84, 99, 126, 0.56);
+}
+
+.grade-form__card-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.grade-form__select {
+    width: 100%;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    appearance: none;
+}
+
+.grade-form__system {
+    display: grid;
+    gap: 8px;
+    width: min(100%, 190px);
+    padding: 14px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(210, 224, 248, 0.88);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 680px) {
+    .grade-form__hero-input {
+        font-size: 42px;
+    }
+
+    .grade-form__card-input {
+        font-size: 22px;
+    }
+
+    .grade-form__card-footer {
+        justify-content: stretch;
+    }
+
+    .grade-form__system {
+        width: 100%;
+    }
+}
+
 .subject-detail-modal__dialog--upcoming {
     padding: 24px 26px;
     z-index: 87;

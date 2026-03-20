@@ -60,6 +60,7 @@ public class GradeApiController {
                 grade.getAssignedDaySubject() != null ? grade.getAssignedDaySubject().getId() : null,
                 grade.getGradingSystem(),
                 grade.getReason(),
+                grade.getDescription(),
                 grade.getValue(),
                 grade.getConverted()
         );

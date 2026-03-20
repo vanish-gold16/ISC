@@ -30,6 +30,9 @@ public class Grade {
     @Column(name = "reason", nullable = false)
     private GradeReasonEnum reason;
 
+    @Column(name = "description", length = 2000)
+    private String description;
+
     @Column(name = "value", nullable = false)
     private String value;
 
@@ -39,11 +42,12 @@ public class Grade {
     public Grade() {
     }
 
-    public Grade(Subject subject, DaySubject assignedDaySubject, GradingSystemEnum gradingSystem, GradeReasonEnum reason, String value, BigDecimal converted) {
+    public Grade(Subject subject, DaySubject assignedDaySubject, GradingSystemEnum gradingSystem, GradeReasonEnum reason, String description, String value, BigDecimal converted) {
         this.subject = subject;
         this.assignedDaySubject = assignedDaySubject;
         this.gradingSystem = gradingSystem;
         this.reason = reason;
+        this.description = description;
         this.value = value;
         this.converted = converted;
     }
@@ -102,5 +106,13 @@ public class Grade {
 
     public void setReason(GradeReasonEnum reason) {
         this.reason = reason;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

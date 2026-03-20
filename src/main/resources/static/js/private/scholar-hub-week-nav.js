@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const testHomeworkStoredPriority = "_6B21A8";
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
+    const defaultGradeSystem = "Numeric_Grading_1_to_5";
+    const defaultGradeReason = "Exam";
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -50,6 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectGradesModal = document.getElementById("subject-modal-grades-panel");
     const subjectGradesTrigger = document.querySelector("[data-open-subject-grades-modal]");
     const subjectGradesContext = document.getElementById("subject-grades-panel-context");
+    const subjectGradeValueInput = document.getElementById("subject-grade-value");
+    const subjectGradeSystemInput = document.getElementById("subject-grade-system");
+    const subjectGradeDescriptionInput = document.getElementById("subject-grade-description");
+    const subjectGradeReasonInput = document.getElementById("subject-grade-reason");
+    const subjectGradeSaveButton = document.getElementById("subject-grade-save");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
@@ -349,6 +356,46 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    function getGradeValuePlaceholder(system) {
+        switch (system) {
+            case "Percentage_Grading":
+                return "87";
+            case "Letter_Grading":
+                return "A-";
+            case "GPA_4_Point_Scale":
+                return "3.7";
+            case "Numeric_Grading_1_to_12":
+                return "10";
+            case "Numeric_Grading_1_to_10":
+                return "8";
+            case "Numeric_Grading_1_to_20":
+                return "16";
+            case "Numeric_Grading_5_to_1":
+                return "2";
+            case "Numeric_Grading_6_to_1":
+                return "3";
+            case "Pass_Fail":
+                return "Pass";
+            case "Numeric_Grading_1_to_5":
+            default:
+                return "5";
+        }
+    }
+
+    function syncGradeValueInput() {
+        if (!subjectGradeValueInput || !subjectGradeSystemInput) return;
+        const system = subjectGradeSystemInput.value || defaultGradeSystem;
+        subjectGradeValueInput.placeholder = getGradeValuePlaceholder(system);
+        subjectGradeValueInput.inputMode =
+            system === "Letter_Grading" || system === "Pass_Fail"
+                ? "text"
+                : "decimal";
+        subjectGradeValueInput.autocapitalize =
+            system === "Letter_Grading" || system === "Pass_Fail"
+                ? "characters"
+                : "off";
+    }
+
     function getScheduleCells() {
         const timetable = activeLessonCell?.closest(".hub-timetable");
         return timetable
@@ -627,6 +674,15 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectGradesModal.setAttribute("aria-hidden", "true");
         subjectGradesModal.removeAttribute("style");
         if (subjectGradesContext) subjectGradesContext.textContent = "Current lesson";
+        if (subjectGradeValueInput) subjectGradeValueInput.value = "";
+        if (subjectGradeSystemInput) subjectGradeSystemInput.value = defaultGradeSystem;
+        if (subjectGradeDescriptionInput) subjectGradeDescriptionInput.value = "";
+        if (subjectGradeReasonInput) subjectGradeReasonInput.value = defaultGradeReason;
+        if (subjectGradeSaveButton) {
+            subjectGradeSaveButton.disabled = false;
+            subjectGradeSaveButton.textContent = "Save grade";
+        }
+        syncGradeValueInput();
     }
 
     function resetSubjectUpcomingLayer() {
@@ -1294,6 +1350,58 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectGradesModal.style.transform = "translate(0, 0) scale(1)";
             });
         });
+
+        window.setTimeout(() => {
+            subjectGradeValueInput?.focus();
+        }, Math.round(openMs * 0.72));
+    }
+
+    function buildSubjectGradePayload() {
+        if (!activeLessonCell || !subjectGradeValueInput || !subjectGradeSystemInput || !subjectGradeReasonInput) {
+            return null;
+        }
+
+        const ids = getLessonIdentifiers(activeLessonCell);
+        if (!ids?.subjectId) return null;
+
+        return {
+            subjectId: Number(ids.subjectId),
+            assignedDaySubjectId: ids.dueDaySubjectId ? Number(ids.dueDaySubjectId) : null,
+            system: subjectGradeSystemInput.value || defaultGradeSystem,
+            reason: subjectGradeReasonInput.value || defaultGradeReason,
+            description: String(subjectGradeDescriptionInput?.value || "").trim(),
+            value: String(subjectGradeValueInput.value || "").trim()
+        };
+    }
+
+    async function saveSubjectGrade() {
+        if (!subjectGradeSaveButton) return;
+        const payload = buildSubjectGradePayload();
+        if (!payload) {
+            showToast("error", "Grade context is missing.");
+            return;
+        }
+        if (!payload.value) {
+            showToast("error", "Grade value is required.");
+            return;
+        }
+
+        try {
+            subjectGradeSaveButton.disabled = true;
+            subjectGradeSaveButton.textContent = "Saving...";
+            await requestJson("/scholar-hub/grades", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            showToast("success", "Grade saved.");
+            closeSubjectGradesModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to save grade.");
+        } finally {
+            subjectGradeSaveButton.disabled = false;
+            subjectGradeSaveButton.textContent = "Save grade";
+        }
     }
 
     function openSubjectSideModal() {
@@ -2199,6 +2307,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectSideHomeworkSaveButton) {
         subjectSideHomeworkSaveButton.addEventListener("click", () => { void saveSubjectSideHomework(); });
     }
+    if (subjectGradeSaveButton) {
+        subjectGradeSaveButton.addEventListener("click", () => { void saveSubjectGrade(); });
+    }
+    if (subjectGradeSystemInput) {
+        subjectGradeSystemInput.addEventListener("change", syncGradeValueInput);
+    }
     if (subjectHomeworkDetailSaveButton) {
         subjectHomeworkDetailSaveButton.addEventListener("click", () => { void saveSubjectHomeworkDetail(); });
     }
@@ -2216,4 +2330,6 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
         }
     });
+
+    syncGradeValueInput();
 });
