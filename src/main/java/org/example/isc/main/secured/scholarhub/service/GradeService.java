@@ -53,6 +53,7 @@ public class GradeService {
                 subject,
                 lesson,
                 gradeDTO.getSystem(),
+                gradeDTO.getReason(),
                 gradeDTO.getValue(),
                 converted
         ));

@@ -1,6 +1,7 @@
 package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
+import org.example.isc.main.enums.scholarhub.GradeReasonEnum;
 import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
 import java.math.BigDecimal;
@@ -25,6 +26,10 @@ public class Grade {
     @Column(name = "grading_system", nullable = false)
     private GradingSystemEnum gradingSystem;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reason", nullable = false)
+    private GradeReasonEnum reason;
+
     @Column(name = "value", nullable = false)
     private String value;
 
@@ -34,10 +39,11 @@ public class Grade {
     public Grade() {
     }
 
-    public Grade(Subject subject, DaySubject assignedDaySubject, GradingSystemEnum gradingSystem, String value, BigDecimal converted) {
+    public Grade(Subject subject, DaySubject assignedDaySubject, GradingSystemEnum gradingSystem, GradeReasonEnum reason, String value, BigDecimal converted) {
         this.subject = subject;
         this.assignedDaySubject = assignedDaySubject;
         this.gradingSystem = gradingSystem;
+        this.reason = reason;
         this.value = value;
         this.converted = converted;
     }
@@ -88,5 +94,13 @@ public class Grade {
 
     public void setConverted(BigDecimal converted) {
         this.converted = converted;
+    }
+
+    public GradeReasonEnum getReason() {
+        return reason;
+    }
+
+    public void setReason(GradeReasonEnum reason) {
+        this.reason = reason;
     }
 }

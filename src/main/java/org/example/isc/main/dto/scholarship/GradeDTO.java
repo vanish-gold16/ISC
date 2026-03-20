@@ -2,6 +2,7 @@ package org.example.isc.main.dto.scholarship;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.example.isc.main.enums.scholarhub.GradeReasonEnum;
 import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
 import java.math.BigDecimal;
@@ -16,6 +17,9 @@ public class GradeDTO {
     @NotNull
     private GradingSystemEnum system;
 
+    @NotNull
+    private GradeReasonEnum reason;
+
     @NotBlank
     private String value;
 
@@ -24,10 +28,11 @@ public class GradeDTO {
     public GradeDTO() {
     }
 
-    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, String value, BigDecimal converted) {
+    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, GradeReasonEnum reason, String value, BigDecimal converted) {
         this.subjectId = subjectId;
         this.assignedDaySubjectId = assignedDaySubjectId;
         this.system = system;
+        this.reason = reason;
         this.value = value;
         this.converted = converted;
     }
@@ -70,5 +75,13 @@ public class GradeDTO {
 
     public void setConverted(BigDecimal converted) {
         this.converted = converted;
+    }
+
+    public GradeReasonEnum getReason() {
+        return reason;
+    }
+
+    public void setReason(GradeReasonEnum reason) {
+        this.reason = reason;
     }
 }
