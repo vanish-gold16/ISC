@@ -14,7 +14,7 @@ public class Grade {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "subject")
+    @JoinColumn(name = "subject", nullable = false)
     private Subject subject;
 
     @ManyToOne
@@ -22,10 +22,10 @@ public class Grade {
     private DaySubject assignedDaySubject;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "grading_system")
+    @Column(name = "grading_system", nullable = false)
     private GradingSystemEnum gradingSystem;
 
-    @Column(name = "value")
+    @Column(name = "value", nullable = false)
     private String value;
 
     @Column(name = "int_value", precision = 5, scale = 4, nullable = false)

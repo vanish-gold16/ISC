@@ -2,22 +2,14 @@ package org.example.isc.main.secured.scholarhub.controller.api;
 
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.scholarship.GradeDTO;
-import org.example.isc.main.secured.models.scholarship.ConvertGrade;
-import org.example.isc.main.secured.models.scholarship.DaySubject;
 import org.example.isc.main.secured.models.scholarship.Grade;
-import org.example.isc.main.secured.models.scholarship.Subject;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.main.secured.repositories.scholarhub.DaySubjectRepository;
-import org.example.isc.main.secured.repositories.scholarhub.GradeRepository;
-import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.example.isc.main.secured.scholarhub.service.GradeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,18 +17,11 @@ import java.util.List;
 public class GradeApiController {
 
     private final UserRepository userRepository;
-    private final GradeRepository gradeRepository;
-    private final ConvertGrade convertGrade = new ConvertGrade();
-    private final SubjectsRepository subjectsRepository;
-    private final DaySubjectRepository daySubjectRepository;
     private final GradeService gradeService;
 
-    public GradeApiController(UserRepository userRepository, GradeRepository gradeRepository, SubjectsRepository subjectsRepository, DaySubjectRepository daySubjectRepository, GradeService gradeService, GradeService gradeService1) {
+    public GradeApiController(UserRepository userRepository, GradeService gradeService) {
         this.userRepository = userRepository;
-        this.gradeRepository = gradeRepository;
-        this.subjectsRepository = subjectsRepository;
-        this.daySubjectRepository = daySubjectRepository;
-        this.gradeService = gradeService1;
+        this.gradeService = gradeService;
     }
 
     @GetMapping
@@ -44,17 +29,7 @@ public class GradeApiController {
             Authentication authentication
     ){
         User me = requireCurrentUser(authentication);
-
-        List<Grade> grades = new ArrayList<>();
-        List<Subject> subjects = subjectsRepository.findAllByUserUsername(me.getUsername());
-        if(subjects.isEmpty()) return ResponseEntity.noContent().build();
-
-        for (Subject subject : subjects) {
-            List<Grade> gradesForSubject = gradeRepository.findAllBySubjectIdAndSubjectUserUsername(
-                    subject.getId(), me.getUsername()
-            );
-            grades.addAll(gradesForSubject);
-        }
+        List<Grade> grades = gradeService.getAllForUser(me.getUsername());
 
         return ResponseEntity.ok(grades.stream().map(this::toDTO).toList());
     }
@@ -64,10 +39,8 @@ public class GradeApiController {
             @PathVariable Long id,
             Authentication authentication
     ){
-        requireCurrentUser(authentication);
-        Grade grade = gradeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Grade not found: " + id));
-
+        User me = requireCurrentUser(authentication);
+        Grade grade = gradeService.getForUser(id, me.getUsername());
         return ResponseEntity.ok(toDTO(grade));
     }
 
@@ -76,18 +49,15 @@ public class GradeApiController {
             @Valid @RequestBody GradeDTO gradeDTO,
             Authentication authentication
     ){
-        requireCurrentUser(authentication);
-
-        if(gradeDTO == null) return ResponseEntity.badRequest().build();
-
-        gradeRepository.save(gradeService.create(gradeDTO));
+        User me = requireCurrentUser(authentication);
+        gradeService.create(gradeDTO, me.getUsername());
         return ResponseEntity.ok().build();
     }
 
     public GradeDTO toDTO(Grade grade) {
         return new GradeDTO(
                 grade.getSubject().getId(),
-                grade.getAssignedDaySubject().getId(),
+                grade.getAssignedDaySubject() != null ? grade.getAssignedDaySubject().getId() : null,
                 grade.getGradingSystem(),
                 grade.getValue(),
                 grade.getConverted()

@@ -1,5 +1,6 @@
 package org.example.isc.main.dto.scholarship;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
@@ -15,10 +16,13 @@ public class GradeDTO {
     @NotNull
     private GradingSystemEnum system;
 
-    @NotNull
+    @NotBlank
     private String value;
 
     private BigDecimal converted;
+
+    public GradeDTO() {
+    }
 
     public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, String value, BigDecimal converted) {
         this.subjectId = subjectId;

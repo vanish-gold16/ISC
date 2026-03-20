@@ -19,7 +19,7 @@ public class DaySubject {
     @JoinColumn(name = "subject")
     private Subject subject;
 
-    @OneToMany(mappedBy = "day_subject", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "assignedDaySubject", fetch = FetchType.LAZY)
     private List<Grade> grades;
 
     @Column(name = "lesson_order")
