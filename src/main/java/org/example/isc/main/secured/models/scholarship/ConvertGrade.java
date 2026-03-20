@@ -8,11 +8,6 @@ import java.math.RoundingMode;
 public class ConvertGrade {
 
     private BigDecimal converted;
-    private String value;
-
-    public ConvertGrade(String value) {
-        this.value = value;
-    }
 
     public BigDecimal toNormalizedScore(GradingSystemEnum system, String value){
         if (value == null || value.trim().isEmpty()) {
