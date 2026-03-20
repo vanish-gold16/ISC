@@ -211,6 +211,9 @@
                 <div class="subject-detail-widget subject-detail-widget--hero-secondary">
                     <p class="subject-detail-widget__label">Grades</p>
                     <div class="subject-detail-widget__empty" id="subject-modal-grades"></div>
+                    <button class="subject-detail-widget__icon-button subject-detail-widget__icon-button--plus" type="button" aria-label="Add grade" data-open-subject-grades-modal>
+                        <span class="subject-detail-widget__icon-plus" aria-hidden="true">+</span>
+                    </button>
                 </div>
                 <div class="subject-detail-widget subject-detail-widget--wide subject-detail-widget--upcoming" id="subject-modal-upcoming-widget" role="button" tabindex="0" aria-label="Open upcoming homework">
                     <p class="subject-detail-widget__label">Upcoming homework and tests</p>
@@ -297,6 +300,19 @@
                     <button class="btn btn--primary" type="button" id="subject-side-homework-save">Save homework</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--grades hidden" id="subject-modal-grades-panel" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Grades panel">
+        <div class="subject-detail-modal__content subject-detail-modal__content--side">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__kicker">Grades</p>
+                    <h3 class="subject-detail-modal__side-title" id="subject-grades-panel-title">Add grade</h3>
+                    <p class="homework-modal__context" id="subject-grades-panel-context">Current lesson</p>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-subject-grades-modal>x</button>
+            </div>
+            <div class="subject-modal__body subject-modal__body--side subject-modal__body--empty"></div>
         </div>
     </div>
     <div class="subject-modal__dialog subject-detail-modal__dialog subject-detail-modal__dialog--upcoming hidden" id="subject-modal-upcoming-layer" aria-hidden="true" role="dialog" aria-modal="false" aria-label="Upcoming homework list">

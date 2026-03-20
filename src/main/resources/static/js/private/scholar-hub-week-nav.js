@@ -47,6 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
     const subjectUpcomingDate = document.getElementById("subject-modal-upcoming-date");
     const subjectUpcomingTitle = document.getElementById("subject-modal-upcoming-title");
+    const subjectGradesModal = document.getElementById("subject-modal-grades-panel");
+    const subjectGradesTrigger = document.querySelector("[data-open-subject-grades-modal]");
+    const subjectGradesContext = document.getElementById("subject-grades-panel-context");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
@@ -74,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectSideHomeworkStatusInput = document.getElementById("subject-side-homework-status");
     const subjectSideHomeworkSaveButton = document.getElementById("subject-side-homework-save");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
+    const closeSubjectGradesTriggers = Array.from(document.querySelectorAll("[data-close-subject-grades-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
     const closeSubjectHomeworkDetailTriggers = Array.from(document.querySelectorAll("[data-close-subject-homework-detail-modal]"));
@@ -617,6 +621,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectSideHomeworkStatusInput) subjectSideHomeworkStatusInput.value = "Pending";
     }
 
+    function resetSubjectGradesModal() {
+        if (!subjectGradesModal) return;
+        subjectGradesModal.classList.add("hidden");
+        subjectGradesModal.setAttribute("aria-hidden", "true");
+        subjectGradesModal.removeAttribute("style");
+        if (subjectGradesContext) subjectGradesContext.textContent = "Current lesson";
+    }
+
     function resetSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer) return;
         closeSubjectHomeworkDetailModal(true);
@@ -629,6 +641,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function isSubjectSideModalOpen() {
         return !!subjectSideModal && !subjectSideModal.classList.contains("hidden");
+    }
+
+    function isSubjectGradesModalOpen() {
+        return !!subjectGradesModal && !subjectGradesModal.classList.contains("hidden");
     }
 
     function isSubjectUpcomingLayerOpen() {
@@ -946,6 +962,47 @@ document.addEventListener("DOMContentLoaded", () => {
         return rect;
     }
 
+    function getSubjectGradesTriggerRect() {
+        if (!subjectGradesTrigger) return null;
+        const rect = subjectGradesTrigger.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        return rect;
+    }
+
+    function closeSubjectGradesModal(force = false) {
+        if (!subjectGradesModal || subjectGradesModal.classList.contains("hidden")) return;
+        if (force) {
+            resetSubjectGradesModal();
+            return;
+        }
+
+        const closeMs = 520;
+        const panelRect = subjectGradesModal.getBoundingClientRect();
+        const triggerRect = getSubjectGradesTriggerRect();
+
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+
+            subjectGradesModal.style.transition = [
+                `opacity ${closeMs}ms cubic-bezier(0.4,0,0.2,1)`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`,
+            ].join(",");
+            subjectGradesModal.style.opacity = "0";
+            subjectGradesModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectGradesModal.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
+            subjectGradesModal.style.opacity = "0";
+            subjectGradesModal.style.transform = "translateX(18px) scale(0.92)";
+        }
+
+        window.setTimeout(() => {
+            resetSubjectGradesModal();
+        }, closeMs + 30);
+    }
+
     function closeSubjectSideModal() {
         if (!subjectSideModal || subjectSideModal.classList.contains("hidden")) return;
         const closeMs = 520;
@@ -1170,9 +1227,79 @@ document.addEventListener("DOMContentLoaded", () => {
         openSubjectSideModal();
     }
 
+    function toggleSubjectGradesModal() {
+        if (isSubjectGradesModalOpen()) {
+            closeSubjectGradesModal();
+            return;
+        }
+        openSubjectGradesModal();
+    }
+
+    function openSubjectGradesModal() {
+        if (!subjectGradesModal || !subjectDialogLayout || !activeLessonCell) return;
+        if (!subjectGradesModal.classList.contains("hidden")) return;
+
+        closeSubjectHomeworkDetailModal(true);
+        resetSubjectUpcomingLayer();
+        resetSubjectSideModal();
+
+        const overlap = 26;
+        const sideMinWidth = 240;
+        const sideMaxWidth = 360;
+        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width - overlap;
+        const sideRoom = window.innerWidth - sideLeft - 24;
+        if (sideRoom < sideMinWidth) return;
+
+        const sideWidth = Math.min(sideMaxWidth, sideRoom);
+        const triggerRect = getSubjectGradesTriggerRect();
+        const lessonContext = getLessonContext(activeLessonCell);
+        const openMs = 680;
+
+        if (subjectGradesContext) {
+            subjectGradesContext.textContent = lessonContext.context;
+        }
+
+        subjectGradesModal.classList.remove("hidden");
+        subjectGradesModal.setAttribute("aria-hidden", "false");
+        Object.assign(subjectGradesModal.style, {
+            position: "fixed",
+            top: `${subjectDialogLayout.top}px`,
+            left: `${sideLeft}px`,
+            width: `${sideWidth}px`,
+            maxHeight: subjectDialogLayout.maxHeight,
+            opacity: "0",
+            transform: "translateX(0) scale(1)",
+            transformOrigin: "top left",
+            transition: "none",
+        });
+
+        const panelRect = subjectGradesModal.getBoundingClientRect();
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.08);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
+            subjectGradesModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectGradesModal.style.transform = "translateX(24px) scale(0.92)";
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                subjectGradesModal.style.transition = [
+                    `opacity ${Math.round(openMs * 0.82)}ms cubic-bezier(0.2,0.8,0.2,1)`,
+                    `transform ${openMs}ms cubic-bezier(0.18,0.9,0.2,1)`,
+                ].join(",");
+                subjectGradesModal.style.opacity = "1";
+                subjectGradesModal.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
+    }
+
     function openSubjectSideModal() {
         if (!subjectSideModal || !subjectDialogLayout || !activeLessonCell) return;
         if (!subjectSideModal.classList.contains("hidden")) return;
+        resetSubjectGradesModal();
 
         const overlap = 26;
         const sideMinWidth = 240;
@@ -1231,6 +1358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function openSubjectUpcomingLayer() {
         if (!subjectUpcomingLayer || !subjectDialogLayout || !subjectUpcomingWidget) return;
         if (!subjectUpcomingLayer.classList.contains("hidden")) return;
+        resetSubjectGradesModal();
         setSubjectUpcomingTab("current");
         renderSubjectUpcomingLayer();
 
@@ -1616,6 +1744,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
         subjectDialogLayout = { top: dTop, left: dLeft, width: dWidth, maxHeight: dMaxH };
+        resetSubjectGradesModal();
         resetSubjectSideModal();
         resetSubjectUpcomingLayer();
 
@@ -1678,6 +1807,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dialog.style.transform  = "translateX(18px)";
         }
         closeSubjectUpcomingLayer();
+        closeSubjectGradesModal();
         closeSubjectSideModal();
         // Fade out backdrop over same duration as card return
         if (backdrop) {
@@ -1709,6 +1839,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.classList.add("hidden");
                 subjectModal.setAttribute("aria-hidden", "true");
                 if (dialog)   dialog.removeAttribute("style");
+                resetSubjectGradesModal();
                 resetSubjectSideModal();
                 resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
@@ -1723,6 +1854,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.setAttribute("aria-hidden", "true");
                 cardAnimBusy = false;
                 if (dialog)   dialog.removeAttribute("style");
+                resetSubjectGradesModal();
                 resetSubjectSideModal();
                 resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
@@ -1998,6 +2130,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 closeSubjectUpcomingLayer();
                 return;
             }
+            if (isSubjectGradesModalOpen()) {
+                closeSubjectGradesModal();
+                return;
+            }
             if (isSubjectSideModalOpen()) {
                 closeSubjectSideModal();
                 return;
@@ -2005,9 +2141,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         closeSubjectModal();
     }));
+    closeSubjectGradesTriggers.forEach((t) => t.addEventListener("click", closeSubjectGradesModal));
     closeSubjectSideTriggers.forEach((t) => t.addEventListener("click", closeSubjectSideModal));
     closeSubjectUpcomingTriggers.forEach((t) => t.addEventListener("click", closeSubjectUpcomingLayer));
     closeSubjectHomeworkDetailTriggers.forEach((t) => t.addEventListener("click", () => closeSubjectHomeworkDetailModal()));
+
+    if (subjectGradesTrigger) {
+        subjectGradesTrigger.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSubjectGradesModal();
+        });
+    }
 
     if (subjectSideTrigger) {
         subjectSideTrigger.addEventListener("click", (e) => {
@@ -2066,6 +2211,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (homeworkModal && !homeworkModal.classList.contains("hidden")) closeHomeworkModal();
             else if (isSubjectHomeworkDetailModalOpen()) closeSubjectHomeworkDetailModal();
             else if (isSubjectUpcomingLayerOpen()) closeSubjectUpcomingLayer();
+            else if (isSubjectGradesModalOpen()) closeSubjectGradesModal();
             else if (subjectSideModal && !subjectSideModal.classList.contains("hidden")) closeSubjectSideModal();
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
         }
