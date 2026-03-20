@@ -20,8 +20,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const testHomeworkStoredPriority = "_6B21A8";
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
+    const supportedGradeSystems = [
+        "Numeric_Grading_1_to_5",
+        "Numeric_Grading_1_to_12",
+        "Numeric_Grading_1_to_10",
+        "Numeric_Grading_1_to_20",
+        "Numeric_Grading_5_to_1",
+        "Numeric_Grading_6_to_1",
+        "Percentage_Grading",
+        "Letter_Grading",
+        "GPA_4_Point_Scale",
+        "Pass_Fail"
+    ];
     const defaultGradeSystem = "Numeric_Grading_1_to_5";
     const defaultGradeReason = "Exam";
+    const gradePreferencesStorageKey = "scholarHub.gradePreferences";
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -46,6 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalTeacher  = document.getElementById("subject-modal-teacher");
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
+    const subjectModalAverageHint = subjectModal?.querySelector(".subject-detail-widget--hero .subject-detail-widget__hint");
+    const subjectModalGrades = document.getElementById("subject-modal-grades");
     const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
     const subjectUpcomingDate = document.getElementById("subject-modal-upcoming-date");
     const subjectUpcomingTitle = document.getElementById("subject-modal-upcoming-title");
@@ -56,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectGradeSystemInput = document.getElementById("subject-grade-system");
     const subjectGradeDescriptionInput = document.getElementById("subject-grade-description");
     const subjectGradeReasonInput = document.getElementById("subject-grade-reason");
+    const subjectGradeDefaultSystemInput = document.getElementById("subject-grade-default-system");
     const subjectGradeSaveButton = document.getElementById("subject-grade-save");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
@@ -91,6 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeworkFormRoots = Array.from(document.querySelectorAll("[data-homework-form-root]"));
 
     const homeworkCache = new Map();
+    let gradeRecords = [];
+    let gradesLoadPromise = null;
+    let gradesLoaded = false;
     let activeLessonCell = null;
     let subjectUpcomingTab = "current";
     let activeHomeworkDetailEntry = null;
@@ -342,6 +361,154 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
+    function normalizeGradeSystem(system) {
+        return supportedGradeSystems.includes(system) ? system : defaultGradeSystem;
+    }
+
+    function getStoredGradePreferences() {
+        try {
+            const raw = window.localStorage.getItem(gradePreferencesStorageKey);
+            if (!raw) return { preferredSystem: defaultGradeSystem };
+            const parsed = JSON.parse(raw);
+            return {
+                preferredSystem: normalizeGradeSystem(parsed?.preferredSystem)
+            };
+        } catch (error) {
+            return { preferredSystem: defaultGradeSystem };
+        }
+    }
+
+    function getPreferredGradeSystem() {
+        return getStoredGradePreferences().preferredSystem;
+    }
+
+    function setPreferredGradeSystem(system) {
+        const preferredSystem = normalizeGradeSystem(system);
+        try {
+            window.localStorage.setItem(gradePreferencesStorageKey, JSON.stringify({ preferredSystem }));
+        } catch (error) {
+            console.error(error);
+        }
+        return preferredSystem;
+    }
+
+    function getGradeSystemLabel(system) {
+        switch (system) {
+            case "Percentage_Grading":
+                return "Percentage";
+            case "Letter_Grading":
+                return "Letter";
+            case "GPA_4_Point_Scale":
+                return "GPA 4.0";
+            case "Numeric_Grading_1_to_12":
+                return "1 to 12";
+            case "Numeric_Grading_1_to_10":
+                return "1 to 10";
+            case "Numeric_Grading_1_to_20":
+                return "1 to 20";
+            case "Numeric_Grading_5_to_1":
+                return "5 to 1";
+            case "Numeric_Grading_6_to_1":
+                return "6 to 1";
+            case "Pass_Fail":
+                return "Pass / Fail";
+            case "Numeric_Grading_1_to_5":
+            default:
+                return "1 to 5";
+        }
+    }
+
+    function formatDecimal(value, digits = 1) {
+        if (!Number.isFinite(value)) return "";
+        const rounded = Number(value.toFixed(digits));
+        if (Math.abs(rounded - Math.round(rounded)) < 0.001) {
+            return String(Math.round(rounded));
+        }
+        return rounded.toFixed(digits).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    function getNormalizedGradeValue(grade) {
+        const numericValue = Number(grade?.converted);
+        return Number.isFinite(numericValue) ? numericValue : null;
+    }
+
+    function convertNormalizedToGradeValue(normalizedValue, system, options = {}) {
+        if (!Number.isFinite(normalizedValue)) return null;
+        const forAverage = options.forAverage === true;
+        const numericDigits = forAverage ? 1 : 0;
+
+        switch (normalizeGradeSystem(system)) {
+            case "Percentage_Grading":
+                return formatDecimal(normalizedValue * 100, forAverage ? 1 : 0);
+            case "GPA_4_Point_Scale":
+                return formatDecimal(normalizedValue * 4, Math.max(numericDigits, 1));
+            case "Numeric_Grading_1_to_12":
+                return formatDecimal(normalizedValue * 12, numericDigits);
+            case "Numeric_Grading_1_to_10":
+                return formatDecimal(normalizedValue * 10, numericDigits);
+            case "Numeric_Grading_1_to_20":
+                return formatDecimal(normalizedValue * 20, numericDigits);
+            case "Numeric_Grading_5_to_1":
+                return formatDecimal(5 - (normalizedValue * 4), numericDigits);
+            case "Numeric_Grading_6_to_1":
+                return formatDecimal(6 - (normalizedValue * 5), numericDigits);
+            case "Pass_Fail":
+                return normalizedValue >= 0.5 ? "Pass" : "Fail";
+            case "Letter_Grading": {
+                const letterScale = [
+                    ["A+", 1.0],
+                    ["A", 0.95],
+                    ["A-", 0.9],
+                    ["B+", 0.87],
+                    ["B", 0.85],
+                    ["B-", 0.8],
+                    ["C+", 0.77],
+                    ["C", 0.75],
+                    ["C-", 0.7],
+                    ["D+", 0.67],
+                    ["D", 0.65],
+                    ["D-", 0.6],
+                    ["F", 0.0]
+                ];
+                return letterScale.reduce((closest, current) => {
+                    if (!closest) return current;
+                    return Math.abs(current[1] - normalizedValue) < Math.abs(closest[1] - normalizedValue)
+                        ? current
+                        : closest;
+                }, null)?.[0] || "F";
+            }
+            case "Numeric_Grading_1_to_5":
+            default:
+                return formatDecimal(normalizedValue * 5, numericDigits);
+        }
+    }
+
+    function getSubjectGrades(subjectId) {
+        if (!subjectId) return [];
+        return gradeRecords.filter((grade) => Number(grade?.subjectId) === Number(subjectId));
+    }
+
+    async function loadGrades(force = false) {
+        if (!force && gradesLoaded) {
+            return gradeRecords;
+        }
+        if (!force && gradesLoadPromise) {
+            return gradesLoadPromise;
+        }
+
+        gradesLoadPromise = requestJson("/scholar-hub/grades", { method: "GET" })
+            .then((data) => {
+                gradeRecords = Array.isArray(data) ? data : [];
+                gradesLoaded = true;
+                return gradeRecords;
+            })
+            .finally(() => {
+                gradesLoadPromise = null;
+            });
+
+        return gradesLoadPromise;
+    }
+
     function makeCacheKey(weekStart, dueDaySubjectId) {
         if (!weekStart || !dueDaySubjectId) return null;
         return `${weekStart}|${dueDaySubjectId}`;
@@ -384,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function syncGradeValueInput() {
         if (!subjectGradeValueInput || !subjectGradeSystemInput) return;
-        const system = subjectGradeSystemInput.value || defaultGradeSystem;
+        const system = subjectGradeSystemInput.value || getPreferredGradeSystem();
         subjectGradeValueInput.placeholder = getGradeValuePlaceholder(system);
         subjectGradeValueInput.inputMode =
             system === "Letter_Grading" || system === "Pass_Fail"
@@ -675,9 +842,10 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectGradesModal.removeAttribute("style");
         if (subjectGradesContext) subjectGradesContext.textContent = "Current lesson";
         if (subjectGradeValueInput) subjectGradeValueInput.value = "";
-        if (subjectGradeSystemInput) subjectGradeSystemInput.value = defaultGradeSystem;
+        if (subjectGradeSystemInput) subjectGradeSystemInput.value = getPreferredGradeSystem();
         if (subjectGradeDescriptionInput) subjectGradeDescriptionInput.value = "";
         if (subjectGradeReasonInput) subjectGradeReasonInput.value = defaultGradeReason;
+        if (subjectGradeDefaultSystemInput) subjectGradeDefaultSystemInput.value = getPreferredGradeSystem();
         if (subjectGradeSaveButton) {
             subjectGradeSaveButton.disabled = false;
             subjectGradeSaveButton.textContent = "Save grade";
@@ -1393,6 +1561,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 body: JSON.stringify(payload)
             });
+            await loadGrades(true);
+            renderSubjectGradesWidget();
             showToast("success", "Grade saved.");
             closeSubjectGradesModal();
         } catch (error) {
@@ -1692,6 +1862,92 @@ document.addEventListener("DOMContentLoaded", () => {
        SUBJECT MODAL — populate fields
     ───────────────────────────────────────────────── */
 
+    function renderSubjectGradesWidget() {
+        if (!subjectModalGrades || !subjectModalAverage) return;
+
+        const preferredSystem = getPreferredGradeSystem();
+        if (subjectGradeDefaultSystemInput) {
+            subjectGradeDefaultSystemInput.value = preferredSystem;
+        }
+
+        const subjectId = activeLessonCell?.dataset?.subjectId;
+        const grades = getSubjectGrades(subjectId)
+            .slice()
+            .sort((left, right) => Number(right?.id || 0) - Number(left?.id || 0));
+
+        subjectModalGrades.innerHTML = "";
+
+        if (!grades.length) {
+            subjectModalAverage.textContent = "N";
+            if (subjectModalAverageHint) {
+                subjectModalAverageHint.textContent = `Display system: ${getGradeSystemLabel(preferredSystem)}`;
+            }
+
+            const empty = document.createElement("span");
+            empty.className = "subject-detail-widget__grade-chip subject-detail-widget__grade-chip--empty";
+            empty.textContent = "No grades yet";
+            subjectModalGrades.appendChild(empty);
+            return;
+        }
+
+        const normalizedValues = grades
+            .map(getNormalizedGradeValue)
+            .filter((value) => Number.isFinite(value));
+
+        if (normalizedValues.length > 0) {
+            const averageNormalized = normalizedValues.reduce((sum, value) => sum + value, 0) / normalizedValues.length;
+            subjectModalAverage.textContent = convertNormalizedToGradeValue(averageNormalized, preferredSystem, { forAverage: true }) || "N";
+            if (subjectModalAverageHint) {
+                subjectModalAverageHint.textContent = `Average converted to ${getGradeSystemLabel(preferredSystem)}`;
+            }
+        } else {
+            subjectModalAverage.textContent = "N";
+            if (subjectModalAverageHint) {
+                subjectModalAverageHint.textContent = `Display system: ${getGradeSystemLabel(preferredSystem)}`;
+            }
+        }
+
+        grades.forEach((grade) => {
+            const chip = document.createElement("span");
+            chip.className = "subject-detail-widget__grade-chip";
+            chip.textContent =
+                convertNormalizedToGradeValue(getNormalizedGradeValue(grade), preferredSystem) ||
+                String(grade?.value || "").trim() ||
+                "?";
+            chip.title = grade?.description
+                ? `${chip.textContent} • ${grade.description}`
+                : chip.textContent;
+            subjectModalGrades.appendChild(chip);
+        });
+    }
+
+    async function refreshSubjectGrades(force = false) {
+        if (!subjectModalGrades) return;
+
+        const subjectId = activeLessonCell?.dataset?.subjectId;
+        if (!subjectId) {
+            subjectModalGrades.innerHTML = "";
+            return;
+        }
+
+        subjectModalGrades.innerHTML = '<span class="subject-detail-widget__grade-chip subject-detail-widget__grade-chip--empty">Loading…</span>';
+        if (subjectModalAverageHint) {
+            subjectModalAverageHint.textContent = `Display system: ${getGradeSystemLabel(getPreferredGradeSystem())}`;
+        }
+
+        try {
+            await loadGrades(force);
+            renderSubjectGradesWidget();
+        } catch (error) {
+            console.error(error);
+            subjectModalGrades.innerHTML = '<span class="subject-detail-widget__grade-chip subject-detail-widget__grade-chip--empty">Could not load grades</span>';
+            subjectModalAverage.textContent = "N";
+            if (subjectModalAverageHint) {
+                subjectModalAverageHint.textContent = "Grades are unavailable right now.";
+            }
+        }
+    }
+
     function populateSubjectModalFields(cell) {
         const subjectName = cell.dataset.subjectName || "Subject";
         const shortName   = cell.dataset.subjectShortName || subjectName;
@@ -1714,6 +1970,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const lbl = lessonOrder ? `Lesson #${lessonOrder}` : "Lesson";
             subjectModalLesson.textContent = dateLabel ? `${lbl} • ${dateLabel}` : lbl;
         }
+
+        void refreshSubjectGrades();
 
         const accent = getComputedStyle(cell).getPropertyValue("--preview-accent").trim();
         subjectModal.style.setProperty("--subject-color", accent || "#7aa2ff");
@@ -2313,6 +2571,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectGradeSystemInput) {
         subjectGradeSystemInput.addEventListener("change", syncGradeValueInput);
     }
+    if (subjectGradeDefaultSystemInput) {
+        subjectGradeDefaultSystemInput.addEventListener("change", () => {
+            const preferredSystem = setPreferredGradeSystem(subjectGradeDefaultSystemInput.value);
+            subjectGradeDefaultSystemInput.value = preferredSystem;
+            if (subjectGradeSystemInput && !subjectGradeValueInput?.value) {
+                subjectGradeSystemInput.value = preferredSystem;
+                syncGradeValueInput();
+            }
+            if (gradesLoaded) {
+                renderSubjectGradesWidget();
+            } else {
+                void refreshSubjectGrades();
+            }
+        });
+    }
     if (subjectHomeworkDetailSaveButton) {
         subjectHomeworkDetailSaveButton.addEventListener("click", () => { void saveSubjectHomeworkDetail(); });
     }
@@ -2332,4 +2605,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     syncGradeValueInput();
+    if (subjectGradeDefaultSystemInput) {
+        subjectGradeDefaultSystemInput.value = getPreferredGradeSystem();
+    }
 });

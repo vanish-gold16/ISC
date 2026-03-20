@@ -266,6 +266,25 @@
                     </select>
                 </label>
 
+                <div class="grade-form__settings">
+                    <label class="subject-modal__field" for="subject-grade-default-system">
+                        <span>Default grading system</span>
+                        <select class="input homework-modal__select" id="subject-grade-default-system">
+                            <option value="Numeric_Grading_1_to_5">1 to 5</option>
+                            <option value="Numeric_Grading_1_to_12">1 to 12</option>
+                            <option value="Numeric_Grading_1_to_10">1 to 10</option>
+                            <option value="Numeric_Grading_1_to_20">1 to 20</option>
+                            <option value="Numeric_Grading_5_to_1">5 to 1</option>
+                            <option value="Numeric_Grading_6_to_1">6 to 1</option>
+                            <option value="Percentage_Grading">Percentage</option>
+                            <option value="Letter_Grading">Letter</option>
+                            <option value="GPA_4_Point_Scale">GPA 4.0</option>
+                            <option value="Pass_Fail">Pass / Fail</option>
+                        </select>
+                    </label>
+                    <p class="grade-form__settings-note">Used for the grades widget and preselected when adding new grades on this device.</p>
+                </div>
+
                 <div class="subject-create-panel__actions">
                     <button class="btn btn--ghost" type="button" data-close-subject-grades-modal>Cancel</button>
                     <button class="btn btn--primary" type="button" id="subject-grade-save">Save grade</button>

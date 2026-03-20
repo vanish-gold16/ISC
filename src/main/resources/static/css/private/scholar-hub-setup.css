@@ -1417,6 +1417,18 @@ body {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+.grade-form__settings {
+    display: grid;
+    gap: 8px;
+}
+
+.grade-form__settings-note {
+    margin: 0;
+    color: rgba(68, 89, 127, 0.82);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 @media (max-width: 680px) {
     .grade-form__hero-input {
         font-size: 42px;
@@ -2723,6 +2735,43 @@ body {
     border-radius: 18px;
     border: 1px dashed rgba(97, 122, 168, 0.28);
     background: rgba(255, 255, 255, 0.16);
+}
+
+.subject-detail-widget__grades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+    min-height: 42px;
+    padding-right: 34px;
+}
+
+.subject-detail-widget__grade-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(194, 207, 232, 0.86);
+    color: #173260;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+.subject-detail-widget__grade-chip--empty {
+    justify-content: flex-start;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: rgba(68, 89, 127, 0.76);
+    font-weight: 700;
 }
 
 @media (max-width: 760px) {
