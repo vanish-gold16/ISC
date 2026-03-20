@@ -8,43 +8,248 @@
             .profile-menu > summary {
                 list-style: none;
                 cursor: pointer;
+                transition: transform 180ms ease;
             }
 
             .profile-menu > summary::-webkit-details-marker {
                 display: none;
             }
 
+            .profile-menu[open] > summary {
+                transform: translateY(-1px);
+            }
+
             .profile-menu__panel {
                 position: absolute;
                 right: 0;
-                top: calc(100% + 8px);
-                min-width: 180px;
-                background: #fff;
-                border: 1px solid #d9e2f2;
-                border-radius: 12px;
-                box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
-                padding: 6px;
-                z-index: 30;
+                top: calc(100% + 10px);
+                width: min(300px, calc(100vw - 24px));
+                padding: 12px;
+                border-radius: 26px;
+                border: 1px solid rgba(255, 255, 255, 0.68);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(241, 247, 255, 0.68) 100%);
+                box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+                backdrop-filter: blur(22px) saturate(145%);
+                -webkit-backdrop-filter: blur(22px) saturate(145%);
+                z-index: 40;
+                display: grid;
+                gap: 10px;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transform: translateY(-8px) scale(0.96);
+                transform-origin: top right;
+                transition:
+                        opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 420ms cubic-bezier(0.18, 0.9, 0.2, 1),
+                        visibility 0ms linear 240ms;
+            }
+
+            .profile-menu[open] .profile-menu__panel {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                transform: translateY(0) scale(1);
+                transition:
+                        opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 420ms cubic-bezier(0.18, 0.9, 0.2, 1),
+                        visibility 0ms linear 0ms;
+            }
+
+            .profile-menu__head {
+                display: grid;
+                gap: 4px;
+                padding: 4px 6px 8px;
+            }
+
+            .profile-menu__title {
+                margin: 0;
+                color: #10213f;
+                font-size: 15px;
+                font-weight: 800;
+            }
+
+            .profile-menu__subtitle {
+                margin: 0;
+                color: rgba(68, 89, 127, 0.82);
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .profile-menu__list {
+                display: grid;
+                gap: 8px;
+            }
+
+            .profile-menu__item {
+                display: grid;
+                grid-template-columns: 36px minmax(0, 1fr);
+                gap: 12px;
+                align-items: center;
+                width: 100%;
+                text-align: left;
+                border: 0;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(246, 249, 255, 0.48) 100%);
+                color: #10213f;
+                padding: 12px 14px;
+                border-radius: 20px;
+                text-decoration: none;
+                cursor: pointer;
+                font: inherit;
+                border: 1px solid rgba(255, 255, 255, 0.56);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+            }
+
+            .profile-menu__item:hover {
+                transform: translateY(-1px);
+                border-color: rgba(255, 255, 255, 0.74);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(241, 247, 255, 0.62) 100%);
+            }
+
+            .profile-menu__item:focus-visible {
+                outline: 2px solid rgba(84, 113, 179, 0.45);
+                outline-offset: 2px;
+            }
+
+            .profile-menu__item-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 14px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.76);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64);
+                color: #173260;
+            }
+
+            .profile-menu__item-icon svg {
+                width: 16px;
+                height: 16px;
+                display: block;
+            }
+
+            .profile-menu__item-copy {
+                min-width: 0;
                 display: grid;
                 gap: 2px;
             }
 
-            .profile-menu__item {
-                display: block;
-                width: 100%;
-                text-align: left;
-                border: 0;
-                background: transparent;
-                color: #0f172a;
-                padding: 10px 12px;
-                border-radius: 8px;
-                text-decoration: none;
-                cursor: pointer;
-                font: inherit;
+            .profile-menu__item-title {
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.2;
             }
 
-            .profile-menu__item:hover {
-                background: #f1f6ff;
+            .profile-menu__item-text {
+                color: rgba(68, 89, 127, 0.82);
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .header-settings-modal {
+                position: fixed;
+                inset: 0;
+                z-index: 70;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+            }
+
+            .header-settings-modal[hidden] {
+                display: none !important;
+            }
+
+            .header-settings-modal__backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(232, 239, 251, 0.26);
+                backdrop-filter: blur(18px) saturate(135%);
+                -webkit-backdrop-filter: blur(18px) saturate(135%);
+            }
+
+            .header-settings-modal__dialog {
+                position: relative;
+                z-index: 1;
+                width: min(560px, 100%);
+                padding: 26px 28px;
+                border-radius: 30px;
+                border: 1px solid rgba(255, 255, 255, 0.44);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.44) 0%, rgba(244, 248, 255, 0.26) 100%);
+                box-shadow: 0 28px 80px rgba(15, 23, 42, 0.16);
+                backdrop-filter: blur(30px) saturate(150%);
+                -webkit-backdrop-filter: blur(30px) saturate(150%);
+                display: grid;
+                gap: 18px;
+                opacity: 0;
+                transform: translateY(18px) scale(0.96);
+                transform-origin: top center;
+                transition:
+                        opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 420ms cubic-bezier(0.18, 0.9, 0.2, 1);
+            }
+
+            .header-settings-modal.is-visible .header-settings-modal__dialog {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+            .header-settings-modal__head {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .header-settings-modal__kicker {
+                margin: 0 0 6px;
+                font-size: 12px;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #6281b9;
+                font-weight: 800;
+            }
+
+            .header-settings-modal__title {
+                margin: 0;
+                color: #10213f;
+                font-size: 26px;
+                line-height: 1.05;
+                font-weight: 800;
+            }
+
+            .header-settings-modal__close {
+                width: 32px;
+                height: 32px;
+                border: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.46);
+                color: #23407a;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+            }
+
+            .header-settings-modal__body {
+                min-height: 220px;
+                padding: 18px;
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.42);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(246, 249, 255, 0.18) 100%);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+                display: grid;
+                align-content: center;
+                justify-items: start;
+                gap: 8px;
+            }
+
+            .header-settings-modal__body p {
+                margin: 0;
+                color: rgba(68, 89, 127, 0.86);
+                font-size: 14px;
+                line-height: 1.5;
             }
 
             .notify-btn {
@@ -293,16 +498,137 @@
                     </summary>
 
                     <nav class="profile-menu__panel" aria-label="Profile menu">
-                        <a class="profile-menu__item" th:href="@{/profile/edit}">Edit profile</a>
-                        <a class="profile-menu__item" th:href="@{/settings}">Settings</a>
-                        <form th:action="@{/logout}" method="post">
+                        <div class="profile-menu__head">
+                            <p class="profile-menu__title">Profile menu</p>
+                            <p class="profile-menu__subtitle">Quick account actions in the same glass style as Scholar Hub modals.</p>
+                        </div>
+
+                        <div class="profile-menu__list">
+                            <a class="profile-menu__item" th:href="@{/profile/edit}">
+                                <span class="profile-menu__item-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M4 17.25V20h2.75L17.81 8.94l-2.75-2.75L4 17.25Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                                        <path d="m14.96 6.19 2.75 2.75 1.46-1.46a1.94 1.94 0 0 0 0-2.75l-.54-.54a1.94 1.94 0 0 0-2.75 0l-.92.92Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                <span class="profile-menu__item-copy">
+                                    <span class="profile-menu__item-title">Edit profile</span>
+                                    <span class="profile-menu__item-text">Avatar, bio, profile details.</span>
+                                </span>
+                            </a>
+
+                            <button class="profile-menu__item" type="button" data-open-header-settings-modal>
+                                <span class="profile-menu__item-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M12 8.75a3.25 3.25 0 1 0 0 6.5a3.25 3.25 0 0 0 0-6.5Z" stroke="currentColor" stroke-width="1.8"/>
+                                        <path d="M19.07 12.88c.03-.29.05-.58.05-.88s-.02-.59-.05-.88l1.81-1.41a.8.8 0 0 0 .19-1.03l-1.71-2.96a.8.8 0 0 0-.98-.35l-2.13.85a7.53 7.53 0 0 0-1.53-.88l-.32-2.25a.8.8 0 0 0-.79-.67h-3.42a.8.8 0 0 0-.79.67l-.32 2.25c-.54.21-1.05.5-1.53.88l-2.13-.85a.8.8 0 0 0-.98.35L2.74 8.68a.8.8 0 0 0 .19 1.03l1.81 1.41c-.03.29-.05.58-.05.88s.02.59.05.88l-1.81 1.41a.8.8 0 0 0-.19 1.03l1.71 2.96c.2.35.61.49.98.35l2.13-.85c.48.38.99.67 1.53.88l.32 2.25c.06.39.39.67.79.67h3.42c.4 0 .73-.28.79-.67l.32-2.25c.54-.21 1.05-.5 1.53-.88l2.13.85c.37.14.78 0 .98-.35l1.71-2.96a.8.8 0 0 0-.19-1.03l-1.81-1.41Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                <span class="profile-menu__item-copy">
+                                    <span class="profile-menu__item-title">Settings</span>
+                                    <span class="profile-menu__item-text">Open account and app settings.</span>
+                                </span>
+                            </button>
+
+                            <form th:action="@{/logout}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button class="profile-menu__item" type="submit">Logout</button>
-                        </form>
+                                <button class="profile-menu__item" type="submit">
+                                    <span class="profile-menu__item-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M14 7V5.5A1.5 1.5 0 0 0 12.5 4h-6A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20h6a1.5 1.5 0 0 0 1.5-1.5V17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                                            <path d="M10 12h9m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                    <span class="profile-menu__item-copy">
+                                        <span class="profile-menu__item-title">Logout</span>
+                                        <span class="profile-menu__item-text">End current session.</span>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
                     </nav>
                 </details>
             </div>
 
         </div>
     </header>
+
+    <div class="header-settings-modal" id="header-settings-modal" hidden aria-hidden="true">
+        <div class="header-settings-modal__backdrop" data-close-header-settings-modal></div>
+        <div class="header-settings-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="header-settings-modal-title">
+            <div class="header-settings-modal__head">
+                <div>
+                    <p class="header-settings-modal__kicker">Settings</p>
+                    <h3 class="header-settings-modal__title" id="header-settings-modal-title">Settings</h3>
+                </div>
+                <button class="header-settings-modal__close" type="button" aria-label="Close" data-close-header-settings-modal>x</button>
+            </div>
+            <div class="header-settings-modal__body">
+                <p>Empty settings modal placeholder.</p>
+                <p>Next step: add sections like Scholar Hub, Appearance, Notifications, Account.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const profileMenu = document.querySelector(".profile-menu");
+            const openSettingsButton = document.querySelector("[data-open-header-settings-modal]");
+            const settingsModal = document.getElementById("header-settings-modal");
+            if (!profileMenu || !openSettingsButton || !settingsModal || settingsModal.dataset.bound === "true") return;
+            settingsModal.dataset.bound = "true";
+
+            const closeTriggers = settingsModal.querySelectorAll("[data-close-header-settings-modal]");
+            const dialog = settingsModal.querySelector(".header-settings-modal__dialog");
+
+            const openModal = () => {
+                profileMenu.removeAttribute("open");
+                settingsModal.hidden = false;
+                settingsModal.setAttribute("aria-hidden", "false");
+                requestAnimationFrame(() => {
+                    settingsModal.classList.add("is-visible");
+                });
+            };
+
+            const closeModal = () => {
+                settingsModal.classList.remove("is-visible");
+                window.setTimeout(() => {
+                    settingsModal.hidden = true;
+                    settingsModal.setAttribute("aria-hidden", "true");
+                }, 220);
+            };
+
+            openSettingsButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openModal();
+            });
+
+            closeTriggers.forEach((trigger) => {
+                trigger.addEventListener("click", () => {
+                    closeModal();
+                });
+            });
+
+            document.addEventListener("click", (event) => {
+                if (!profileMenu.hasAttribute("open")) return;
+                if (profileMenu.contains(event.target)) return;
+                profileMenu.removeAttribute("open");
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape") {
+                    if (!settingsModal.hidden) {
+                        closeModal();
+                        return;
+                    }
+                    profileMenu.removeAttribute("open");
+                }
+            });
+
+            dialog?.addEventListener("click", (event) => {
+                event.stopPropagation();
+            });
+        })();
+    </script>
 </div>
