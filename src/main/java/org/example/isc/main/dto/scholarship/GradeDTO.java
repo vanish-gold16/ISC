@@ -20,6 +20,14 @@ public class GradeDTO {
 
     private BigDecimal converted;
 
+    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, String value, BigDecimal converted) {
+        this.subjectId = subjectId;
+        this.assignedDaySubjectId = assignedDaySubjectId;
+        this.system = system;
+        this.value = value;
+        this.converted = converted;
+    }
+
     public Long getSubjectId() {
         return subjectId;
     }

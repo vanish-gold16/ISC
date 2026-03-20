@@ -44,4 +44,6 @@ public interface SubjectsRepository extends JpaRepository<Subject, Long> {
     Optional<Subject> findByUserAndFullNameIgnoreCase(User user, String fullName);
 
     SubjectOptionDTO findByUserAndId(User user, Long id);
+
+    List<Subject> findAllByUserUsername(String userUsername);
 }

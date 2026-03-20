@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -30,20 +31,32 @@ public class GradeApiController {
     private final DaySubjectRepository daySubjectRepository;
     private final GradeService gradeService;
 
-    public GradeApiController(UserRepository userRepository, GradeRepository gradeRepository, SubjectsRepository subjectsRepository, DaySubjectRepository daySubjectRepository, GradeService gradeService) {
+    public GradeApiController(UserRepository userRepository, GradeRepository gradeRepository, SubjectsRepository subjectsRepository, DaySubjectRepository daySubjectRepository, GradeService gradeService, GradeService gradeService1) {
         this.userRepository = userRepository;
         this.gradeRepository = gradeRepository;
         this.subjectsRepository = subjectsRepository;
         this.daySubjectRepository = daySubjectRepository;
+        this.gradeService = gradeService1;
     }
 
     @GetMapping
     public ResponseEntity<List<GradeDTO>> getAllGrades(
-
+            Authentication authentication
     ){
-        requireCurrentUser(authentication);
+        User me = requireCurrentUser(authentication);
 
+        List<Grade> grades = new ArrayList<>();
+        List<Subject> subjects = subjectsRepository.findAllByUserUsername(me.getUsername());
+        if(subjects.isEmpty()) return ResponseEntity.noContent().build();
 
+        for (Subject subject : subjects) {
+            List<Grade> gradesForSubject = gradeRepository.findAllBySubjectIdAndSubjectUserUsername(
+                    subject.getId(), me.getUsername()
+            );
+            grades.addAll(gradesForSubject);
+        }
+
+        return ResponseEntity.ok(grades.stream().map(this::toDTO).toList());
     }
 
     @GetMapping("/{id}")
@@ -55,6 +68,7 @@ public class GradeApiController {
         Grade grade = gradeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Grade not found: " + id));
 
+        return ResponseEntity.ok(toDTO(grade));
     }
 
     @PostMapping
@@ -71,9 +85,12 @@ public class GradeApiController {
     }
 
     public GradeDTO toDTO(Grade grade) {
-        BigDecimal converted = convertGrade.toNormalizedScore(grade.getGradingSystem(), grade.getValue());
         return new GradeDTO(
-
+                grade.getSubject().getId(),
+                grade.getAssignedDaySubject().getId(),
+                grade.getGradingSystem(),
+                grade.getValue(),
+                grade.getConverted()
         );
     }
 
