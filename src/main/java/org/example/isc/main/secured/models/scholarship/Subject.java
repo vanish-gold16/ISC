@@ -33,6 +33,9 @@ public class Subject {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
+    private List<Grade> grades;
+
     @ManyToMany
     @JoinTable(
             name = "subject_teachers",

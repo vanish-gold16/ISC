@@ -2,6 +2,8 @@ package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class DaySubject {
 
@@ -16,6 +18,9 @@ public class DaySubject {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject")
     private Subject subject;
+
+    @OneToMany(mappedBy = "day_subject", fetch = FetchType.LAZY)
+    private List<Grade> grades;
 
     @Column(name = "lesson_order")
     private Long lessonOrder;
@@ -70,5 +75,13 @@ public class DaySubject {
 
     public void setRoom(String room) {
         this.room = room;
+    }
+
+    public List<Grade> getGrades() {
+        return grades;
+    }
+
+    public void setGrades(List<Grade> grades) {
+        this.grades = grades;
     }
 }
