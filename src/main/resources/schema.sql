@@ -238,3 +238,12 @@ BEGIN
 END;
 $$;
 @@
+
+  CREATE TABLE IF NOT EXISTS user_settings (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL UNIQUE,
+      settings_json TEXT NOT NULL,
+      CONSTRAINT fk_user_settings_user
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+  @@

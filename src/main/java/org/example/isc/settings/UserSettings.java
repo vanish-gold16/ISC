@@ -1,6 +1,5 @@
-package org.example.isc.main.secured.models.users;
+package org.example.isc.settings;
 
-import io.swagger.v3.core.util.Json;
 import jakarta.persistence.*;
 
 @Entity
@@ -21,16 +20,6 @@ public class UserSettings {
     //
     //  Теперь конкретно, что тебе делать по бэкенду для настроек.
     //
-    //  1. Сделать отдельную сущность настроек пользователя.
-    //     Не пихай это в User колонками.
-    //     Сделай таблицу user_settings.
-    //  2. Поля таблицы:
-    //
-    //  - id
-    //  - user_id unique, fk на users.id
-    //  - settings_json json/jsonb not null
-    //  - created_at
-    //  - updated_at
     //
     //  3. В settings_json храни сразу весь объект настроек.
     //     Структура:
@@ -174,4 +163,35 @@ public class UserSettings {
     //
     //  gpt-5.4 high
 
+    public UserSettings() {
+    }
+
+    public UserSettings(Long userId, String settingsJson) {
+        this.userId = userId;
+        this.settingsJson = settingsJson;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getSettingsJson() {
+        return settingsJson;
+    }
+
+    public void setSettingsJson(String settingsJson) {
+        this.settingsJson = settingsJson;
+    }
 }
