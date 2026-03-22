@@ -72,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectGradeSystemInput = document.getElementById("subject-grade-system");
     const subjectGradeDescriptionInput = document.getElementById("subject-grade-description");
     const subjectGradeReasonInput = document.getElementById("subject-grade-reason");
-    const subjectGradeDefaultSystemInput = document.getElementById("subject-grade-default-system");
     const subjectGradeSaveButton = document.getElementById("subject-grade-save");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
@@ -91,6 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectHomeworkDetailDetailsInput = document.getElementById("subject-homework-detail-details");
     const subjectHomeworkDetailPriorityInput = document.getElementById("subject-homework-detail-priority");
     const subjectHomeworkDetailStatusInput = document.getElementById("subject-homework-detail-status");
+    const subjectHomeworkDetailGradeValueInput = document.getElementById("subject-homework-detail-grade-value");
+    const subjectHomeworkDetailGradeSystemInput = document.getElementById("subject-homework-detail-grade-system");
+    const subjectHomeworkDetailGradeSystemLabel = document.getElementById("subject-homework-detail-grade-system-label");
     const subjectHomeworkDetailSaveButton = document.getElementById("subject-homework-detail-save");
     const subjectHomeworkDetailDeleteButton = document.getElementById("subject-homework-detail-delete");
     const subjectSideHomeworkPanelTitle = document.getElementById("subject-side-homework-title");
@@ -343,8 +345,16 @@ document.addEventListener("DOMContentLoaded", () => {
     function getCsrfHeaders() {
         const token      = document.querySelector('meta[name="_csrf"]')?.getAttribute("content");
         const headerName = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content");
-        if (!token || !headerName) return {};
-        return { [headerName]: token };
+        if (token) {
+            return { [headerName || "X-CSRF-TOKEN"]: token };
+        }
+
+        const inputToken = document.querySelector('input[name="_csrf"]')?.value;
+        if (inputToken) {
+            return { "X-CSRF-TOKEN": inputToken };
+        }
+
+        return {};
     }
 
     async function requestJson(url, options = {}) {
@@ -473,9 +483,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function syncPreferredGradeSystemInputs(preferredSystem) {
-        if (subjectGradeDefaultSystemInput) {
-            subjectGradeDefaultSystemInput.value = preferredSystem;
-        }
         if (subjectGradeSystemInput && !subjectGradeValueInput?.value) {
             subjectGradeSystemInput.value = preferredSystem;
             syncGradeValueInput();
@@ -506,27 +513,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         return userSettingsLoadPromise;
-    }
-
-    async function savePreferredGradeSystem(system) {
-        const preferredSystem = setPreferredGradeSystem(system);
-        const baseSettings = normalizeUserSettings(readCachedUserSettings() || defaultUserSettings());
-        baseSettings.scholarHub.preferredGradeSystem = preferredSystem;
-
-        try {
-            const response = await requestJson("/api/settings/me", {
-                method: "PUT",
-                body: JSON.stringify(baseSettings)
-            });
-            const normalized = normalizeUserSettings(response);
-            writeCachedUserSettings(normalized);
-            setPreferredGradeSystem(normalized.scholarHub.preferredGradeSystem);
-            window.dispatchEvent(new CustomEvent("isc:settings-updated", { detail: normalized }));
-            return normalized.scholarHub.preferredGradeSystem;
-        } catch (error) {
-            console.error(error);
-            return preferredSystem;
-        }
     }
 
     function getGradeSystemLabel(system) {
@@ -698,6 +684,23 @@ document.addEventListener("DOMContentLoaded", () => {
             system === "Letter_Grading" || system === "Pass_Fail"
                 ? "characters"
                 : "off";
+    }
+
+    function syncHomeworkDetailGradeInput() {
+        if (!subjectHomeworkDetailGradeValueInput || !subjectHomeworkDetailGradeSystemInput) return;
+        const system = subjectHomeworkDetailGradeSystemInput.value || getPreferredGradeSystem();
+        subjectHomeworkDetailGradeValueInput.placeholder = getGradeValuePlaceholder(system);
+        subjectHomeworkDetailGradeValueInput.inputMode =
+            system === "Letter_Grading" || system === "Pass_Fail"
+                ? "text"
+                : "decimal";
+        subjectHomeworkDetailGradeValueInput.autocapitalize =
+            system === "Letter_Grading" || system === "Pass_Fail"
+                ? "characters"
+                : "off";
+        if (subjectHomeworkDetailGradeSystemLabel) {
+            subjectHomeworkDetailGradeSystemLabel.textContent = getGradeSystemLabel(system);
+        }
     }
 
     function getScheduleCells() {
@@ -982,7 +985,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectGradeSystemInput) subjectGradeSystemInput.value = getPreferredGradeSystem();
         if (subjectGradeDescriptionInput) subjectGradeDescriptionInput.value = "";
         if (subjectGradeReasonInput) subjectGradeReasonInput.value = defaultGradeReason;
-        if (subjectGradeDefaultSystemInput) subjectGradeDefaultSystemInput.value = getPreferredGradeSystem();
         if (subjectGradeSaveButton) {
             subjectGradeSaveButton.disabled = false;
             subjectGradeSaveButton.textContent = "Save grade";
@@ -1435,6 +1437,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectHomeworkDetailDetailsInput) subjectHomeworkDetailDetailsInput.value = "";
         setPriorityValue(subjectHomeworkDetailPriorityInput, defaultHomeworkPriority);
         if (subjectHomeworkDetailStatusInput) subjectHomeworkDetailStatusInput.value = "Pending";
+        if (subjectHomeworkDetailGradeValueInput) subjectHomeworkDetailGradeValueInput.value = "";
+        if (subjectHomeworkDetailGradeSystemInput) {
+            subjectHomeworkDetailGradeSystemInput.value = getPreferredGradeSystem();
+        }
+        syncHomeworkDetailGradeInput();
         activeHomeworkDetailEntry = null;
         activeHomeworkDetailTrigger = null;
     }
@@ -1491,6 +1498,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (subjectHomeworkDetailStatusInput) {
             subjectHomeworkDetailStatusInput.value = entry.homework.status || "Pending";
         }
+        if (subjectHomeworkDetailGradeValueInput) {
+            subjectHomeworkDetailGradeValueInput.value = entry.homework.gradeValue || "";
+        }
+        if (subjectHomeworkDetailGradeSystemInput) {
+            subjectHomeworkDetailGradeSystemInput.value = entry.homework.gradeSystem || getPreferredGradeSystem();
+        }
+        syncHomeworkDetailGradeInput();
     }
 
     function openSubjectHomeworkDetailModal(entry, triggerElement) {
@@ -1934,7 +1948,10 @@ document.addEventListener("DOMContentLoaded", () => {
             subjectId: Number(activeHomeworkDetailEntry.homework.subjectId ?? activeHomeworkDetailEntry.cell?.dataset?.subjectId),
             dueDaySubjectId: Number(activeHomeworkDetailEntry.homework.dueDaySubjectId ?? activeHomeworkDetailEntry.homework.daySubjectId ?? activeHomeworkDetailEntry.cell?.dataset?.daySubjectId),
             status: subjectHomeworkDetailStatusInput ? (subjectHomeworkDetailStatusInput.value || "Pending") : "Pending",
-            weekStart: activeHomeworkDetailEntry.homework.weekStart || activeHomeworkDetailEntry.cell?.dataset?.weekStart || activeLessonCell?.dataset?.weekStart || ""
+            weekStart: activeHomeworkDetailEntry.homework.weekStart || activeHomeworkDetailEntry.cell?.dataset?.weekStart || activeLessonCell?.dataset?.weekStart || "",
+            gradeId: activeHomeworkDetailEntry.homework.gradeId || null,
+            gradeSystem: subjectHomeworkDetailGradeSystemInput ? (subjectHomeworkDetailGradeSystemInput.value || getPreferredGradeSystem()) : getPreferredGradeSystem(),
+            gradeValue: String(subjectHomeworkDetailGradeValueInput?.value || "").trim()
         };
     }
 
@@ -2003,9 +2020,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!subjectModalGrades || !subjectModalAverage) return;
 
         const preferredSystem = getPreferredGradeSystem();
-        if (subjectGradeDefaultSystemInput) {
-            subjectGradeDefaultSystemInput.value = preferredSystem;
-        }
 
         const subjectId = activeLessonCell?.dataset?.subjectId;
         const grades = getSubjectGrades(subjectId)
@@ -2708,26 +2722,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectGradeSystemInput) {
         subjectGradeSystemInput.addEventListener("change", syncGradeValueInput);
     }
-    if (subjectGradeDefaultSystemInput) {
-        subjectGradeDefaultSystemInput.addEventListener("change", () => {
-            const selectedSystem = subjectGradeDefaultSystemInput.value;
-            const preferredSystem = setPreferredGradeSystem(selectedSystem);
-            syncPreferredGradeSystemInputs(preferredSystem);
-            if (gradesLoaded) {
-                renderSubjectGradesWidget();
-            } else {
-                void refreshSubjectGrades();
-            }
-            void savePreferredGradeSystem(selectedSystem).then((savedSystem) => {
-                syncPreferredGradeSystemInputs(savedSystem);
-                if (gradesLoaded) {
-                    renderSubjectGradesWidget();
-                } else {
-                    void refreshSubjectGrades();
-                }
-            });
-        });
-    }
     if (subjectHomeworkDetailSaveButton) {
         subjectHomeworkDetailSaveButton.addEventListener("click", () => { void saveSubjectHomeworkDetail(); });
     }
@@ -2747,14 +2741,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     syncGradeValueInput();
-    if (subjectGradeDefaultSystemInput) {
-        subjectGradeDefaultSystemInput.value = getPreferredGradeSystem();
-    }
     window.addEventListener("isc:settings-updated", (event) => {
         const nextSettings = normalizeUserSettings(event.detail);
         writeCachedUserSettings(nextSettings);
         const preferredSystem = setPreferredGradeSystem(nextSettings.scholarHub.preferredGradeSystem);
         syncPreferredGradeSystemInputs(preferredSystem);
+        if (!activeHomeworkDetailEntry?.homework?.gradeId && subjectHomeworkDetailGradeSystemInput) {
+            subjectHomeworkDetailGradeSystemInput.value = preferredSystem;
+            syncHomeworkDetailGradeInput();
+        }
         if (gradesLoaded) {
             renderSubjectGradesWidget();
         }

@@ -2,10 +2,11 @@ package org.example.isc.main.secured.scholarhub.controller.api;
 
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.scholarship.HomeworkDTO;
+import org.example.isc.main.secured.models.scholarship.Grade;
 import org.example.isc.main.secured.models.scholarship.Homework;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.main.secured.repositories.scholarhub.DaySubjectRepository;
+import org.example.isc.main.secured.repositories.scholarhub.GradeRepository;
 import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
 import org.example.isc.main.secured.scholarhub.service.HomeworkService;
 import org.slf4j.Logger;
@@ -24,13 +25,13 @@ public class HomeworkApiController {
     private static final Logger log = LoggerFactory.getLogger(HomeworkApiController.class);
     private final UserRepository userRepository;
     private final HomeworkRepository homeworkRepository;
-    private final DaySubjectRepository daySubjectRepository;
+    private final GradeRepository gradeRepository;
     private final HomeworkService homeworkService;
 
-    public HomeworkApiController(UserRepository userRepository, HomeworkRepository homeworkRepository, DaySubjectRepository daySubjectRepository, HomeworkService homeworkService) {
+    public HomeworkApiController(UserRepository userRepository, HomeworkRepository homeworkRepository, GradeRepository gradeRepository, HomeworkService homeworkService) {
         this.userRepository = userRepository;
         this.homeworkRepository = homeworkRepository;
-        this.daySubjectRepository = daySubjectRepository;
+        this.gradeRepository = gradeRepository;
         this.homeworkService = homeworkService;
     }
 
@@ -58,7 +59,7 @@ public class HomeworkApiController {
             Authentication authentication
     ){
         requireCurrentUser(authentication);
-        Homework savedHomework = homeworkRepository.save(toHomework(homeworkDTO));
+        Homework savedHomework = homeworkService.create(homeworkDTO);
         log.info("Homework created: {}", savedHomework.getId());
         return ResponseEntity.ok().build();
     }
@@ -73,7 +74,7 @@ public class HomeworkApiController {
 
         if(id.equals(homeworkDTO.getId())) return ResponseEntity.badRequest().build();
 
-        homeworkService.edit(id, homeworkDTO);
+        Homework editedHomework = homeworkService.edit(id, homeworkDTO);
         log.info("Homework edited: " +  homeworkDTO.getId());
 
         return ResponseEntity.ok().build();
@@ -86,16 +87,16 @@ public class HomeworkApiController {
     ){
         requireCurrentUser(authentication);
 
-        Homework homework = homeworkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Homework not found: " + id));
-
-        homeworkRepository.delete(homework);
-        log.info("Homework deleted: " +  homework.getId());
+        homeworkService.delete(id);
+        log.info("Homework deleted: " +  id);
         return ResponseEntity.ok().build();
     }
 
     private HomeworkDTO toHomeworkDTO(Homework homework){
         Long dueDaySubjectId = homework.getDueDaySubjectId() != null ? homework.getDueDaySubjectId() : null;
+        Grade grade = homework.getGradeId() != null
+                ? gradeRepository.findById(homework.getGradeId()).orElse(null)
+                : null;
         return new HomeworkDTO(
                 homework.getId(),
                 homework.getTitle(),
@@ -104,22 +105,11 @@ public class HomeworkApiController {
                 homework.getSubjectId(),
                 dueDaySubjectId,
                 homework.getStatus(),
-                homework.getWeekStart()
+                homework.getWeekStart(),
+                homework.getGradeId(),
+                grade != null ? grade.getGradingSystem() : null,
+                grade != null ? grade.getValue() : null
         );
-    }
-
-    private Homework toHomework(HomeworkDTO homeworkDTO){
-        var lesson = daySubjectRepository.findById(homeworkDTO.getDueDaySubjectId())
-                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + homeworkDTO.getDueDaySubjectId()));
-        Homework homework = new Homework();
-        homework.setTitle(homeworkDTO.getTitle());
-        homework.setDetails(homeworkDTO.getDetails());
-        homework.setPriority(homeworkDTO.getPriority());
-        homework.setSubjectId(lesson.getSubject().getId());
-        homework.setStatus(homeworkDTO.getStatus());
-        homework.setDueDaySubjectId(lesson.getId());
-        homework.setWeekStart(homeworkDTO.getWeekStart());
-        return  homework;
     }
 
     private User requireCurrentUser(Authentication authentication) {

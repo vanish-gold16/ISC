@@ -37,10 +37,13 @@ public class Homework {
     @Column(name = "week_start")
     private LocalDate weekStart;
 
+    @Column(name = "grade_id")
+    private Long gradeId;
+
     public Homework() {
     }
 
-    public Homework(Long subjectId, Long dueDaySubjectId, String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart) {
+    public Homework(Long subjectId, Long dueDaySubjectId, String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart, Long gradeId) {
         this.subjectId = subjectId;
         this.dueDaySubjectId = dueDaySubjectId;
         this.title = title;
@@ -48,6 +51,7 @@ public class Homework {
         this.priority = priority;
         this.status = status;
         this.weekStart = weekStart;
+        this.gradeId = gradeId;
     }
 
     public Homework(String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart) {
@@ -120,5 +124,13 @@ public class Homework {
 
     public void setDueDaySubjectId(Long dueDaySubjectId) {
         this.dueDaySubjectId = dueDaySubjectId;
+    }
+
+    public Long getGradeId() {
+        return gradeId;
+    }
+
+    public void setGradeId(Long gradeId) {
+        this.gradeId = gradeId;
     }
 }

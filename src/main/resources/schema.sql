@@ -239,6 +239,36 @@ END;
 $$;
 @@
 
+DO $$
+BEGIN
+    IF to_regclass('public.homeworks') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'homeworks'
+          AND column_name = 'grade_id'
+    ) THEN
+        ALTER TABLE homeworks ADD COLUMN grade_id BIGINT;
+    END IF;
+
+    IF to_regclass('public.grades') IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_homeworks_grade'
+          AND conrelid = 'homeworks'::regclass
+    ) THEN
+        ALTER TABLE homeworks
+            ADD CONSTRAINT fk_homeworks_grade
+                FOREIGN KEY (grade_id) REFERENCES grades(id) ON DELETE SET NULL;
+    END IF;
+END;
+$$;
+@@
+
   CREATE TABLE IF NOT EXISTS user_settings (
       id BIGSERIAL PRIMARY KEY,
       user_id BIGINT NOT NULL UNIQUE,

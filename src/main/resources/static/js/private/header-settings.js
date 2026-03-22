@@ -103,8 +103,16 @@
     function getCsrfHeaders() {
         const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content");
         const headerName = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content");
-        if (!token || !headerName) return {};
-        return { [headerName]: token };
+        if (token) {
+            return { [headerName || "X-CSRF-TOKEN"]: token };
+        }
+
+        const inputToken = document.querySelector('input[name="_csrf"]')?.value;
+        if (inputToken) {
+            return { "X-CSRF-TOKEN": inputToken };
+        }
+
+        return {};
     }
 
     async function requestJson(url, options = {}) {

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.example.isc.main.enums.scholarhub.HomeworkPriorityEnum;
 import org.example.isc.main.enums.scholarhub.HomeworkStatusEnum;
+import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
 import java.time.LocalDate;
 
@@ -33,8 +34,15 @@ public class HomeworkDTO {
     @NotNull
     private LocalDate weekStart;
 
+    private Long gradeId;
 
-    public HomeworkDTO(Long id, String title, String details, HomeworkPriorityEnum priority, Long subjectId, Long dueDaySubjectId, HomeworkStatusEnum status, LocalDate weekStart) {
+    private GradingSystemEnum gradeSystem;
+
+    @Size(max = 100)
+    private String gradeValue;
+
+
+    public HomeworkDTO(Long id, String title, String details, HomeworkPriorityEnum priority, Long subjectId, Long dueDaySubjectId, HomeworkStatusEnum status, LocalDate weekStart, Long gradeId, GradingSystemEnum gradeSystem, String gradeValue) {
         this.id = id;
         this.title = title;
         this.details = details;
@@ -43,6 +51,9 @@ public class HomeworkDTO {
         this.dueDaySubjectId = dueDaySubjectId;
         this.status = status;
         this.weekStart = weekStart;
+        this.gradeId = gradeId;
+        this.gradeSystem = gradeSystem;
+        this.gradeValue = gradeValue;
     }
 
     public HomeworkDTO() {
@@ -111,5 +122,29 @@ public class HomeworkDTO {
 
     public void setDueDaySubjectId(Long dueDaySubjectId) {
         this.dueDaySubjectId = dueDaySubjectId;
+    }
+
+    public Long getGradeId() {
+        return gradeId;
+    }
+
+    public void setGradeId(Long gradeId) {
+        this.gradeId = gradeId;
+    }
+
+    public GradingSystemEnum getGradeSystem() {
+        return gradeSystem;
+    }
+
+    public void setGradeSystem(GradingSystemEnum gradeSystem) {
+        this.gradeSystem = gradeSystem;
+    }
+
+    public String getGradeValue() {
+        return gradeValue;
+    }
+
+    public void setGradeValue(String gradeValue) {
+        this.gradeValue = gradeValue;
     }
 }

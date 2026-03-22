@@ -2,6 +2,7 @@ package org.example.isc.settings;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 import org.example.isc.settings.dto.AppearanceSettingsDTO;
 import org.example.isc.settings.dto.NotificationSettingsDTO;
@@ -10,6 +11,7 @@ import org.example.isc.settings.dto.UserSettingsDTO;
 import org.example.isc.settings.repository.UserSettingsRepository;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class UserSettingsService {
 
@@ -25,6 +27,7 @@ public class UserSettingsService {
         UserSettings settings = userSettingsRepository.findByUserId(userId);
         if (settings == null || settings.getSettingsJson() == null || settings.getSettingsJson().isBlank()) {
             UserSettingsDTO defaults = defaultSettings();
+            log.info("Default settings saved");
             userSettingsRepository.save(new UserSettings(userId, writeSettingsJson(defaults)));
             return defaults;
         }
@@ -40,6 +43,7 @@ public class UserSettingsService {
         } catch (JsonProcessingException exception) {
             UserSettingsDTO defaults = defaultSettings();
             settings.setSettingsJson(writeSettingsJson(defaults));
+            log.info("Settings saved");
             userSettingsRepository.save(settings);
             return defaults;
         }
@@ -53,6 +57,7 @@ public class UserSettingsService {
         } else {
             settings.setSettingsJson(writeSettingsJson(normalized));
         }
+        log.info("Settings saved");
         userSettingsRepository.save(settings);
         return normalized;
     }

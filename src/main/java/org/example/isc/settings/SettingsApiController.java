@@ -1,5 +1,6 @@
 package org.example.isc.settings;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.settings.dto.UserSettingsDTO;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/settings")
 public class SettingsApiController {
