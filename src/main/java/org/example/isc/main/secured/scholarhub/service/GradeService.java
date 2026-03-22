@@ -46,8 +46,9 @@ public class GradeService {
                 .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + gradeDTO.getSubjectId()));
 
         DaySubject lesson = resolveLesson(gradeDTO.getAssignedDaySubjectId(), username, subject.getId());
+        String normalizedValue = convertGrade.normalizeValue(gradeDTO.getSystem(), gradeDTO.getValue());
 
-        BigDecimal converted = convertGrade.toNormalizedScore(gradeDTO.getSystem(), gradeDTO.getValue());
+        BigDecimal converted = convertGrade.toNormalizedScore(gradeDTO.getSystem(), normalizedValue);
 
         return gradeRepository.save(new Grade(
                 subject,
@@ -55,7 +56,7 @@ public class GradeService {
                 gradeDTO.getSystem(),
                 gradeDTO.getReason(),
                 gradeDTO.getDescription(),
-                gradeDTO.getValue(),
+                normalizedValue,
                 converted
         ));
     }

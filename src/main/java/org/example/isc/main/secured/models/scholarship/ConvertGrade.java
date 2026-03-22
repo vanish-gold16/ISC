@@ -4,16 +4,25 @@ import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Locale;
 
 public class ConvertGrade {
-    public BigDecimal toNormalizedScore(GradingSystemEnum system, String value){
+    public String normalizeValue(GradingSystemEnum system, String value) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException("Empty value");
         }
 
-        BigDecimal converted;
+        String cleanValue = value.trim().toUpperCase(Locale.ROOT);
 
-        String cleanValue = value.trim().toUpperCase();
+        return switch (system) {
+            case Letter_Grading -> normalizeLetterGrade(cleanValue);
+            default -> cleanValue;
+        };
+    }
+
+    public BigDecimal toNormalizedScore(GradingSystemEnum system, String value){
+        BigDecimal converted;
+        String cleanValue = normalizeValue(system, value);
 
         switch (system){
             case Percentage_Grading:
@@ -86,4 +95,10 @@ public class ConvertGrade {
         }
     }
 
+    private String normalizeLetterGrade(String value) {
+        return value
+                .replace('\u0410', 'A')
+                .replace('\u0412', 'B')
+                .replace('\u0421', 'C');
+    }
 }

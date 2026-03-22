@@ -103,8 +103,9 @@ public class HomeworkService {
         grade.setGradingSystem(system);
         grade.setReason(resolveGradeReason(homeworkDTO.getPriority()));
         grade.setDescription(buildGradeDescription(homework.getTitle(), homework.getDetails()));
-        grade.setValue(gradeValue);
-        grade.setConverted(convertGrade.toNormalizedScore(system, gradeValue));
+        String normalizedGradeValue = convertGrade.normalizeValue(system, gradeValue);
+        grade.setValue(normalizedGradeValue);
+        grade.setConverted(convertGrade.toNormalizedScore(system, normalizedGradeValue));
 
         Grade savedGrade = gradeRepository.save(grade);
         homework.setGradeId(savedGrade.getId());
