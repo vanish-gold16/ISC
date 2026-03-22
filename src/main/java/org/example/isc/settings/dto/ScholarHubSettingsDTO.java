@@ -4,17 +4,20 @@ import org.example.isc.main.enums.scholarhub.GradingSystemEnum;
 
 public class ScholarHubSettingsDTO {
 
-    private GradingSystemEnum preferredGradingSystem;
+    private GradingSystemEnum preferredGradeSystem;
 
-    public ScholarHubSettingsDTO(GradingSystemEnum preferredGradingSystem) {
-        this.preferredGradingSystem = preferredGradingSystem;
+    public ScholarHubSettingsDTO() {
     }
 
-    public GradingSystemEnum getPreferredGradingSystem() {
-        return preferredGradingSystem;
+    public ScholarHubSettingsDTO(GradingSystemEnum preferredGradeSystem) {
+        this.preferredGradeSystem = preferredGradeSystem;
     }
 
-    public void setPreferredGradingSystem(GradingSystemEnum preferredGradingSystem) {
-        this.preferredGradingSystem = preferredGradingSystem;
+    public GradingSystemEnum getPreferredGradeSystem() {
+        return preferredGradeSystem;
+    }
+
+    public void setPreferredGradeSystem(GradingSystemEnum preferredGradeSystem) {
+        this.preferredGradeSystem = preferredGradeSystem;
     }
 }

@@ -5,6 +5,9 @@ public class NotificationSettingsDTO {
     private boolean desktop;
     private boolean sound;
 
+    public NotificationSettingsDTO() {
+    }
+
     public NotificationSettingsDTO(boolean desktop, boolean sound) {
         this.desktop = desktop;
         this.sound = sound;

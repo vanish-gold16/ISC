@@ -3,47 +3,47 @@ package org.example.isc.settings;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.settings.dto.UserSettingsDTO;
-import org.example.isc.settings.repository.UserSettingsRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/settings")
+@RequestMapping("/api/settings")
 public class SettingsApiController {
 
     private final UserRepository userRepository;
-    private final UserSettingsRepository userSettingsRepository;
+    private final UserSettingsService userSettingsService;
 
-    public SettingsApiController(UserRepository userRepository, UserSettingsRepository userSettingsRepository) {
+    public SettingsApiController(UserRepository userRepository, UserSettingsService userSettingsService) {
         this.userRepository = userRepository;
-        this.userSettingsRepository = userSettingsRepository;
+        this.userSettingsService = userSettingsService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<UserSettingsDTO>> getSettings(
-            Authentication authentication
-    ){
+    @GetMapping("/me")
+    public ResponseEntity<UserSettingsDTO> getSettings(Authentication authentication) {
+        return ResponseEntity.ok(userSettingsService.getSettingsForUser(requireCurrentUserId(authentication)));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserSettingsDTO> saveSettings(
+            Authentication authentication,
+            @RequestBody UserSettingsDTO settings
+    ) {
+        return ResponseEntity.ok(userSettingsService.saveSettingsForUser(requireCurrentUserId(authentication), settings));
+    }
+
+    private Long requireCurrentUserId(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new IllegalStateException("Authenticated user is required.");
+        }
+
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        UserSettings settings = userSettingsRepository.findByUserId(me.getId());
-        if(settings == null){
-            return ResponseEntity.badRequest().build();
-        }
-
-
+        return me.getId();
     }
-
-    private UserSettingsDTO toDTO(UserSettings settings){
-        return new UserSettingsDTO(
-                userSettingsRepository.findByUserId(settings.getId()).getUserId(),
-
-        );
-    }
-
 }

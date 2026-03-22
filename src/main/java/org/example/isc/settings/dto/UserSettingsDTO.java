@@ -8,6 +8,9 @@ public class UserSettingsDTO {
 
     private NotificationSettingsDTO notifications;
 
+    public UserSettingsDTO() {
+    }
+
     public UserSettingsDTO(ScholarHubSettingsDTO scholarHub, AppearanceSettingsDTO appearance, NotificationSettingsDTO notifications) {
         this.scholarHub = scholarHub;
         this.appearance = appearance;
