@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const defaultGradeSystem = "Numeric_Grading_1_to_5";
     const defaultGradeReason = "Exam";
     const gradePreferencesStorageKey = "scholarHub.gradePreferences";
+    const userSettingsStorageKey = "isc.userSettingsCache";
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -116,6 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeHomeworkDetailTrigger = null;
     let activeWeekTimetable = null;
     let activeWeekHomeworkTrigger = null;
+    let userSettingsCache = null;
+    let userSettingsLoadPromise = null;
 
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
@@ -365,17 +368,91 @@ document.addEventListener("DOMContentLoaded", () => {
         return supportedGradeSystems.includes(system) ? system : defaultGradeSystem;
     }
 
+    function defaultUserSettings() {
+        return {
+            scholarHub: {
+                preferredGradeSystem: defaultGradeSystem
+            },
+            appearance: {
+                theme: "system",
+                reduceMotion: false,
+                density: "comfortable"
+            },
+            notifications: {
+                desktop: true,
+                sound: true
+            }
+        };
+    }
+
+    function normalizeUserSettings(settings) {
+        const defaults = defaultUserSettings();
+        const source = settings && typeof settings === "object" ? settings : {};
+
+        return {
+            scholarHub: {
+                preferredGradeSystem: normalizeGradeSystem(source?.scholarHub?.preferredGradeSystem)
+            },
+            appearance: {
+                theme: ["system", "light", "dark"].includes(source?.appearance?.theme)
+                    ? source.appearance.theme
+                    : defaults.appearance.theme,
+                reduceMotion: typeof source?.appearance?.reduceMotion === "boolean"
+                    ? source.appearance.reduceMotion
+                    : defaults.appearance.reduceMotion,
+                density: ["comfortable", "compact"].includes(source?.appearance?.density)
+                    ? source.appearance.density
+                    : defaults.appearance.density
+            },
+            notifications: {
+                desktop: typeof source?.notifications?.desktop === "boolean"
+                    ? source.notifications.desktop
+                    : defaults.notifications.desktop,
+                sound: typeof source?.notifications?.sound === "boolean"
+                    ? source.notifications.sound
+                    : defaults.notifications.sound
+            }
+        };
+    }
+
+    function writeCachedUserSettings(settings) {
+        const normalized = normalizeUserSettings(settings);
+        userSettingsCache = normalized;
+        try {
+            window.localStorage.setItem(userSettingsStorageKey, JSON.stringify(normalized));
+        } catch (error) {
+            console.error(error);
+        }
+        return normalized;
+    }
+
+    function readCachedUserSettings() {
+        if (userSettingsCache) return userSettingsCache;
+        try {
+            const raw = window.localStorage.getItem(userSettingsStorageKey);
+            if (!raw) return null;
+            userSettingsCache = normalizeUserSettings(JSON.parse(raw));
+            return userSettingsCache;
+        } catch (error) {
+            return null;
+        }
+    }
+
     function getStoredGradePreferences() {
         try {
             const raw = window.localStorage.getItem(gradePreferencesStorageKey);
-            if (!raw) return { preferredSystem: defaultGradeSystem };
-            const parsed = JSON.parse(raw);
-            return {
-                preferredSystem: normalizeGradeSystem(parsed?.preferredSystem)
-            };
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                return {
+                    preferredSystem: normalizeGradeSystem(parsed?.preferredSystem)
+                };
+            }
         } catch (error) {
-            return { preferredSystem: defaultGradeSystem };
         }
+        const cachedSettings = readCachedUserSettings();
+        return {
+            preferredSystem: normalizeGradeSystem(cachedSettings?.scholarHub?.preferredGradeSystem)
+        };
     }
 
     function getPreferredGradeSystem() {
@@ -389,7 +466,67 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error(error);
         }
+        const cachedSettings = normalizeUserSettings(readCachedUserSettings() || defaultUserSettings());
+        cachedSettings.scholarHub.preferredGradeSystem = preferredSystem;
+        writeCachedUserSettings(cachedSettings);
         return preferredSystem;
+    }
+
+    function syncPreferredGradeSystemInputs(preferredSystem) {
+        if (subjectGradeDefaultSystemInput) {
+            subjectGradeDefaultSystemInput.value = preferredSystem;
+        }
+        if (subjectGradeSystemInput && !subjectGradeValueInput?.value) {
+            subjectGradeSystemInput.value = preferredSystem;
+            syncGradeValueInput();
+        }
+    }
+
+    async function loadUserSettings() {
+        if (userSettingsLoadPromise) return userSettingsLoadPromise;
+
+        const cached = readCachedUserSettings();
+        if (cached) {
+            setPreferredGradeSystem(cached.scholarHub.preferredGradeSystem);
+        }
+
+        userSettingsLoadPromise = requestJson("/api/settings/me", { method: "GET" })
+            .then((response) => {
+                const normalized = normalizeUserSettings(response);
+                writeCachedUserSettings(normalized);
+                setPreferredGradeSystem(normalized.scholarHub.preferredGradeSystem);
+                return normalized;
+            })
+            .catch((error) => {
+                console.error(error);
+                return readCachedUserSettings() || defaultUserSettings();
+            })
+            .finally(() => {
+                userSettingsLoadPromise = null;
+            });
+
+        return userSettingsLoadPromise;
+    }
+
+    async function savePreferredGradeSystem(system) {
+        const preferredSystem = setPreferredGradeSystem(system);
+        const baseSettings = normalizeUserSettings(readCachedUserSettings() || defaultUserSettings());
+        baseSettings.scholarHub.preferredGradeSystem = preferredSystem;
+
+        try {
+            const response = await requestJson("/api/settings/me", {
+                method: "PUT",
+                body: JSON.stringify(baseSettings)
+            });
+            const normalized = normalizeUserSettings(response);
+            writeCachedUserSettings(normalized);
+            setPreferredGradeSystem(normalized.scholarHub.preferredGradeSystem);
+            window.dispatchEvent(new CustomEvent("isc:settings-updated", { detail: normalized }));
+            return normalized.scholarHub.preferredGradeSystem;
+        } catch (error) {
+            console.error(error);
+            return preferredSystem;
+        }
     }
 
     function getGradeSystemLabel(system) {
@@ -2573,17 +2710,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (subjectGradeDefaultSystemInput) {
         subjectGradeDefaultSystemInput.addEventListener("change", () => {
-            const preferredSystem = setPreferredGradeSystem(subjectGradeDefaultSystemInput.value);
-            subjectGradeDefaultSystemInput.value = preferredSystem;
-            if (subjectGradeSystemInput && !subjectGradeValueInput?.value) {
-                subjectGradeSystemInput.value = preferredSystem;
-                syncGradeValueInput();
-            }
+            const selectedSystem = subjectGradeDefaultSystemInput.value;
+            const preferredSystem = setPreferredGradeSystem(selectedSystem);
+            syncPreferredGradeSystemInputs(preferredSystem);
             if (gradesLoaded) {
                 renderSubjectGradesWidget();
             } else {
                 void refreshSubjectGrades();
             }
+            void savePreferredGradeSystem(selectedSystem).then((savedSystem) => {
+                syncPreferredGradeSystemInputs(savedSystem);
+                if (gradesLoaded) {
+                    renderSubjectGradesWidget();
+                } else {
+                    void refreshSubjectGrades();
+                }
+            });
         });
     }
     if (subjectHomeworkDetailSaveButton) {
@@ -2608,4 +2750,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectGradeDefaultSystemInput) {
         subjectGradeDefaultSystemInput.value = getPreferredGradeSystem();
     }
+    window.addEventListener("isc:settings-updated", (event) => {
+        const nextSettings = normalizeUserSettings(event.detail);
+        writeCachedUserSettings(nextSettings);
+        const preferredSystem = setPreferredGradeSystem(nextSettings.scholarHub.preferredGradeSystem);
+        syncPreferredGradeSystemInputs(preferredSystem);
+        if (gradesLoaded) {
+            renderSubjectGradesWidget();
+        }
+    });
+    void loadUserSettings().then((settings) => {
+        const preferredSystem = setPreferredGradeSystem(settings.scholarHub.preferredGradeSystem);
+        syncPreferredGradeSystemInputs(preferredSystem);
+        if (gradesLoaded) {
+            renderSubjectGradesWidget();
+        }
+    });
 });

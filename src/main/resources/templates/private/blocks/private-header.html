@@ -172,7 +172,7 @@
             .header-settings-modal__dialog {
                 position: relative;
                 z-index: 1;
-                width: min(560px, 100%);
+                width: min(980px, 100%);
                 padding: 26px 28px;
                 border-radius: 30px;
                 border: 1px solid rgba(255, 255, 255, 0.44);
@@ -233,16 +233,16 @@
             }
 
             .header-settings-modal__body {
-                min-height: 220px;
+                min-height: 520px;
                 padding: 18px;
                 border-radius: 24px;
                 border: 1px solid rgba(255, 255, 255, 0.42);
                 background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(246, 249, 255, 0.18) 100%);
                 box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
                 display: grid;
-                align-content: center;
-                justify-items: start;
-                gap: 8px;
+                grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+                align-items: stretch;
+                gap: 18px;
             }
 
             .header-settings-modal__body p {
@@ -250,6 +250,394 @@
                 color: rgba(68, 89, 127, 0.86);
                 font-size: 14px;
                 line-height: 1.5;
+            }
+
+            .header-settings-modal__summary {
+                display: grid;
+                gap: 8px;
+            }
+
+            .header-settings-modal__summary-copy {
+                color: rgba(68, 89, 127, 0.86);
+                font-size: 14px;
+                line-height: 1.55;
+                max-width: 56ch;
+            }
+
+            .header-settings-modal__sync-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: fit-content;
+                padding: 8px 12px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.48);
+                border: 1px solid rgba(255, 255, 255, 0.64);
+                color: #24457f;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.02em;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+            }
+
+            .header-settings-modal__sync-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+                box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.12);
+            }
+
+            .header-settings-modal__nav {
+                display: grid;
+                gap: 12px;
+                align-content: start;
+                padding: 10px;
+                border-radius: 22px;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.44) 0%, rgba(246, 249, 255, 0.26) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+            }
+
+            .header-settings-modal__nav-head {
+                display: grid;
+                gap: 4px;
+                padding: 6px 8px 8px;
+            }
+
+            .header-settings-modal__nav-title {
+                margin: 0;
+                color: #10213f;
+                font-size: 14px;
+                font-weight: 800;
+            }
+
+            .header-settings-modal__nav-text {
+                margin: 0;
+                color: rgba(68, 89, 127, 0.84);
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .header-settings-modal__nav-list {
+                display: grid;
+                gap: 8px;
+            }
+
+            .header-settings-modal__nav-button {
+                width: 100%;
+                border: 0;
+                cursor: pointer;
+                text-align: left;
+                font: inherit;
+                color: #10213f;
+                padding: 14px 16px;
+                border-radius: 18px;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.64) 0%, rgba(244, 248, 255, 0.42) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.58);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                display: grid;
+                gap: 4px;
+                transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+            }
+
+            .header-settings-modal__nav-button:hover {
+                transform: translateY(-1px);
+                border-color: rgba(255, 255, 255, 0.78);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(241, 247, 255, 0.56) 100%);
+            }
+
+            .header-settings-modal__nav-button.is-active {
+                border-color: rgba(126, 158, 224, 0.48);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(235, 244, 255, 0.66) 100%);
+                box-shadow: 0 18px 44px rgba(88, 126, 201, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.66);
+            }
+
+            .header-settings-modal__nav-button-title {
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.2;
+            }
+
+            .header-settings-modal__nav-button-text {
+                color: rgba(68, 89, 127, 0.82);
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .header-settings-modal__panel {
+                display: grid;
+                grid-template-rows: auto minmax(0, 1fr) auto;
+                gap: 16px;
+                min-width: 0;
+            }
+
+            .header-settings-modal__status {
+                min-height: 20px;
+                color: #5672a8;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+            }
+
+            .header-settings-modal__status.is-error {
+                color: #c2410c;
+            }
+
+            .header-settings-modal__status.is-success {
+                color: #0f766e;
+            }
+
+            .header-settings-modal__panes {
+                min-width: 0;
+            }
+
+            .header-settings-modal__pane {
+                display: none;
+                min-height: 100%;
+            }
+
+            .header-settings-modal__pane.is-active {
+                display: block;
+            }
+
+            .header-settings-modal__stack {
+                display: grid;
+                gap: 14px;
+            }
+
+            .header-settings-modal__card {
+                display: grid;
+                gap: 14px;
+                padding: 18px;
+                border-radius: 22px;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.48) 0%, rgba(246, 249, 255, 0.26) 100%);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+            }
+
+            .header-settings-modal__card-head {
+                display: grid;
+                gap: 4px;
+            }
+
+            .header-settings-modal__card-title {
+                margin: 0;
+                color: #10213f;
+                font-size: 18px;
+                font-weight: 800;
+                line-height: 1.15;
+            }
+
+            .header-settings-modal__card-text {
+                margin: 0;
+                color: rgba(68, 89, 127, 0.84);
+                font-size: 13px;
+                line-height: 1.55;
+            }
+
+            .header-settings-modal__field-grid {
+                display: grid;
+                gap: 14px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .header-settings-modal__field {
+                display: grid;
+                gap: 8px;
+            }
+
+            .header-settings-modal__field-label {
+                margin: 0;
+                color: #183360;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .header-settings-modal__select {
+                width: 100%;
+                min-height: 48px;
+                border-radius: 16px;
+                border: 1px solid rgba(202, 216, 241, 0.9);
+                background: rgba(255, 255, 255, 0.78);
+                color: #10213f;
+                font: inherit;
+                padding: 0 16px;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                appearance: none;
+                -webkit-appearance: none;
+            }
+
+            .header-settings-modal__select:focus-visible,
+            .header-settings-modal__toggle-input:focus-visible + .header-settings-modal__toggle-card {
+                outline: 2px solid rgba(84, 113, 179, 0.4);
+                outline-offset: 2px;
+            }
+
+            .header-settings-modal__toggle-list {
+                display: grid;
+                gap: 12px;
+            }
+
+            .header-settings-modal__toggle {
+                display: block;
+            }
+
+            .header-settings-modal__toggle-input {
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .header-settings-modal__toggle-card {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 16px;
+                align-items: center;
+                padding: 16px 18px;
+                border-radius: 18px;
+                border: 1px solid rgba(255, 255, 255, 0.56);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(244, 248, 255, 0.38) 100%);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+                cursor: pointer;
+                transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+            }
+
+            .header-settings-modal__toggle-card:hover {
+                transform: translateY(-1px);
+                border-color: rgba(255, 255, 255, 0.78);
+            }
+
+            .header-settings-modal__toggle-input:checked + .header-settings-modal__toggle-card {
+                border-color: rgba(115, 152, 225, 0.42);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(231, 241, 255, 0.62) 100%);
+            }
+
+            .header-settings-modal__toggle-copy {
+                display: grid;
+                gap: 4px;
+            }
+
+            .header-settings-modal__toggle-title {
+                color: #10213f;
+                font-size: 14px;
+                font-weight: 800;
+                line-height: 1.25;
+            }
+
+            .header-settings-modal__toggle-text {
+                color: rgba(68, 89, 127, 0.84);
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .header-settings-modal__toggle-ui {
+                position: relative;
+                width: 56px;
+                height: 32px;
+                border-radius: 999px;
+                background: rgba(180, 196, 226, 0.9);
+                box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.12);
+                transition: background 180ms ease;
+            }
+
+            .header-settings-modal__toggle-ui::after {
+                content: "";
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: linear-gradient(180deg, #ffffff 0%, #edf4ff 100%);
+                box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+                transition: transform 180ms ease;
+            }
+
+            .header-settings-modal__toggle-input:checked + .header-settings-modal__toggle-card .header-settings-modal__toggle-ui {
+                background: linear-gradient(180deg, #7aa6ff 0%, #4f7fdd 100%);
+            }
+
+            .header-settings-modal__toggle-input:checked + .header-settings-modal__toggle-card .header-settings-modal__toggle-ui::after {
+                transform: translateX(24px);
+            }
+
+            .header-settings-modal__note {
+                margin: 0;
+                color: rgba(68, 89, 127, 0.82);
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .header-settings-modal__footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .header-settings-modal__footer-copy {
+                color: rgba(68, 89, 127, 0.82);
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .header-settings-modal__actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .header-settings-modal__button[disabled] {
+                opacity: 0.65;
+                cursor: wait;
+            }
+
+            @media (max-width: 860px) {
+                .header-settings-modal__dialog {
+                    width: min(720px, 100%);
+                    padding: 20px;
+                }
+
+                .header-settings-modal__body {
+                    grid-template-columns: 1fr;
+                }
+
+                .header-settings-modal__field-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (max-width: 560px) {
+                .header-settings-modal {
+                    padding: 12px;
+                }
+
+                .header-settings-modal__dialog {
+                    padding: 16px;
+                    border-radius: 24px;
+                }
+
+                .header-settings-modal__title {
+                    font-size: 22px;
+                }
+
+                .header-settings-modal__footer {
+                    align-items: stretch;
+                }
+
+                .header-settings-modal__actions {
+                    width: 100%;
+                    justify-content: stretch;
+                }
+
+                .header-settings-modal__actions .btn {
+                    flex: 1 1 0;
+                }
             }
 
             .notify-btn {
@@ -560,75 +948,152 @@
                 <div>
                     <p class="header-settings-modal__kicker">Settings</p>
                     <h3 class="header-settings-modal__title" id="header-settings-modal-title">Settings</h3>
+                    <div class="header-settings-modal__summary">
+                        <span class="header-settings-modal__sync-badge">
+                            <span class="header-settings-modal__sync-dot" aria-hidden="true"></span>
+                            Cloud sync enabled
+                        </span>
+                    </div>
                 </div>
                 <button class="header-settings-modal__close" type="button" aria-label="Close" data-close-header-settings-modal>x</button>
             </div>
             <div class="header-settings-modal__body">
-                <p>Empty settings modal placeholder.</p>
-                <p>Next step: add sections like Scholar Hub, Appearance, Notifications, Account.</p>
+                <aside class="header-settings-modal__nav" aria-label="Settings sections">
+                    <div class="header-settings-modal__nav-head">
+                        <p class="header-settings-modal__nav-title">Workspace</p>
+                    </div>
+                    <div class="header-settings-modal__nav-list">
+                        <button class="header-settings-modal__nav-button is-active" type="button" data-settings-section-target="scholarHub">
+                            <span class="header-settings-modal__nav-button-title">Scholar Hub</span>
+                            <span class="header-settings-modal__nav-button-text">Default grade system for widgets and new grade forms.</span>
+                        </button>
+                        <button class="header-settings-modal__nav-button" type="button" data-settings-section-target="appearance">
+                            <span class="header-settings-modal__nav-button-title">Appearance</span>
+                            <span class="header-settings-modal__nav-button-text">Theme, motion and density preferences for the glass UI.</span>
+                        </button>
+                        <button class="header-settings-modal__nav-button" type="button" data-settings-section-target="notifications">
+                            <span class="header-settings-modal__nav-button-title">Notifications</span>
+                            <span class="header-settings-modal__nav-button-text">Desktop and sound preferences stored with your account.</span>
+                        </button>
+                    </div>
+                </aside>
+
+                <div class="header-settings-modal__panel">
+                    <div class="header-settings-modal__status" id="header-settings-status">Ready to load your settings.</div>
+
+                    <div class="header-settings-modal__panes">
+                        <section class="header-settings-modal__pane is-active" data-settings-pane="scholarHub">
+                            <div class="header-settings-modal__stack">
+                                <article class="header-settings-modal__card">
+                                    <div class="header-settings-modal__card-head">
+                                        <h4 class="header-settings-modal__card-title">Scholar Hub defaults</h4>
+                                        <p class="header-settings-modal__card-text">This value is used as the default grading system in Scholar Hub widgets and when adding new grades.</p>
+                                    </div>
+                                    <div class="header-settings-modal__field">
+                                        <label class="header-settings-modal__field-label" for="settings-scholarhub-grade-system">Preferred grade system</label>
+                                        <select class="header-settings-modal__select" id="settings-scholarhub-grade-system">
+                                            <option value="Numeric_Grading_1_to_5">1 to 5</option>
+                                            <option value="Numeric_Grading_1_to_12">1 to 12</option>
+                                            <option value="Numeric_Grading_1_to_10">1 to 10</option>
+                                            <option value="Numeric_Grading_1_to_20">1 to 20</option>
+                                            <option value="Numeric_Grading_5_to_1">5 to 1</option>
+                                            <option value="Numeric_Grading_6_to_1">6 to 1</option>
+                                            <option value="Percentage_Grading">Percentage</option>
+                                            <option value="Letter_Grading">Letter</option>
+                                            <option value="GPA_4_Point_Scale">GPA 4.0</option>
+                                            <option value="Pass_Fail">Pass / Fail</option>
+                                        </select>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <section class="header-settings-modal__pane" data-settings-pane="appearance">
+                            <div class="header-settings-modal__stack">
+                                <article class="header-settings-modal__card">
+                                    <div class="header-settings-modal__card-head">
+                                        <h4 class="header-settings-modal__card-title">Appearance</h4>
+                                        <p class="header-settings-modal__card-text">These preferences are already persisted now. Visual application can keep growing without changing the backend schema.</p>
+                                    </div>
+                                    <div class="header-settings-modal__field-grid">
+                                        <div class="header-settings-modal__field">
+                                            <label class="header-settings-modal__field-label" for="settings-appearance-theme">Theme</label>
+                                            <select class="header-settings-modal__select" id="settings-appearance-theme">
+                                                <option value="system">System</option>
+                                                <option value="light">Light</option>
+                                                <option value="dark">Dark</option>
+                                            </select>
+                                        </div>
+                                        <div class="header-settings-modal__field">
+                                            <label class="header-settings-modal__field-label" for="settings-appearance-density">Density</label>
+                                            <select class="header-settings-modal__select" id="settings-appearance-density">
+                                                <option value="comfortable">Comfortable</option>
+                                                <option value="compact">Compact</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="header-settings-modal__toggle-list">
+                                        <label class="header-settings-modal__toggle">
+                                            <input class="header-settings-modal__toggle-input" id="settings-appearance-reduce-motion" type="checkbox" />
+                                            <span class="header-settings-modal__toggle-card">
+                                                <span class="header-settings-modal__toggle-copy">
+                                                    <span class="header-settings-modal__toggle-title">Reduce motion</span>
+                                                    <span class="header-settings-modal__toggle-text">Keep transitions calmer across modal and panel animations when you prefer less movement.</span>
+                                                </span>
+                                                <span class="header-settings-modal__toggle-ui" aria-hidden="true"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <section class="header-settings-modal__pane" data-settings-pane="notifications">
+                            <div class="header-settings-modal__stack">
+                                <article class="header-settings-modal__card">
+                                    <div class="header-settings-modal__card-head">
+                                        <h4 class="header-settings-modal__card-title">Notifications</h4>
+                                        <p class="header-settings-modal__card-text">These flags are stored together with the rest of the settings object so later features can use the same payload.</p>
+                                    </div>
+                                    <div class="header-settings-modal__toggle-list">
+                                        <label class="header-settings-modal__toggle">
+                                            <input class="header-settings-modal__toggle-input" id="settings-notifications-desktop" type="checkbox" />
+                                            <span class="header-settings-modal__toggle-card">
+                                                <span class="header-settings-modal__toggle-copy">
+                                                    <span class="header-settings-modal__toggle-title">Desktop notifications</span>
+                                                    <span class="header-settings-modal__toggle-text">Allow browser-level reminders for account and Scholar Hub activity.</span>
+                                                </span>
+                                                <span class="header-settings-modal__toggle-ui" aria-hidden="true"></span>
+                                            </span>
+                                        </label>
+
+                                        <label class="header-settings-modal__toggle">
+                                            <input class="header-settings-modal__toggle-input" id="settings-notifications-sound" type="checkbox" />
+                                            <span class="header-settings-modal__toggle-card">
+                                                <span class="header-settings-modal__toggle-copy">
+                                                    <span class="header-settings-modal__toggle-title">Sound</span>
+                                                    <span class="header-settings-modal__toggle-text">Play sounds for future desktop or in-app notification events.</span>
+                                                </span>
+                                                <span class="header-settings-modal__toggle-ui" aria-hidden="true"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="header-settings-modal__footer">
+                        <p class="header-settings-modal__footer-copy">Saved settings are returned back from the server as one JSON object, so the frontend never has to manually parse nested strings.</p>
+                        <div class="header-settings-modal__actions">
+                            <button class="btn btn--ghost header-settings-modal__button" type="button" id="header-settings-reset">Revert</button>
+                            <button class="btn btn--primary header-settings-modal__button" type="button" id="header-settings-save">Save changes</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        (() => {
-            const profileMenu = document.querySelector(".profile-menu");
-            const openSettingsButton = document.querySelector("[data-open-header-settings-modal]");
-            const settingsModal = document.getElementById("header-settings-modal");
-            if (!profileMenu || !openSettingsButton || !settingsModal || settingsModal.dataset.bound === "true") return;
-            settingsModal.dataset.bound = "true";
-
-            const closeTriggers = settingsModal.querySelectorAll("[data-close-header-settings-modal]");
-            const dialog = settingsModal.querySelector(".header-settings-modal__dialog");
-
-            const openModal = () => {
-                profileMenu.removeAttribute("open");
-                settingsModal.hidden = false;
-                settingsModal.setAttribute("aria-hidden", "false");
-                requestAnimationFrame(() => {
-                    settingsModal.classList.add("is-visible");
-                });
-            };
-
-            const closeModal = () => {
-                settingsModal.classList.remove("is-visible");
-                window.setTimeout(() => {
-                    settingsModal.hidden = true;
-                    settingsModal.setAttribute("aria-hidden", "true");
-                }, 220);
-            };
-
-            openSettingsButton.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                openModal();
-            });
-
-            closeTriggers.forEach((trigger) => {
-                trigger.addEventListener("click", () => {
-                    closeModal();
-                });
-            });
-
-            document.addEventListener("click", (event) => {
-                if (!profileMenu.hasAttribute("open")) return;
-                if (profileMenu.contains(event.target)) return;
-                profileMenu.removeAttribute("open");
-            });
-
-            document.addEventListener("keydown", (event) => {
-                if (event.key === "Escape") {
-                    if (!settingsModal.hidden) {
-                        closeModal();
-                        return;
-                    }
-                    profileMenu.removeAttribute("open");
-                }
-            });
-
-            dialog?.addEventListener("click", (event) => {
-                event.stopPropagation();
-            });
-        })();
-    </script>
+    <script src="/js/private/header-settings.js"></script>
 </div>
