@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 
 public class GradeDTO {
 
+    private Long id;
+
     @NotNull
     private Long subjectId;
 
@@ -30,7 +32,8 @@ public class GradeDTO {
     public GradeDTO() {
     }
 
-    public GradeDTO(Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, GradeReasonEnum reason, String description, String value, BigDecimal converted) {
+    public GradeDTO(Long id, Long subjectId, Long assignedDaySubjectId, GradingSystemEnum system, GradeReasonEnum reason, String description, String value, BigDecimal converted) {
+        this.id = id;
         this.subjectId = subjectId;
         this.assignedDaySubjectId = assignedDaySubjectId;
         this.system = system;
@@ -38,6 +41,14 @@ public class GradeDTO {
         this.description = description;
         this.value = value;
         this.converted = converted;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getSubjectId() {

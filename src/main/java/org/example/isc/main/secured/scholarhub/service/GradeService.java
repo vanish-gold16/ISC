@@ -41,24 +41,40 @@ public class GradeService {
     }
 
     public Grade create(GradeDTO gradeDTO, String username) {
-        Subject subject = subjectsRepository.findById(gradeDTO.getSubjectId())
-                .filter(foundSubject -> username.equals(foundSubject.getUser().getUsername()))
-                .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + gradeDTO.getSubjectId()));
-
+        Subject subject = requireSubject(gradeDTO.getSubjectId(), username);
         DaySubject lesson = resolveLesson(gradeDTO.getAssignedDaySubjectId(), username, subject.getId());
+        return saveGrade(new Grade(), gradeDTO, subject, lesson);
+    }
+
+    public Grade edit(Long id, GradeDTO gradeDTO, String username) {
+        Grade grade = getForUser(id, username);
+        Subject subject = requireSubject(gradeDTO.getSubjectId(), username);
+        DaySubject lesson = resolveLesson(gradeDTO.getAssignedDaySubjectId(), username, subject.getId());
+        return saveGrade(grade, gradeDTO, subject, lesson);
+    }
+
+    public void delete(Long id, String username) {
+        Grade grade = getForUser(id, username);
+        gradeRepository.delete(grade);
+    }
+
+    private Subject requireSubject(Long subjectId, String username) {
+        return subjectsRepository.findById(subjectId)
+                .filter(foundSubject -> username.equals(foundSubject.getUser().getUsername()))
+                .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + subjectId));
+    }
+
+    private Grade saveGrade(Grade grade, GradeDTO gradeDTO, Subject subject, DaySubject lesson) {
         String normalizedValue = convertGrade.normalizeValue(gradeDTO.getSystem(), gradeDTO.getValue());
-
         BigDecimal converted = convertGrade.toNormalizedScore(gradeDTO.getSystem(), normalizedValue);
-
-        return gradeRepository.save(new Grade(
-                subject,
-                lesson,
-                gradeDTO.getSystem(),
-                gradeDTO.getReason(),
-                gradeDTO.getDescription(),
-                normalizedValue,
-                converted
-        ));
+        grade.setSubject(subject);
+        grade.setAssignedDaySubject(lesson);
+        grade.setGradingSystem(gradeDTO.getSystem());
+        grade.setReason(gradeDTO.getReason());
+        grade.setDescription(gradeDTO.getDescription());
+        grade.setValue(normalizedValue);
+        grade.setConverted(converted);
+        return gradeRepository.save(grade);
     }
 
     private DaySubject resolveLesson(Long assignedDaySubjectId, String username, Long subjectId) {

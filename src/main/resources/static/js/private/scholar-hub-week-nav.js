@@ -61,13 +61,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
     const subjectModalAverageHint = subjectModal?.querySelector(".subject-detail-widget--hero .subject-detail-widget__hint");
+    const subjectGradesWidget = document.getElementById("subject-modal-grades-widget");
     const subjectModalGrades = document.getElementById("subject-modal-grades");
     const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
     const subjectUpcomingDate = document.getElementById("subject-modal-upcoming-date");
     const subjectUpcomingTitle = document.getElementById("subject-modal-upcoming-title");
     const subjectGradesModal = document.getElementById("subject-modal-grades-panel");
+    const subjectGradesListModal = document.getElementById("subject-modal-grades-list");
     const subjectGradesTrigger = document.querySelector("[data-open-subject-grades-modal]");
     const subjectGradesContext = document.getElementById("subject-grades-panel-context");
+    const subjectGradesListContext = document.getElementById("subject-grades-list-context");
+    const subjectGradesList = document.getElementById("subject-grades-list");
+    const subjectGradesListEmpty = document.getElementById("subject-grades-list-empty");
+    const subjectGradesListAddButton = document.getElementById("subject-grades-list-add");
+    const subjectGradesPanelTitle = document.getElementById("subject-grades-panel-title");
+    const subjectGradeDeleteButton = document.getElementById("subject-grade-delete");
     const subjectGradeValueInput = document.getElementById("subject-grade-value");
     const subjectGradeSystemInput = document.getElementById("subject-grade-system");
     const subjectGradeDescriptionInput = document.getElementById("subject-grade-description");
@@ -104,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectSideHomeworkSaveButton = document.getElementById("subject-side-homework-save");
     const closeSubjectTriggers = Array.from(document.querySelectorAll("[data-close-subject-modal]"));
     const closeSubjectGradesTriggers = Array.from(document.querySelectorAll("[data-close-subject-grades-modal]"));
+    const closeSubjectGradesListTriggers = Array.from(document.querySelectorAll("[data-close-subject-grades-list-modal]"));
     const closeSubjectSideTriggers = Array.from(document.querySelectorAll("[data-close-subject-side-modal]"));
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
     const closeSubjectHomeworkDetailTriggers = Array.from(document.querySelectorAll("[data-close-subject-homework-detail-modal]"));
@@ -117,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let subjectUpcomingTab = "current";
     let activeHomeworkDetailEntry = null;
     let activeHomeworkDetailTrigger = null;
+    let activeGradeRecord = null;
     let activeWeekTimetable = null;
     let activeWeekHomeworkTrigger = null;
     let userSettingsCache = null;
@@ -980,7 +990,9 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectGradesModal.classList.add("hidden");
         subjectGradesModal.setAttribute("aria-hidden", "true");
         subjectGradesModal.removeAttribute("style");
+        activeGradeRecord = null;
         if (subjectGradesContext) subjectGradesContext.textContent = "Current lesson";
+        if (subjectGradesPanelTitle) subjectGradesPanelTitle.textContent = "Add grade";
         if (subjectGradeValueInput) subjectGradeValueInput.value = "";
         if (subjectGradeSystemInput) subjectGradeSystemInput.value = getPreferredGradeSystem();
         if (subjectGradeDescriptionInput) subjectGradeDescriptionInput.value = "";
@@ -989,7 +1001,21 @@ document.addEventListener("DOMContentLoaded", () => {
             subjectGradeSaveButton.disabled = false;
             subjectGradeSaveButton.textContent = "Save grade";
         }
+        if (subjectGradeDeleteButton) {
+            subjectGradeDeleteButton.classList.add("hidden");
+            subjectGradeDeleteButton.disabled = false;
+        }
         syncGradeValueInput();
+    }
+
+    function resetSubjectGradesListModal() {
+        if (!subjectGradesListModal) return;
+        subjectGradesListModal.classList.add("hidden");
+        subjectGradesListModal.setAttribute("aria-hidden", "true");
+        subjectGradesListModal.removeAttribute("style");
+        if (subjectGradesListContext) subjectGradesListContext.textContent = "Current subject";
+        if (subjectGradesList) subjectGradesList.innerHTML = "";
+        if (subjectGradesListEmpty) subjectGradesListEmpty.classList.add("hidden");
     }
 
     function resetSubjectUpcomingLayer() {
@@ -1008,6 +1034,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function isSubjectGradesModalOpen() {
         return !!subjectGradesModal && !subjectGradesModal.classList.contains("hidden");
+    }
+
+    function isSubjectGradesListModalOpen() {
+        return !!subjectGradesListModal && !subjectGradesListModal.classList.contains("hidden");
     }
 
     function isSubjectUpcomingLayerOpen() {
@@ -1332,6 +1362,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return rect;
     }
 
+    function getSubjectGradesWidgetRect() {
+        if (!subjectGradesWidget) return null;
+        const rect = subjectGradesWidget.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        return rect;
+    }
+
     function closeSubjectGradesModal(force = false) {
         if (!subjectGradesModal || subjectGradesModal.classList.contains("hidden")) return;
         if (force) {
@@ -1363,6 +1400,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.setTimeout(() => {
             resetSubjectGradesModal();
+        }, closeMs + 30);
+    }
+
+    function closeSubjectGradesListModal(force = false) {
+        if (!subjectGradesListModal || subjectGradesListModal.classList.contains("hidden")) return;
+        if (force) {
+            resetSubjectGradesListModal();
+            return;
+        }
+
+        const closeMs = 520;
+        const panelRect = subjectGradesListModal.getBoundingClientRect();
+        const triggerRect = getSubjectGradesWidgetRect();
+
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.12);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.12);
+
+            subjectGradesListModal.style.transition = [
+                `opacity ${closeMs}ms cubic-bezier(0.4,0,0.2,1)`,
+                `transform ${closeMs}ms cubic-bezier(0.2,0.8,0.2,1)`
+            ].join(",");
+            subjectGradesListModal.style.opacity = "0";
+            subjectGradesListModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectGradesListModal.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
+            subjectGradesListModal.style.opacity = "0";
+            subjectGradesListModal.style.transform = "translateX(18px) scale(0.92)";
+        }
+
+        window.setTimeout(() => {
+            resetSubjectGradesListModal();
         }, closeMs + 30);
     }
 
@@ -1610,11 +1681,20 @@ document.addEventListener("DOMContentLoaded", () => {
         openSubjectGradesModal();
     }
 
+    function toggleSubjectGradesListModal() {
+        if (isSubjectGradesListModalOpen()) {
+            closeSubjectGradesListModal();
+            return;
+        }
+        openSubjectGradesListModal();
+    }
+
     function openSubjectGradesModal() {
         if (!subjectGradesModal || !subjectDialogLayout || !activeLessonCell) return;
         if (!subjectGradesModal.classList.contains("hidden")) return;
 
         closeSubjectHomeworkDetailModal(true);
+        closeSubjectGradesListModal(true);
         resetSubjectUpcomingLayer();
         resetSubjectSideModal();
 
@@ -1630,8 +1710,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const lessonContext = getLessonContext(activeLessonCell);
         const openMs = 680;
 
+        activeGradeRecord = null;
         if (subjectGradesContext) {
             subjectGradesContext.textContent = lessonContext.context;
+        }
+        if (subjectGradesPanelTitle) {
+            subjectGradesPanelTitle.textContent = "Add grade";
+        }
+        if (subjectGradeSaveButton) {
+            subjectGradeSaveButton.textContent = "Save grade";
+        }
+        if (subjectGradeDeleteButton) {
+            subjectGradeDeleteButton.classList.add("hidden");
         }
 
         subjectGradesModal.classList.remove("hidden");
@@ -1675,6 +1765,178 @@ document.addEventListener("DOMContentLoaded", () => {
         }, Math.round(openMs * 0.72));
     }
 
+    function getGradeContext(grade) {
+        if (grade?.assignedDaySubjectId) {
+            const matchingCell = getScheduleCells().find((cell) => Number(cell.dataset.daySubjectId || "0") === Number(grade.assignedDaySubjectId));
+            if (matchingCell) {
+                return getLessonContext(matchingCell).context;
+            }
+        }
+        const subjectName = activeLessonCell?.dataset?.subjectShortName || activeLessonCell?.dataset?.subjectName || "Subject";
+        return `${subjectName} • saved grade`;
+    }
+
+    function populateSubjectGradeForm(grade) {
+        if (!grade) return;
+        if (subjectGradesContext) {
+            subjectGradesContext.textContent = getGradeContext(grade);
+        }
+        if (subjectGradesPanelTitle) {
+            subjectGradesPanelTitle.textContent = "View or edit grade";
+        }
+        if (subjectGradeValueInput) {
+            subjectGradeValueInput.value = String(grade?.value || "").trim();
+        }
+        if (subjectGradeSystemInput) {
+            subjectGradeSystemInput.value = grade?.system || getPreferredGradeSystem();
+        }
+        if (subjectGradeDescriptionInput) {
+            subjectGradeDescriptionInput.value = grade?.description || "";
+        }
+        if (subjectGradeReasonInput) {
+            subjectGradeReasonInput.value = grade?.reason || defaultGradeReason;
+        }
+        if (subjectGradeSaveButton) {
+            subjectGradeSaveButton.textContent = "Save changes";
+        }
+        if (subjectGradeDeleteButton) {
+            subjectGradeDeleteButton.classList.remove("hidden");
+        }
+        syncGradeValueInput();
+    }
+
+    function openSubjectGradeEditModal(grade) {
+        if (!grade || !subjectGradesModal || !subjectDialogLayout || !activeLessonCell) return;
+        resetSubjectGradesModal();
+        activeGradeRecord = grade;
+        openSubjectGradesModal();
+        activeGradeRecord = grade;
+        populateSubjectGradeForm(grade);
+    }
+
+    function renderSubjectGradesListModal() {
+        if (!subjectGradesList || !subjectGradesListEmpty) return;
+        const subjectId = activeLessonCell?.dataset?.subjectId;
+        const preferredSystem = getPreferredGradeSystem();
+        const grades = getSubjectGrades(subjectId)
+            .slice()
+            .sort((left, right) => Number(right?.id || 0) - Number(left?.id || 0));
+
+        subjectGradesList.innerHTML = "";
+        subjectGradesListEmpty.classList.toggle("hidden", grades.length > 0);
+
+        grades.forEach((grade) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "subject-grade-list__button";
+
+            const top = document.createElement("div");
+            top.className = "subject-grade-list__top";
+
+            const value = document.createElement("span");
+            value.className = "subject-grade-list__value";
+            value.textContent =
+                convertNormalizedToGradeValue(getNormalizedGradeValue(grade), preferredSystem) ||
+                String(grade?.value || "").trim() ||
+                "?";
+
+            const system = document.createElement("span");
+            system.className = "subject-grade-list__system";
+            system.textContent = getGradeSystemLabel(grade?.system || preferredSystem);
+            top.append(value, system);
+            button.appendChild(top);
+
+            const meta = document.createElement("div");
+            meta.className = "subject-grade-list__meta";
+
+            const reason = document.createElement("span");
+            reason.textContent = grade?.reason || defaultGradeReason;
+            meta.appendChild(reason);
+
+            const context = document.createElement("span");
+            context.textContent = getGradeContext(grade);
+            meta.appendChild(context);
+
+            button.appendChild(meta);
+
+            if (grade?.description) {
+                const description = document.createElement("p");
+                description.className = "subject-grade-list__description";
+                description.textContent = grade.description;
+                button.appendChild(description);
+            }
+
+            button.addEventListener("click", () => {
+                openSubjectGradeEditModal(grade);
+            });
+
+            subjectGradesList.appendChild(button);
+        });
+    }
+
+    function openSubjectGradesListModal() {
+        if (!subjectGradesListModal || !subjectDialogLayout || !activeLessonCell) return;
+        if (!subjectGradesListModal.classList.contains("hidden")) return;
+
+        closeSubjectHomeworkDetailModal(true);
+        closeSubjectGradesModal(true);
+        resetSubjectUpcomingLayer();
+        resetSubjectSideModal();
+        renderSubjectGradesListModal();
+
+        const overlap = 26;
+        const sideMinWidth = 240;
+        const sideMaxWidth = 360;
+        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width - overlap;
+        const sideRoom = window.innerWidth - sideLeft - 24;
+        if (sideRoom < sideMinWidth) return;
+
+        const sideWidth = Math.min(sideMaxWidth, sideRoom);
+        const triggerRect = getSubjectGradesWidgetRect();
+        const subjectName = activeLessonCell.dataset.subjectShortName || activeLessonCell.dataset.subjectName || "Subject";
+        const openMs = 680;
+
+        if (subjectGradesListContext) {
+            subjectGradesListContext.textContent = `${subjectName} • all grades`;
+        }
+
+        subjectGradesListModal.classList.remove("hidden");
+        subjectGradesListModal.setAttribute("aria-hidden", "false");
+        Object.assign(subjectGradesListModal.style, {
+            position: "fixed",
+            top: `${subjectDialogLayout.top}px`,
+            left: `${sideLeft}px`,
+            width: `${sideWidth}px`,
+            maxHeight: subjectDialogLayout.maxHeight,
+            opacity: "0",
+            transform: "translateX(0) scale(1)",
+            transformOrigin: "top left",
+            transition: "none"
+        });
+
+        const panelRect = subjectGradesListModal.getBoundingClientRect();
+        if (triggerRect && panelRect.width && panelRect.height) {
+            const translateX = triggerRect.left - panelRect.left;
+            const translateY = triggerRect.top - panelRect.top;
+            const scaleX = Math.max(triggerRect.width / panelRect.width, 0.12);
+            const scaleY = Math.max(triggerRect.height / panelRect.height, 0.12);
+            subjectGradesListModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+        } else {
+            subjectGradesListModal.style.transform = "translateX(24px) scale(0.92)";
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                subjectGradesListModal.style.transition = [
+                    `opacity ${Math.round(openMs * 0.82)}ms cubic-bezier(0.2,0.8,0.2,1)`,
+                    `transform ${openMs}ms cubic-bezier(0.18,0.9,0.2,1)`
+                ].join(",");
+                subjectGradesListModal.style.opacity = "1";
+                subjectGradesListModal.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
+    }
+
     function buildSubjectGradePayload() {
         if (!activeLessonCell || !subjectGradeValueInput || !subjectGradeSystemInput || !subjectGradeReasonInput) {
             return null;
@@ -1684,6 +1946,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!ids?.subjectId) return null;
 
         return {
+            id: activeGradeRecord?.id || null,
             subjectId: Number(ids.subjectId),
             assignedDaySubjectId: ids.dueDaySubjectId ? Number(ids.dueDaySubjectId) : null,
             system: subjectGradeSystemInput.value || defaultGradeSystem,
@@ -1708,20 +1971,47 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             subjectGradeSaveButton.disabled = true;
             subjectGradeSaveButton.textContent = "Saving...";
-            await requestJson("/scholar-hub/grades", {
-                method: "POST",
+            const gradeId = activeGradeRecord?.id;
+            await requestJson(gradeId ? `/scholar-hub/grades/${encodeURIComponent(gradeId)}` : "/scholar-hub/grades", {
+                method: gradeId ? "PUT" : "POST",
                 body: JSON.stringify(payload)
             });
             await loadGrades(true);
             renderSubjectGradesWidget();
-            showToast("success", "Grade saved.");
+            if (isSubjectGradesListModalOpen()) {
+                renderSubjectGradesListModal();
+            }
+            showToast("success", gradeId ? "Grade updated." : "Grade saved.");
             closeSubjectGradesModal();
         } catch (error) {
             console.error(error);
-            showToast("error", "Failed to save grade.");
+            showToast("error", activeGradeRecord?.id ? "Failed to update grade." : "Failed to save grade.");
         } finally {
             subjectGradeSaveButton.disabled = false;
-            subjectGradeSaveButton.textContent = "Save grade";
+            subjectGradeSaveButton.textContent = activeGradeRecord?.id ? "Save changes" : "Save grade";
+        }
+    }
+
+    async function deleteSubjectGrade() {
+        if (!activeGradeRecord?.id || !subjectGradeDeleteButton) return;
+
+        try {
+            subjectGradeDeleteButton.disabled = true;
+            await requestJson(`/scholar-hub/grades/${encodeURIComponent(activeGradeRecord.id)}`, {
+                method: "DELETE"
+            });
+            await loadGrades(true);
+            renderSubjectGradesWidget();
+            if (isSubjectGradesListModalOpen()) {
+                renderSubjectGradesListModal();
+            }
+            showToast("success", "Grade deleted.");
+            closeSubjectGradesModal();
+        } catch (error) {
+            console.error(error);
+            showToast("error", "Failed to delete grade.");
+        } finally {
+            subjectGradeDeleteButton.disabled = false;
         }
     }
 
@@ -1729,6 +2019,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!subjectSideModal || !subjectDialogLayout || !activeLessonCell) return;
         if (!subjectSideModal.classList.contains("hidden")) return;
         resetSubjectGradesModal();
+        resetSubjectGradesListModal();
 
         const overlap = 26;
         const sideMinWidth = 240;
@@ -1788,6 +2079,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!subjectUpcomingLayer || !subjectDialogLayout || !subjectUpcomingWidget) return;
         if (!subjectUpcomingLayer.classList.contains("hidden")) return;
         resetSubjectGradesModal();
+        resetSubjectGradesListModal();
         setSubjectUpcomingTab("current");
         renderSubjectUpcomingLayer();
 
@@ -2089,6 +2381,9 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await loadGrades(force);
             renderSubjectGradesWidget();
+            if (isSubjectGradesListModalOpen()) {
+                renderSubjectGradesListModal();
+            }
         } catch (error) {
             console.error(error);
             subjectModalGrades.innerHTML = '<span class="subject-detail-widget__grade-chip subject-detail-widget__grade-chip--empty">Could not load grades</span>';
@@ -2325,6 +2620,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         closeSubjectUpcomingLayer();
         closeSubjectGradesModal();
+        closeSubjectGradesListModal();
         closeSubjectSideModal();
         // Fade out backdrop over same duration as card return
         if (backdrop) {
@@ -2357,6 +2653,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 subjectModal.setAttribute("aria-hidden", "true");
                 if (dialog)   dialog.removeAttribute("style");
                 resetSubjectGradesModal();
+                resetSubjectGradesListModal();
                 resetSubjectSideModal();
                 resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
@@ -2372,6 +2669,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cardAnimBusy = false;
                 if (dialog)   dialog.removeAttribute("style");
                 resetSubjectGradesModal();
+                resetSubjectGradesListModal();
                 resetSubjectSideModal();
                 resetSubjectUpcomingLayer();
                 if (backdrop) backdrop.removeAttribute("style");
@@ -2651,6 +2949,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 closeSubjectGradesModal();
                 return;
             }
+            if (isSubjectGradesListModalOpen()) {
+                closeSubjectGradesListModal();
+                return;
+            }
             if (isSubjectSideModalOpen()) {
                 closeSubjectSideModal();
                 return;
@@ -2659,6 +2961,7 @@ document.addEventListener("DOMContentLoaded", () => {
         closeSubjectModal();
     }));
     closeSubjectGradesTriggers.forEach((t) => t.addEventListener("click", closeSubjectGradesModal));
+    closeSubjectGradesListTriggers.forEach((t) => t.addEventListener("click", closeSubjectGradesListModal));
     closeSubjectSideTriggers.forEach((t) => t.addEventListener("click", closeSubjectSideModal));
     closeSubjectUpcomingTriggers.forEach((t) => t.addEventListener("click", closeSubjectUpcomingLayer));
     closeSubjectHomeworkDetailTriggers.forEach((t) => t.addEventListener("click", () => closeSubjectHomeworkDetailModal()));
@@ -2667,7 +2970,20 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectGradesTrigger.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleSubjectGradesModal();
+            openSubjectGradesModal();
+        });
+    }
+
+    if (subjectGradesWidget) {
+        subjectGradesWidget.addEventListener("click", (event) => {
+            if (event.target.closest("[data-open-subject-grades-modal]")) return;
+            toggleSubjectGradesListModal();
+        });
+
+        subjectGradesWidget.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            toggleSubjectGradesListModal();
         });
     }
 
@@ -2719,6 +3035,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (subjectGradeSaveButton) {
         subjectGradeSaveButton.addEventListener("click", () => { void saveSubjectGrade(); });
     }
+    if (subjectGradeDeleteButton) {
+        subjectGradeDeleteButton.addEventListener("click", () => { void deleteSubjectGrade(); });
+    }
+    if (subjectGradesListAddButton) {
+        subjectGradesListAddButton.addEventListener("click", () => {
+            closeSubjectGradesListModal(true);
+            openSubjectGradesModal();
+        });
+    }
     if (subjectGradeSystemInput) {
         subjectGradeSystemInput.addEventListener("change", syncGradeValueInput);
     }
@@ -2735,6 +3060,7 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (isSubjectHomeworkDetailModalOpen()) closeSubjectHomeworkDetailModal();
             else if (isSubjectUpcomingLayerOpen()) closeSubjectUpcomingLayer();
             else if (isSubjectGradesModalOpen()) closeSubjectGradesModal();
+            else if (isSubjectGradesListModalOpen()) closeSubjectGradesListModal();
             else if (subjectSideModal && !subjectSideModal.classList.contains("hidden")) closeSubjectSideModal();
             else if (subjectModal && !subjectModal.classList.contains("hidden")) closeSubjectModal();
         }

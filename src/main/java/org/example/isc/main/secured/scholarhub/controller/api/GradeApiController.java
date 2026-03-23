@@ -54,8 +54,30 @@ public class GradeApiController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> editGrade(
+            @PathVariable Long id,
+            @Valid @RequestBody GradeDTO gradeDTO,
+            Authentication authentication
+    ) {
+        User me = requireCurrentUser(authentication);
+        gradeService.edit(id, gradeDTO, me.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGrade(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        User me = requireCurrentUser(authentication);
+        gradeService.delete(id, me.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
     public GradeDTO toDTO(Grade grade) {
         return new GradeDTO(
+                grade.getId(),
                 grade.getSubject().getId(),
                 grade.getAssignedDaySubject() != null ? grade.getAssignedDaySubject().getId() : null,
                 grade.getGradingSystem(),
