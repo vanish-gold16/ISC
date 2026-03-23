@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectModalLesson   = document.getElementById("subject-modal-lesson");
     const subjectModalAverage  = document.getElementById("subject-modal-average-value");
     const subjectModalAverageHint = subjectModal?.querySelector(".subject-detail-widget--hero .subject-detail-widget__hint");
+    const subjectGradesCard = document.getElementById("subject-modal-grades-card");
     const subjectGradesWidget = document.getElementById("subject-modal-grades-widget");
     const subjectModalGrades = document.getElementById("subject-modal-grades");
     const subjectUpcomingWidget = document.getElementById("subject-modal-upcoming-widget");
@@ -1363,10 +1364,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getSubjectGradesWidgetRect() {
-        if (!subjectGradesWidget) return null;
-        const rect = subjectGradesWidget.getBoundingClientRect();
+        const target = subjectGradesCard || subjectGradesWidget;
+        if (!target) return null;
+        const rect = target.getBoundingClientRect();
         if (!rect.width || !rect.height) return null;
         return rect;
+    }
+
+    function getSubjectGradesStackLayout() {
+        if (isSubjectGradesListModalOpen() && subjectGradesListModal) {
+            const rect = subjectGradesListModal.getBoundingClientRect();
+            if (rect.width && rect.height) {
+                return {
+                    left: rect.left,
+                    top: rect.top,
+                    width: rect.width,
+                    maxHeight: subjectGradesListModal.style.maxHeight || `${rect.height}px`,
+                };
+            }
+        }
+        return subjectDialogLayout;
     }
 
     function closeSubjectGradesModal(force = false) {
@@ -1378,7 +1395,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const closeMs = 520;
         const panelRect = subjectGradesModal.getBoundingClientRect();
-        const triggerRect = getSubjectGradesTriggerRect();
+        const stackedOverGradesList = isSubjectGradesListModalOpen();
+        const triggerRect = stackedOverGradesList ? null : getSubjectGradesTriggerRect();
 
         if (triggerRect && panelRect.width && panelRect.height) {
             const translateX = triggerRect.left - panelRect.left;
@@ -1395,7 +1413,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             subjectGradesModal.style.transition = `opacity ${closeMs}ms ease, transform ${closeMs}ms ease`;
             subjectGradesModal.style.opacity = "0";
-            subjectGradesModal.style.transform = "translateX(18px) scale(0.92)";
+            subjectGradesModal.style.transform = stackedOverGradesList
+                ? "translateX(28px) scale(0.94)"
+                : "translateX(18px) scale(0.92)";
         }
 
         window.setTimeout(() => {
@@ -1689,49 +1709,69 @@ document.addEventListener("DOMContentLoaded", () => {
         openSubjectGradesListModal();
     }
 
-    function openSubjectGradesModal() {
+    function openSubjectGradesModal(options = {}) {
         if (!subjectGradesModal || !subjectDialogLayout || !activeLessonCell) return;
         if (!subjectGradesModal.classList.contains("hidden")) return;
 
+        const grade = options.grade || null;
+        const preserveGradesList = !!options.preserveGradesList && isSubjectGradesListModalOpen();
+        const baseLayout = preserveGradesList ? getSubjectGradesStackLayout() : subjectDialogLayout;
+        const triggerRect = options.triggerElement?.getBoundingClientRect() || (preserveGradesList ? null : getSubjectGradesTriggerRect());
+
         closeSubjectHomeworkDetailModal(true);
-        closeSubjectGradesListModal(true);
+        if (!preserveGradesList) {
+            closeSubjectGradesListModal(true);
+        }
         resetSubjectUpcomingLayer();
         resetSubjectSideModal();
 
-        const overlap = 26;
-        const sideMinWidth = 240;
+        const overlap = preserveGradesList ? 42 : 26;
+        const sideMinWidth = preserveGradesList ? 280 : 240;
         const sideMaxWidth = 360;
-        const sideLeft = subjectDialogLayout.left + subjectDialogLayout.width - overlap;
+        const sideLeft = baseLayout.left + baseLayout.width - overlap;
         const sideRoom = window.innerWidth - sideLeft - 24;
         if (sideRoom < sideMinWidth) return;
 
         const sideWidth = Math.min(sideMaxWidth, sideRoom);
-        const triggerRect = getSubjectGradesTriggerRect();
-        const lessonContext = getLessonContext(activeLessonCell);
+        const top = preserveGradesList ? Math.max(baseLayout.top + 10, 20) : baseLayout.top;
+        const lessonContext = grade ? getGradeContext(grade) : getLessonContext(activeLessonCell).context;
         const openMs = 680;
 
-        activeGradeRecord = null;
+        activeGradeRecord = grade;
         if (subjectGradesContext) {
-            subjectGradesContext.textContent = lessonContext.context;
+            subjectGradesContext.textContent = lessonContext;
         }
         if (subjectGradesPanelTitle) {
-            subjectGradesPanelTitle.textContent = "Add grade";
+            subjectGradesPanelTitle.textContent = grade ? "View or edit grade" : "Add grade";
+        }
+        if (subjectGradeValueInput) {
+            subjectGradeValueInput.value = grade ? String(grade?.value || "").trim() : "";
+        }
+        if (subjectGradeSystemInput) {
+            subjectGradeSystemInput.value = grade?.system || getPreferredGradeSystem();
+        }
+        if (subjectGradeDescriptionInput) {
+            subjectGradeDescriptionInput.value = grade?.description || "";
+        }
+        if (subjectGradeReasonInput) {
+            subjectGradeReasonInput.value = grade?.reason || defaultGradeReason;
         }
         if (subjectGradeSaveButton) {
-            subjectGradeSaveButton.textContent = "Save grade";
+            subjectGradeSaveButton.textContent = grade ? "Save changes" : "Save grade";
         }
         if (subjectGradeDeleteButton) {
-            subjectGradeDeleteButton.classList.add("hidden");
+            subjectGradeDeleteButton.classList.toggle("hidden", !grade);
         }
+        syncGradeValueInput();
 
         subjectGradesModal.classList.remove("hidden");
         subjectGradesModal.setAttribute("aria-hidden", "false");
         Object.assign(subjectGradesModal.style, {
             position: "fixed",
-            top: `${subjectDialogLayout.top}px`,
+            top: `${top}px`,
             left: `${sideLeft}px`,
             width: `${sideWidth}px`,
-            maxHeight: subjectDialogLayout.maxHeight,
+            maxHeight: baseLayout.maxHeight,
             opacity: "0",
             transform: "translateX(0) scale(1)",
             transformOrigin: "top left",
@@ -1746,7 +1786,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const scaleY = Math.max(triggerRect.height / panelRect.height, 0.08);
             subjectGradesModal.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
         } else {
-            subjectGradesModal.style.transform = "translateX(24px) scale(0.92)";
+            subjectGradesModal.style.transform = preserveGradesList
+                ? "translateX(26px) scale(0.94)"
+                : "translateX(24px) scale(0.92)";
         }
 
         requestAnimationFrame(() => {
@@ -1776,42 +1818,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${subjectName} • saved grade`;
     }
 
-    function populateSubjectGradeForm(grade) {
-        if (!grade) return;
-        if (subjectGradesContext) {
-            subjectGradesContext.textContent = getGradeContext(grade);
-        }
-        if (subjectGradesPanelTitle) {
-            subjectGradesPanelTitle.textContent = "View or edit grade";
-        }
-        if (subjectGradeValueInput) {
-            subjectGradeValueInput.value = String(grade?.value || "").trim();
-        }
-        if (subjectGradeSystemInput) {
-            subjectGradeSystemInput.value = grade?.system || getPreferredGradeSystem();
-        }
-        if (subjectGradeDescriptionInput) {
-            subjectGradeDescriptionInput.value = grade?.description || "";
-        }
-        if (subjectGradeReasonInput) {
-            subjectGradeReasonInput.value = grade?.reason || defaultGradeReason;
-        }
-        if (subjectGradeSaveButton) {
-            subjectGradeSaveButton.textContent = "Save changes";
-        }
-        if (subjectGradeDeleteButton) {
-            subjectGradeDeleteButton.classList.remove("hidden");
-        }
-        syncGradeValueInput();
-    }
-
-    function openSubjectGradeEditModal(grade) {
+    function openSubjectGradeEditModal(grade, triggerElement = null) {
         if (!grade || !subjectGradesModal || !subjectDialogLayout || !activeLessonCell) return;
         resetSubjectGradesModal();
-        activeGradeRecord = grade;
-        openSubjectGradesModal();
-        activeGradeRecord = grade;
-        populateSubjectGradeForm(grade);
+        openSubjectGradesModal({
+            grade,
+            triggerElement,
+            preserveGradesList: true,
+        });
     }
 
     function renderSubjectGradesListModal() {
@@ -1867,7 +1881,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             button.addEventListener("click", () => {
-                openSubjectGradeEditModal(grade);
+                openSubjectGradeEditModal(grade, button);
             });
 
             subjectGradesList.appendChild(button);
@@ -2974,13 +2988,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (subjectGradesWidget) {
-        subjectGradesWidget.addEventListener("click", (event) => {
+    if (subjectGradesCard) {
+        subjectGradesCard.addEventListener("click", (event) => {
             if (event.target.closest("[data-open-subject-grades-modal]")) return;
             toggleSubjectGradesListModal();
         });
 
-        subjectGradesWidget.addEventListener("keydown", (event) => {
+        subjectGradesCard.addEventListener("keydown", (event) => {
             if (event.key !== "Enter" && event.key !== " ") return;
             event.preventDefault();
             toggleSubjectGradesListModal();
@@ -3039,9 +3053,11 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectGradeDeleteButton.addEventListener("click", () => { void deleteSubjectGrade(); });
     }
     if (subjectGradesListAddButton) {
-        subjectGradesListAddButton.addEventListener("click", () => {
-            closeSubjectGradesListModal(true);
-            openSubjectGradesModal();
+        subjectGradesListAddButton.addEventListener("click", (event) => {
+            openSubjectGradesModal({
+                triggerElement: event.currentTarget,
+                preserveGradesList: true,
+            });
         });
     }
     if (subjectGradeSystemInput) {
