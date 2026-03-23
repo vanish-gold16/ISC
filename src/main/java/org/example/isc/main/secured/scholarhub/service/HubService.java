@@ -16,6 +16,7 @@ import org.example.isc.main.secured.models.scholarship.Subject;
 import org.example.isc.main.secured.models.scholarship.Teacher;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.scholarhub.GradeRepository;
 import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
@@ -24,8 +25,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,13 +50,15 @@ public class HubService {
     private final SchedulesRepository schedulesRepository;
     private final SubjectsRepository subjectsRepository;
     private final TeachersRepository teachersRepository;
+    private final GradeRepository gradeRepository;
     private final HomeworkRepository homeworkRepository;
 
-    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository, HomeworkRepository homeworkRepository) {
+    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository, GradeRepository gradeRepository, HomeworkRepository homeworkRepository) {
         this.userRepository = userRepository;
         this.schedulesRepository = schedulesRepository;
         this.subjectsRepository = subjectsRepository;
         this.teachersRepository = teachersRepository;
+        this.gradeRepository = gradeRepository;
         this.homeworkRepository = homeworkRepository;
     }
 
@@ -82,7 +87,9 @@ public class HubService {
         }
 
         List<PreparedDayUpdate> preparedDays = new ArrayList<>();
-        Set<Long> lessonIdsToClearHomework = new HashSet<>();
+        Set<Long> keptPersistedLessonIds = new HashSet<>();
+        Set<Long> lessonIdsToClearDependents = new HashSet<>();
+        Set<Long> existingPersistedLessonIds = collectPersistedLessonIds(existingDays);
         List<NewDayForm> dayForms = scheduleForm.getDays() == null ? List.of() : scheduleForm.getDays();
         for(NewDayForm dayForm : dayForms){
             if(dayForm.getDayOfWeek() == null) continue;
@@ -94,12 +101,17 @@ public class HubService {
             }
             day.setDayOfWeek(dayForm.getDayOfWeek());
 
-            Map<Long, DaySubject> existingLessonsByOrder = new HashMap<>();
+            Map<Long, Deque<DaySubject>> existingLessonsByOrder = new HashMap<>();
+            Deque<DaySubject> unorderedExistingLessons = new ArrayDeque<>();
             List<DaySubject> currentLessons = day.getLessons() == null ? List.of() : new ArrayList<>(day.getLessons());
             for (DaySubject existingLesson : currentLessons) {
-                if (existingLesson.getLessonOrder() != null) {
-                    existingLessonsByOrder.put(existingLesson.getLessonOrder(), existingLesson);
+                if (existingLesson.getLessonOrder() == null) {
+                    unorderedExistingLessons.addLast(existingLesson);
+                    continue;
                 }
+                existingLessonsByOrder
+                        .computeIfAbsent(existingLesson.getLessonOrder(), ignored -> new ArrayDeque<>())
+                        .addLast(existingLesson);
             }
             List<DaySubject> lessons = new ArrayList<>();
             if(dayForm.getLessons() != null){
@@ -109,13 +121,13 @@ public class HubService {
 
                     Subject subject = resolveSubject(me, lessonForm, subjectName);
                     Long lessonOrder = lessonForm.getLessonOrder() != null ? lessonForm.getLessonOrder().longValue() : null;
-                    DaySubject lesson = lessonOrder != null ? existingLessonsByOrder.remove(lessonOrder) : null;
+                    DaySubject lesson = takeExistingLesson(existingLessonsByOrder, unorderedExistingLessons, lessonOrder);
                     if (lesson == null) {
                         lesson = new DaySubject();
                     } else {
                         Long existingSubjectId = lesson.getSubject() != null ? lesson.getSubject().getId() : null;
                         if (lesson.getId() != null && !Objects.equals(existingSubjectId, subject.getId())) {
-                            lessonIdsToClearHomework.add(lesson.getId());
+                            lessonIdsToClearDependents.add(lesson.getId());
                         }
                     }
 
@@ -125,28 +137,23 @@ public class HubService {
                     lesson.setRoom(normalize(lessonForm.getRoom()));
 
                     lessons.add(lesson);
+                    if (lesson.getId() != null) {
+                        keptPersistedLessonIds.add(lesson.getId());
+                    }
                 }
             }
 
-            for (DaySubject removedLesson : existingLessonsByOrder.values()) {
-                if (removedLesson.getId() != null) {
-                    lessonIdsToClearHomework.add(removedLesson.getId());
-                }
-            }
             preparedDays.add(new PreparedDayUpdate(day, lessons));
         }
 
-        for (Day removedDay : existingDaysByWeek.values()) {
-            List<DaySubject> removedLessons = removedDay.getLessons() == null ? List.of() : removedDay.getLessons();
-            for (DaySubject removedLesson : removedLessons) {
-                if (removedLesson.getId() != null) {
-                    lessonIdsToClearHomework.add(removedLesson.getId());
-                }
-            }
-        }
+        Set<Long> removedPersistedLessonIds = new HashSet<>(existingPersistedLessonIds);
+        removedPersistedLessonIds.removeAll(keptPersistedLessonIds);
+        lessonIdsToClearDependents.addAll(removedPersistedLessonIds);
 
-        if (!lessonIdsToClearHomework.isEmpty()) {
-            homeworkRepository.deleteAllByDueDaySubjectIdIn(lessonIdsToClearHomework);
+        if (!lessonIdsToClearDependents.isEmpty()) {
+            gradeRepository.deleteAllByAssignedDaySubjectIdIn(lessonIdsToClearDependents);
+            gradeRepository.flush();
+            homeworkRepository.deleteAllByDueDaySubjectIdIn(lessonIdsToClearDependents);
             homeworkRepository.flush();
         }
 
@@ -158,6 +165,40 @@ public class HubService {
 
         schedule.setDays(newDays);
         return schedulesRepository.save(schedule);
+    }
+
+    private DaySubject takeExistingLesson(
+            Map<Long, Deque<DaySubject>> existingLessonsByOrder,
+            Deque<DaySubject> unorderedExistingLessons,
+            Long lessonOrder
+    ) {
+        if (lessonOrder == null) {
+            return unorderedExistingLessons.pollFirst();
+        }
+
+        Deque<DaySubject> matchingLessons = existingLessonsByOrder.get(lessonOrder);
+        if (matchingLessons == null) {
+            return null;
+        }
+
+        DaySubject lesson = matchingLessons.pollFirst();
+        if (matchingLessons.isEmpty()) {
+            existingLessonsByOrder.remove(lessonOrder);
+        }
+        return lesson;
+    }
+
+    private Set<Long> collectPersistedLessonIds(List<Day> days) {
+        Set<Long> lessonIds = new HashSet<>();
+        for (Day day : days) {
+            List<DaySubject> lessons = day.getLessons() == null ? List.of() : day.getLessons();
+            for (DaySubject lesson : lessons) {
+                if (lesson.getId() != null) {
+                    lessonIds.add(lesson.getId());
+                }
+            }
+        }
+        return lessonIds;
     }
 
     @Transactional

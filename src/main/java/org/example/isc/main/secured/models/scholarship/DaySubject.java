@@ -2,6 +2,7 @@ package org.example.isc.main.secured.models.scholarship;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,6 +22,9 @@ public class DaySubject {
 
     @OneToMany(mappedBy = "assignedDaySubject", fetch = FetchType.LAZY)
     private List<Grade> grades;
+
+    @OneToMany(mappedBy = "dueDaySubject", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Homework> homeworks = new ArrayList<>();
 
     @Column(name = "lesson_order")
     private Long lessonOrder;
@@ -83,5 +87,13 @@ public class DaySubject {
 
     public void setGrades(List<Grade> grades) {
         this.grades = grades;
+    }
+
+    public List<Homework> getHomeworks() {
+        return homeworks;
+    }
+
+    public void setHomeworks(List<Homework> homeworks) {
+        this.homeworks = homeworks;
     }
 }

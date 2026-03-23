@@ -17,8 +17,9 @@ public class Homework {
     @Column(name = "subject_id")
     private Long subjectId;
 
-    @Column(name = "due_day_subject_id")
-    private Long dueDaySubjectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "due_day_subject_id")
+    private DaySubject dueDaySubject;
 
     @Column(name = "title")
     private String title;
@@ -43,9 +44,9 @@ public class Homework {
     public Homework() {
     }
 
-    public Homework(Long subjectId, Long dueDaySubjectId, String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart, Long gradeId) {
+    public Homework(Long subjectId, DaySubject dueDaySubject, String title, String details, HomeworkPriorityEnum priority, HomeworkStatusEnum status, LocalDate weekStart, Long gradeId) {
         this.subjectId = subjectId;
-        this.dueDaySubjectId = dueDaySubjectId;
+        this.dueDaySubject = dueDaySubject;
         this.title = title;
         this.details = details;
         this.priority = priority;
@@ -119,11 +120,24 @@ public class Homework {
     }
 
     public Long getDueDaySubjectId() {
-        return dueDaySubjectId;
+        return dueDaySubject != null ? dueDaySubject.getId() : null;
     }
 
-    public void setDueDaySubjectId(Long dueDaySubjectId) {
-        this.dueDaySubjectId = dueDaySubjectId;
+    public DaySubject getDueDaySubject() {
+        return dueDaySubject;
+    }
+
+    public void setDueDaySubject(DaySubject dueDaySubject) {
+        if (this.dueDaySubject == dueDaySubject) {
+            return;
+        }
+        if (this.dueDaySubject != null) {
+            this.dueDaySubject.getHomeworks().remove(this);
+        }
+        this.dueDaySubject = dueDaySubject;
+        if (dueDaySubject != null && !dueDaySubject.getHomeworks().contains(this)) {
+            dueDaySubject.getHomeworks().add(this);
+        }
     }
 
     public Long getGradeId() {

@@ -26,6 +26,24 @@ $$;
 @@
 
 DO $$
+BEGIN
+    IF to_regclass('public.homeworks') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fkvb524a02ltj3yn9f0tgyfn38'
+          AND conrelid = 'homeworks'::regclass
+    ) THEN
+        DROP TABLE homeworks CASCADE;
+    END IF;
+END;
+$$;
+@@
+
+DO $$
 DECLARE
     constraint_name TEXT;
     day_attnum INT;

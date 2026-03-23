@@ -78,7 +78,7 @@ public class HomeworkService {
         homework.setDetails(homeworkDTO.getDetails());
         homework.setPriority(homeworkDTO.getPriority());
         homework.setSubjectId(lesson.getSubject().getId());
-        homework.setDueDaySubjectId(lesson.getId());
+        homework.setDueDaySubject(lesson);
         homework.setStatus(homeworkDTO.getStatus());
         homework.setWeekStart(homeworkDTO.getWeekStart());
     }
