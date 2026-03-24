@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
     <title>OpusCore — Rate &amp; Reflect</title>
+    <script>
+        (function () {
+            try {
+                const raw = sessionStorage.getItem('opuscore:transition');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (!state || typeof state.ts !== 'number' || Date.now() - state.ts > 2600) {
+                    sessionStorage.removeItem('opuscore:transition');
+                    return;
+                }
+                document.documentElement.classList.add('oc-entry-pending');
+            } catch (error) {
+                sessionStorage.removeItem('opuscore:transition');
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,5 +48,6 @@
 
 <main class="container page">
 </main>
+<script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>
 </html>
