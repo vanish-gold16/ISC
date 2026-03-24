@@ -66,7 +66,7 @@ body::after {
         linear-gradient(180deg, rgba(5, 7, 11, 0.18) 0%, rgba(5, 7, 11, 0.38) 100%);
 }
 
-body > :not(#oc-reveal):not(#oc-ring):not(#oc-flash) {
+body > :not(#oc-reveal):not(#oc-ring):not(#oc-flash):not(#oc-entry-screen) {
     position: relative;
     z-index: 1;
 }
@@ -177,27 +177,29 @@ button { font: inherit; cursor: pointer; }
 .topbar,
 .page {
     transition:
-        opacity 580ms var(--opuscore-enter-ease),
-        transform 860ms var(--opuscore-enter-ease),
-        filter 860ms var(--opuscore-enter-ease);
-    will-change: opacity, transform, filter;
+        opacity 520ms var(--opuscore-enter-ease),
+        filter 720ms var(--opuscore-enter-ease);
+    will-change: opacity, filter;
+}
+
+html.oc-entry-pending,
+html.oc-entry-pending body {
+    overflow: hidden;
 }
 
 html.oc-entry-pending .topbar {
     opacity: 0;
-    transform: translateY(-20px);
-    filter: blur(14px);
+    filter: blur(10px);
 }
 
 html.oc-entry-pending .page {
     opacity: 0;
-    transform: translateY(30px) scale(0.985);
-    filter: blur(20px);
+    filter: blur(12px);
 }
 
 html.oc-entry-pending body::before {
     animation: none;
-    transform: scale(1.12);
+    transform: scale(1.055);
 }
 
 /* ─── HERO / ITEM HEADER ─── */
@@ -629,7 +631,6 @@ input[type="range"]::-moz-range-thumb {
     html.oc-entry-pending .topbar,
     html.oc-entry-pending .page {
         opacity: 1;
-        transform: none;
         filter: none;
     }
 
