@@ -16,6 +16,7 @@ import java.io.IOException;
 
 @Service
 public class ReviewService {
+    private static final long MAX_REVIEW_IMAGE_BYTES = 5_000_000L;
 
     private final UserRepository userRepository;
     private final ImageService imageService;
@@ -42,8 +43,11 @@ public class ReviewService {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found " + authentication.getName()));
 
-        String photoUrl = null;
-        if(form.getImage() != null && !form.getImage().isEmpty()) {
+        String photoUrl = blankToNull(form.getImageUrl());
+        if(photoUrl == null && form.getImage() != null && !form.getImage().isEmpty()) {
+            if (form.getImage().getSize() > MAX_REVIEW_IMAGE_BYTES) {
+                throw new IllegalArgumentException("Cover image must be 5 MB or smaller.");
+            }
             photoUrl = imageService.uploadReviewImage(form.getImage(), me.getId());
         }
 

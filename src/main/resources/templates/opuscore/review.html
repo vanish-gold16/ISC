@@ -73,7 +73,7 @@
             <span class="brand__sub">beta</span>
         </a>
         <div class="topbar__actions">
-            <a class="btn" href="/opuscore">← Back</a>
+            <a class="btn" href="/opuscore">&larr; Back</a>
         </div>
     </div>
 </header>
@@ -97,7 +97,7 @@
             <p class="review-desc" th:text="${review != null && review.artDescription != null} ? ${review.artDescription} : 'Short description about the work.'">Short description about the work.</p>
 
             <div class="review-score">
-                <span class="review-score__value" th:text="${avgScore != null} ? ${avgScore} : '—'">—</span>
+                <span class="review-score__value" th:text="${avgScore != null} ? ${avgScore} : '-'">-</span>
                 <span class="review-score__max">/10</span>
                 <span class="review-score__label">avg score</span>
             </div>
@@ -109,7 +109,7 @@
                 </div>
                 <div>
                     <span class="meta-label">Overall score</span>
-                    <span class="meta-value" th:text="${review != null && review.value != null} ? ${review.value} : '—'">—</span>
+                    <span class="meta-value" th:text="${review != null && review.value != null} ? ${review.value} : '-'">-</span>
                 </div>
             </div>
         </div>
@@ -127,8 +127,8 @@
                 <div class="criteria-card" th:each="c : ${criteriaScores}">
                     <div class="criteria-header">
                         <div>
-                            <div class="criteria-name" th:text="${c.criterionName} ?: 'Criterion'">Criterion</div>
-                            <div class="criteria-desc" th:text="${c.criterionDescription} ?: 'Description'">Description</div>
+                            <div class="criteria-name" th:text="${c.name} ?: 'Criterion'">Criterion</div>
+                            <div class="criteria-desc" th:text="${c.description} ?: 'Description'">Description</div>
                         </div>
                         <div class="criteria-score">
                             <span class="criteria-score__value" th:text="${c.score} ?: '0'">0</span>

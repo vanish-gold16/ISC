@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.ModelAndView;
@@ -40,6 +42,20 @@ public class GlobalExceptionHandler {
     public ModelAndView illegalIdentifierException(Exception exception, HttpServletRequest request) {
         logger.error(exception.getMessage(), exception);
         return buildErrorView(HttpStatus.BAD_REQUEST, exception, request, "error/400");
+    }
+
+    @ExceptionHandler({
+            MaxUploadSizeExceededException.class,
+            MultipartException.class
+    })
+    public ModelAndView multipartException(Exception exception, HttpServletRequest request) {
+        logger.error(exception.getMessage(), exception);
+
+        if ("/opuscore/new-review".equals(request.getRequestURI())) {
+            return new ModelAndView("redirect:/opuscore/new-review?error=image-too-large");
+        }
+
+        return buildErrorView(HttpStatus.PAYLOAD_TOO_LARGE, exception, request, "error/400");
     }
 
     @ExceptionHandler(ResponseStatusException.class)

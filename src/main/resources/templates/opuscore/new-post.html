@@ -128,15 +128,16 @@
             <div class="new-review__chip">OpusCore / Review</div>
             </header>
 
-            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
+            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
+            <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
 
             <div class="form-grid">
                 <div class="cover-column">
                     <label class="cover-label">Cover</label>
                     <div class="cover-uploader" id="cover-uploader">
-                        <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" aria-label="Upload cover" />
+                        <input id="image" class="cover-input" type="file" accept="image/*" aria-label="Upload cover" />
                         <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
                             <span class="cover-drop__inner">
                                 <span class="cover-drop__icon">+</span>
@@ -266,6 +267,7 @@
 
 <script>
     (function () {
+        const form = document.querySelector('.new-review__form');
         const input = document.getElementById('image');
         const drop = document.getElementById('cover-drop');
         const preview = document.getElementById('cover-preview');
@@ -273,6 +275,8 @@
         const remove = document.getElementById('cover-remove');
         const uploader = document.getElementById('cover-uploader');
         const hint = document.getElementById('cover-hint');
+        const uploadedImageUrlField = document.getElementById('imageUrl');
+        const csrfField = document.querySelector('input[name="_csrf"]');
         const modal = document.getElementById('cover-modal');
         const cropperCanvas = document.getElementById('cover-cropper-canvas');
         const cropperContext = cropperCanvas ? cropperCanvas.getContext('2d') : null;
@@ -281,17 +285,18 @@
         const modalApply = document.getElementById('cover-modal-apply');
         const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
         const defaultHint = 'Vertical cover preferred. Max 5 MB.';
-        const outputWidth = 900;
-        const outputHeight = 1320;
+        const outputWidth = 720;
+        const outputHeight = 1056;
+        const optimizedCoverMaxBytes = 700_000;
+        const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
         let appliedPreviewUrl = '';
-        let appliedFile = null;
         let cropperState = null;
         let cropperImage = null;
         let cropperObjectUrl = '';
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
 
-        if (!input || !drop || !preview || !previewImg || !remove || !modal || !cropperCanvas || !cropperContext || !modalZoomInput || !modalZoomValue || !modalApply) return;
+        if (!form || !input || !drop || !preview || !previewImg || !remove || !uploadedImageUrlField || !modal || !cropperCanvas || !cropperContext || !modalZoomInput || !modalZoomValue || !modalApply) return;
 
         cropperCanvas.width = outputWidth;
         cropperCanvas.height = outputHeight;
@@ -321,16 +326,26 @@
             cropperObjectUrl = '';
         }
 
-        function resetPreview() {
-            if (appliedPreviewUrl) {
+        function clearAppliedPreviewUrl() {
+            if (!appliedPreviewUrl) return;
+            if (appliedPreviewUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(appliedPreviewUrl);
-                appliedPreviewUrl = '';
             }
+            appliedPreviewUrl = '';
+        }
+
+        function hasUploadedCover() {
+            return Boolean(uploadedImageUrlField.value);
+        }
+
+        function resetPreview() {
+            clearAppliedPreviewUrl();
             preview.hidden = true;
             drop.hidden = false;
             previewImg.src = '';
             uploader.classList.remove('has-preview');
-            appliedFile = null;
+            uploadedImageUrlField.value = '';
+            input.value = '';
             syncInputFile(null);
         }
 
@@ -358,13 +373,10 @@
             modalZoomValue.textContent = '100%';
         }
 
-        function showAppliedPreview(file) {
-            if (appliedPreviewUrl) {
-                URL.revokeObjectURL(appliedPreviewUrl);
-            }
-
-            appliedPreviewUrl = URL.createObjectURL(file);
-            previewImg.src = appliedPreviewUrl;
+        function showAppliedPreview(url) {
+            clearAppliedPreviewUrl();
+            appliedPreviewUrl = url;
+            previewImg.src = url;
             preview.hidden = false;
             drop.hidden = true;
             uploader.classList.add('has-preview');
@@ -424,7 +436,8 @@
             };
             cropperImage.onerror = () => {
                 setHint('Could not open that image. Try another file.', true);
-                syncInputFile(appliedFile);
+                input.value = '';
+                syncInputFile(null);
                 hideCropper();
             };
             cropperObjectUrl = URL.createObjectURL(file);
@@ -438,6 +451,30 @@
             return null;
         }
 
+        function canvasToBlob(type, quality) {
+            return new Promise((resolve) => {
+                cropperCanvas.toBlob(resolve, type, quality);
+            });
+        }
+
+        async function createOptimizedCoverBlob() {
+            let lastBlob = null;
+
+            for (const quality of coverQualitySteps) {
+                const blob = await canvasToBlob('image/jpeg', quality);
+                if (!blob) {
+                    continue;
+                }
+
+                lastBlob = blob;
+                if (blob.size <= optimizedCoverMaxBytes) {
+                    return blob;
+                }
+            }
+
+            return lastBlob;
+        }
+
         function startCoverFlow(file) {
             if (!file) {
                 setHint(defaultHint, false);
@@ -448,10 +485,10 @@
             if (validationError) {
                 input.value = '';
                 setHint(validationError, true);
-                if (!appliedFile) {
+                if (!hasUploadedCover()) {
                     resetPreview();
                 } else {
-                    syncInputFile(appliedFile);
+                    syncInputFile(null);
                 }
                 return;
             }
@@ -479,34 +516,72 @@
             drawCropper();
         });
 
-        modalApply.addEventListener('click', () => {
+        modalApply.addEventListener('click', async () => {
             if (!cropperState) {
                 hideCropper();
                 return;
             }
 
-            cropperCanvas.toBlob((blob) => {
-                if (!blob || !cropperState) return;
+            const blob = await createOptimizedCoverBlob();
+            if (!blob || !cropperState) {
+                setHint('Failed to prepare cover image. Try another file.', true);
+                return;
+            }
 
-                const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
-                appliedFile = new File([blob], `${baseName}-cover.jpg`, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now()
+            const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
+            const optimizedFile = new File([blob], `${baseName}-cover.jpg`, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+
+            const formData = new FormData();
+            formData.append('file', optimizedFile);
+
+            modalApply.disabled = true;
+            setHint('Uploading cover...', false);
+
+            try {
+                const response = await fetch('/opuscore/new-review/cover', {
+                    method: 'POST',
+                    body: formData,
+                    headers: csrfField && csrfField.value ? {
+                        'X-CSRF-TOKEN': csrfField.value
+                    } : {}
                 });
 
-                syncInputFile(appliedFile);
-                showAppliedPreview(appliedFile);
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.status}`);
+                }
+
+                const uploadedUrl = (await response.text()).trim();
+                if (!uploadedUrl) {
+                    throw new Error('Upload returned empty URL');
+                }
+
+                uploadedImageUrlField.value = uploadedUrl;
+                input.value = '';
+                syncInputFile(null);
+                showAppliedPreview(uploadedUrl);
+                setHint('Cover uploaded.', false);
                 hideCropper();
-            }, 'image/jpeg', 0.94);
+            } catch (error) {
+                setHint('Failed to upload cover. Try again.', true);
+            } finally {
+                modalApply.disabled = false;
+            }
         });
 
         modalCloseButtons.forEach((button) => {
             button.addEventListener('click', () => {
-                if (appliedFile) {
-                    syncInputFile(appliedFile);
-                    setHint(`Selected: ${appliedFile.name}`, false);
+                input.value = '';
+                syncInputFile(null);
+                if (hasUploadedCover()) {
+                    showAppliedPreview(uploadedImageUrlField.value);
+                    setHint('Cover uploaded.', false);
                 } else {
-                    syncInputFile(null);
+                    preview.hidden = true;
+                    drop.hidden = false;
+                    uploader.classList.remove('has-preview');
                     setHint(defaultHint, false);
                 }
                 hideCropper();
@@ -539,11 +614,15 @@
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && modal.classList.contains('is-open')) {
-                if (appliedFile) {
-                    syncInputFile(appliedFile);
-                    setHint(`Selected: ${appliedFile.name}`, false);
+                input.value = '';
+                syncInputFile(null);
+                if (hasUploadedCover()) {
+                    showAppliedPreview(uploadedImageUrlField.value);
+                    setHint('Cover uploaded.', false);
                 } else {
-                    syncInputFile(null);
+                    preview.hidden = true;
+                    drop.hidden = false;
+                    uploader.classList.remove('has-preview');
                     setHint(defaultHint, false);
                 }
                 hideCropper();
@@ -593,10 +672,23 @@
             startCoverFlow(file);
         });
 
+        form.addEventListener('submit', () => {
+            input.disabled = true;
+            input.value = '';
+            syncInputFile(null);
+        });
+
         modal.style.display = 'none';
         modal.hidden = true;
-        resetPreview();
-        setHint(defaultHint, false);
+        input.value = '';
+        syncInputFile(null);
+        if (hasUploadedCover()) {
+            showAppliedPreview(uploadedImageUrlField.value);
+            setHint('Cover uploaded.', false);
+        } else {
+            resetPreview();
+            setHint(defaultHint, false);
+        }
     })();
 </script>
 

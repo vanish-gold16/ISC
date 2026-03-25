@@ -1,9 +1,10 @@
 package org.example.isc.opuscore.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Size;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
-import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.ReviewCriterion;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,10 +32,12 @@ public class NewReviewDTO {
     private String body;
 
     @NotNull
-    @Size(max = 100)
+    @PositiveOrZero
+    @Max(100)
     private Long value;
 
     private MultipartFile image;
+    private String imageUrl;
 
     @NotNull
     private List<ReviewCriterion> criteria;
@@ -53,6 +56,14 @@ public class NewReviewDTO {
 
     public void setImage(MultipartFile image) {
         this.image = image;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public NewReviewDTO() {
