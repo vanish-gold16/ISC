@@ -60,6 +60,38 @@
             border-radius: 999px !important;
             object-fit: cover !important;
         }
+
+        .topbar {
+            overflow: visible !important;
+            z-index: 900 !important;
+        }
+
+        .oc-profile-menu {
+            position: relative !important;
+            z-index: 1600 !important;
+            isolation: isolate !important;
+        }
+
+        .oc-profile-panel {
+            z-index: 5200 !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            background:
+                linear-gradient(180deg, rgba(22, 26, 36, 0.98), rgba(9, 12, 18, 0.96)) !important,
+                rgba(10, 12, 18, 0.96) !important;
+            box-shadow:
+                0 28px 64px rgba(0, 0, 0, 0.54) !important,
+                inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+            backdrop-filter: blur(22px) saturate(1.18) !important;
+            -webkit-backdrop-filter: blur(22px) saturate(1.18) !important;
+        }
+
+        .oc-profile-item {
+            position: relative !important;
+            z-index: 1 !important;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)) !important,
+                rgba(20, 24, 34, 0.82) !important;
+        }
     </style>
     <div class="topbar__inner container">
         <a class="brand" th:href="@{/opuscore}" href="/opuscore">
@@ -154,6 +186,11 @@
                 function closeMenu() {
                     menu.classList.remove('is-open');
                     trigger.setAttribute('aria-expanded', 'false');
+                    panel.style.display = 'none';
+                    panel.style.opacity = '0';
+                    panel.style.visibility = 'hidden';
+                    panel.style.pointerEvents = 'none';
+                    panel.style.transform = 'translateY(8px)';
                     panel.hidden = true;
                 }
 
@@ -161,10 +198,16 @@
                     menu.classList.add('is-open');
                     trigger.setAttribute('aria-expanded', 'true');
                     panel.hidden = false;
+                    panel.style.display = 'grid';
+                    panel.style.opacity = '1';
+                    panel.style.visibility = 'visible';
+                    panel.style.pointerEvents = 'auto';
+                    panel.style.transform = 'translateY(0)';
                 }
 
                 trigger.addEventListener('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     if (menu.classList.contains('is-open')) {
                         closeMenu();
                     } else {
@@ -180,6 +223,10 @@
                     }
                 });
 
+                panel.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                });
+
                 document.addEventListener('click', (event) => {
                     if (!menu.contains(event.target)) {
                         closeMenu();
@@ -192,6 +239,8 @@
                         trigger.focus();
                     }
                 });
+
+                closeMenu();
             });
         })();
     </script>
