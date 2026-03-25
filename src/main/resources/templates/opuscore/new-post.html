@@ -50,6 +50,44 @@
         html.oc-entry-pending .page {
             opacity: 0;
         }
+
+        .cover-modal {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 2400 !important;
+            display: none !important;
+            place-items: center !important;
+            padding: 24px !important;
+            background: rgba(4, 6, 10, 0.82) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+        }
+
+        .cover-modal.is-open {
+            display: grid !important;
+        }
+
+        .cover-modal[hidden] {
+            display: none !important;
+        }
+
+        .cover-modal__backdrop {
+            position: absolute !important;
+            inset: 0 !important;
+            background: transparent !important;
+        }
+
+        .cover-modal__dialog {
+            position: relative !important;
+            z-index: 1 !important;
+            width: min(560px, calc(100vw - 32px)) !important;
+        }
+
+        #cover-cropper-canvas {
+            width: min(100%, 320px) !important;
+            aspect-ratio: 3 / 4.4 !important;
+            display: block !important;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +111,7 @@
             <span class="brand__sub">beta</span>
         </a>
         <div class="topbar__actions">
-            <a class="btn" href="/opuscore">← Back</a>
+            <a class="btn" href="/opuscore">&larr; Back</a>
         </div>
     </div>
 </header>
@@ -87,13 +125,12 @@
                 <h1 class="new-review__title">Add a fresh take</h1>
                 <p class="new-review__subtitle">Fill the core details, attach a cover, and publish.</p>
             </div>
-            <div class="new-review__chip">OpusCore • Review</div>
+            <div class="new-review__chip">OpusCore / Review</div>
             </header>
 
             <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
-            <input id="cover-scale" type="hidden" value="1" />
 
             <div class="form-grid">
                 <div class="cover-column">
@@ -101,11 +138,11 @@
                     <div class="cover-uploader" id="cover-uploader">
                         <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" aria-label="Upload cover" />
                         <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
-                            <div class="cover-drop__inner">
+                            <span class="cover-drop__inner">
                                 <span class="cover-drop__icon">+</span>
                                 <span class="cover-drop__title">Drop cover here</span>
                                 <span class="cover-drop__hint">or click to upload</span>
-                            </div>
+                            </span>
                         </button>
                         <div class="cover-preview" id="cover-preview" hidden>
                             <img id="cover-preview-img" alt="Cover preview" />
@@ -170,7 +207,7 @@
 
                     <div class="criteria-section glass-panel">
                         <div class="criteria-section__title">Criteria</div>
-                        <p class="criteria-section__hint">Select a type to load criteria. Scores are 0–10.</p>
+                        <p class="criteria-section__hint">Select a type to load criteria. Scores are 0-10.</p>
                         <div class="criteria-grid" id="criteria-grid"></div>
                         <div class="criteria-empty" id="criteria-empty" hidden>No criteria for the selected type yet.</div>
                         <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
@@ -186,7 +223,7 @@
             </div>
 
             <div class="form-actions">
-                <button class="btn btn--submit" type="submit">Publish review →</button>
+                <button class="btn btn--submit" type="submit">Publish review</button>
                 <a class="btn" href="/opuscore">Cancel</a>
             </div>
 
@@ -197,29 +234,27 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
-<div class="cover-modal" id="cover-modal" hidden>
+<div class="cover-modal" id="cover-modal" hidden aria-hidden="true">
     <div class="cover-modal__backdrop" data-cover-modal-close></div>
     <div class="cover-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="cover-modal-title">
         <div class="cover-modal__head">
             <div>
                 <p class="cover-modal__eyebrow">Cover editor</p>
-                <h2 class="cover-modal__title" id="cover-modal-title">Scale your cover</h2>
+                <h2 class="cover-modal__title" id="cover-modal-title">Adjust your cover</h2>
             </div>
             <button class="cover-modal__close" type="button" aria-label="Close cover editor" data-cover-modal-close>×</button>
         </div>
 
-        <div class="cover-modal__preview-shell">
-            <div class="cover-modal__preview-frame">
-                <img id="cover-modal-preview-img" alt="Cover scaling preview" />
-            </div>
+        <div class="cover-modal__canvas-wrap">
+            <canvas id="cover-cropper-canvas" width="900" height="1320"></canvas>
         </div>
 
         <div class="cover-modal__controls">
             <div class="cover-modal__scale-row">
-                <span class="cover-modal__scale-label">Scale cover</span>
+                <span class="cover-modal__scale-label">Scale</span>
                 <span class="cover-modal__scale-value" id="cover-modal-zoom-value">100%</span>
             </div>
-            <input id="cover-modal-zoom-input" class="cover-modal__slider" type="range" min="100" max="220" step="1" value="100" />
+            <input id="cover-modal-zoom-input" class="cover-modal__slider" type="range" min="1" max="3" step="0.01" value="1" />
         </div>
 
         <div class="cover-modal__actions">
@@ -238,26 +273,28 @@
         const remove = document.getElementById('cover-remove');
         const uploader = document.getElementById('cover-uploader');
         const hint = document.getElementById('cover-hint');
-        const coverScaleField = document.getElementById('cover-scale');
-        const form = document.querySelector('.new-review__form');
         const modal = document.getElementById('cover-modal');
-        const modalPreviewImg = document.getElementById('cover-modal-preview-img');
+        const cropperCanvas = document.getElementById('cover-cropper-canvas');
+        const cropperContext = cropperCanvas ? cropperCanvas.getContext('2d') : null;
         const modalZoomInput = document.getElementById('cover-modal-zoom-input');
         const modalZoomValue = document.getElementById('cover-modal-zoom-value');
         const modalApply = document.getElementById('cover-modal-apply');
         const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
         const defaultHint = 'Vertical cover preferred. Max 5 MB.';
+        const outputWidth = 900;
+        const outputHeight = 1320;
         let appliedPreviewUrl = '';
-        let pendingPreviewUrl = '';
         let appliedFile = null;
-        let pendingFile = null;
-        let appliedScale = 1;
-        let pendingScale = 1;
-        let appliedImage = null;
-        let pendingImage = null;
-        let isPreparingSubmit = false;
+        let cropperState = null;
+        let cropperImage = null;
+        let cropperObjectUrl = '';
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
 
-        if (!input || !drop || !preview || !previewImg || !remove || !coverScaleField || !form || !modal || !modalPreviewImg || !modalZoomInput || !modalZoomValue || !modalApply) return;
+        if (!input || !drop || !preview || !previewImg || !remove || !modal || !cropperCanvas || !cropperContext || !modalZoomInput || !modalZoomValue || !modalApply) return;
+
+        cropperCanvas.width = outputWidth;
+        cropperCanvas.height = outputHeight;
 
         function setHint(text, isError) {
             if (!hint) return;
@@ -265,19 +302,9 @@
             hint.classList.toggle('field__hint--error', Boolean(isError));
         }
 
-        function updateScaleUi(value, imageEl) {
-            const scale = Math.max(1, Number(value || 100) / 100);
-            pendingScale = scale;
-            modalZoomInput.value = String(Math.round(scale * 100));
-            modalZoomValue.textContent = `${Math.round(scale * 100)}%`;
-            imageEl.style.transform = `scale(${scale})`;
-        }
-
         function syncInputFile(file) {
             if (typeof DataTransfer === 'undefined') {
-                if (!file) {
-                    input.value = '';
-                }
+                input.value = '';
                 return;
             }
 
@@ -288,6 +315,12 @@
             input.files = dt.files;
         }
 
+        function revokeCropperObjectUrl() {
+            if (!cropperObjectUrl) return;
+            URL.revokeObjectURL(cropperObjectUrl);
+            cropperObjectUrl = '';
+        }
+
         function resetPreview() {
             if (appliedPreviewUrl) {
                 URL.revokeObjectURL(appliedPreviewUrl);
@@ -296,59 +329,106 @@
             preview.hidden = true;
             drop.hidden = false;
             previewImg.src = '';
-            previewImg.style.transform = 'scale(1)';
             uploader.classList.remove('has-preview');
             appliedFile = null;
-            appliedImage = null;
-            appliedScale = 1;
-            coverScaleField.value = '1';
             syncInputFile(null);
         }
 
-        function closeModal() {
-            if (pendingPreviewUrl) {
-                URL.revokeObjectURL(pendingPreviewUrl);
-                pendingPreviewUrl = '';
-            }
+        function showCropper() {
+            modal.hidden = false;
+            modal.style.display = 'grid';
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.documentElement.classList.add('cover-modal-open');
+            document.body.classList.add('cover-modal-open');
+        }
 
+        function hideCropper() {
+            modal.classList.remove('is-open');
+            modal.style.display = 'none';
             modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+            document.documentElement.classList.remove('cover-modal-open');
             document.body.classList.remove('cover-modal-open');
-            modalPreviewImg.src = '';
-            modalPreviewImg.style.transform = 'scale(1)';
-            pendingFile = null;
-            pendingImage = null;
-            pendingScale = 1;
-            modalZoomInput.value = '100';
+            revokeCropperObjectUrl();
+            cropperImage = null;
+            cropperState = null;
+            isDragging = false;
+            modalZoomInput.value = '1';
             modalZoomValue.textContent = '100%';
         }
 
-        function showAppliedPreview(file, scale) {
+        function showAppliedPreview(file) {
             if (appliedPreviewUrl) {
                 URL.revokeObjectURL(appliedPreviewUrl);
             }
 
             appliedPreviewUrl = URL.createObjectURL(file);
             previewImg.src = appliedPreviewUrl;
-            previewImg.style.transform = `scale(${scale})`;
             preview.hidden = false;
             drop.hidden = true;
             uploader.classList.add('has-preview');
         }
 
-        function openModal(file) {
-            pendingFile = file;
-            pendingScale = 1;
-            pendingPreviewUrl = URL.createObjectURL(file);
-            modalPreviewImg.src = pendingPreviewUrl;
-            updateScaleUi(100, modalPreviewImg);
-            modal.hidden = false;
-            document.body.classList.add('cover-modal-open');
+        function clampOffsets(scale) {
+            if (!cropperState || !cropperImage) return;
+            const imageWidth = cropperImage.width * scale;
+            const imageHeight = cropperImage.height * scale;
+            const minX = (cropperCanvas.width - imageWidth) / 2;
+            const minY = (cropperCanvas.height - imageHeight) / 2;
+            const maxX = -minX;
+            const maxY = -minY;
 
-            const image = new Image();
-            image.onload = () => {
-                pendingImage = image;
+            cropperState.offsetX = Math.min(Math.max(cropperState.offsetX, minX), maxX);
+            cropperState.offsetY = Math.min(Math.max(cropperState.offsetY, minY), maxY);
+        }
+
+        function drawCropper() {
+            if (!cropperState || !cropperImage) return;
+            const scale = cropperState.baseScale * cropperState.zoom;
+            clampOffsets(scale);
+
+            const imageWidth = cropperImage.width * scale;
+            const imageHeight = cropperImage.height * scale;
+            const drawX = (cropperCanvas.width - imageWidth) / 2 + cropperState.offsetX;
+            const drawY = (cropperCanvas.height - imageHeight) / 2 + cropperState.offsetY;
+
+            cropperContext.clearRect(0, 0, cropperCanvas.width, cropperCanvas.height);
+            cropperContext.imageSmoothingEnabled = true;
+            cropperContext.imageSmoothingQuality = 'high';
+            cropperContext.drawImage(cropperImage, drawX, drawY, imageWidth, imageHeight);
+        }
+
+        function openCropper(file) {
+            revokeCropperObjectUrl();
+            cropperImage = new Image();
+            cropperImage.onload = () => {
+                const baseScale = Math.max(
+                    cropperCanvas.width / cropperImage.width,
+                    cropperCanvas.height / cropperImage.height
+                );
+
+                cropperState = {
+                    file,
+                    baseScale,
+                    zoom: 1,
+                    offsetX: 0,
+                    offsetY: 0
+                };
+
+                modalZoomInput.value = '1';
+                modalZoomValue.textContent = '100%';
+                drawCropper();
+                showCropper();
+                revokeCropperObjectUrl();
             };
-            image.src = pendingPreviewUrl;
+            cropperImage.onerror = () => {
+                setHint('Could not open that image. Try another file.', true);
+                syncInputFile(appliedFile);
+                hideCropper();
+            };
+            cropperObjectUrl = URL.createObjectURL(file);
+            cropperImage.src = cropperObjectUrl;
         }
 
         function validateFile(file) {
@@ -358,10 +438,9 @@
             return null;
         }
 
-        function applyFile(file) {
+        function startCoverFlow(file) {
             if (!file) {
                 setHint(defaultHint, false);
-                resetPreview();
                 return;
             }
 
@@ -369,17 +448,23 @@
             if (validationError) {
                 input.value = '';
                 setHint(validationError, true);
-                resetPreview();
+                if (!appliedFile) {
+                    resetPreview();
+                } else {
+                    syncInputFile(appliedFile);
+                }
                 return;
             }
 
             setHint(`Selected: ${file.name}`, false);
-            openModal(file);
+            openCropper(file);
         }
 
-        input.addEventListener('change', () => {
-            applyFile(input.files && input.files[0]);
-        });
+        function handleInputSelection() {
+            startCoverFlow(input.files && input.files[0]);
+        }
+
+        input.addEventListener('change', handleInputSelection);
 
         remove.addEventListener('click', () => {
             input.value = '';
@@ -388,39 +473,85 @@
         });
 
         modalZoomInput.addEventListener('input', () => {
-            updateScaleUi(modalZoomInput.value, modalPreviewImg);
+            if (!cropperState) return;
+            cropperState.zoom = Number(modalZoomInput.value || '1');
+            modalZoomValue.textContent = `${Math.round(cropperState.zoom * 100)}%`;
+            drawCropper();
         });
 
         modalApply.addEventListener('click', () => {
-            if (!pendingFile) {
-                closeModal();
+            if (!cropperState) {
+                hideCropper();
                 return;
             }
 
-            appliedFile = pendingFile;
-            appliedImage = pendingImage;
-            appliedScale = pendingScale;
-            coverScaleField.value = String(appliedScale);
-            syncInputFile(appliedFile);
-            showAppliedPreview(appliedFile, appliedScale);
-            closeModal();
+            cropperCanvas.toBlob((blob) => {
+                if (!blob || !cropperState) return;
+
+                const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
+                appliedFile = new File([blob], `${baseName}-cover.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                syncInputFile(appliedFile);
+                showAppliedPreview(appliedFile);
+                hideCropper();
+            }, 'image/jpeg', 0.94);
         });
 
         modalCloseButtons.forEach((button) => {
             button.addEventListener('click', () => {
-                closeModal();
-                syncInputFile(appliedFile);
+                if (appliedFile) {
+                    syncInputFile(appliedFile);
+                    setHint(`Selected: ${appliedFile.name}`, false);
+                } else {
+                    syncInputFile(null);
+                    setHint(defaultHint, false);
+                }
+                hideCropper();
             });
         });
 
+        cropperCanvas.addEventListener('mousedown', (event) => {
+            if (!cropperState) return;
+            isDragging = true;
+            dragStart = { x: event.clientX, y: event.clientY };
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            if (!isDragging || !cropperState) return;
+            const deltaX = event.clientX - dragStart.x;
+            const deltaY = event.clientY - dragStart.y;
+            dragStart = { x: event.clientX, y: event.clientY };
+            cropperState.offsetX += deltaX;
+            cropperState.offsetY += deltaY;
+            drawCropper();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        cropperCanvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !modal.hidden) {
-                closeModal();
-                syncInputFile(appliedFile);
+            if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                if (appliedFile) {
+                    syncInputFile(appliedFile);
+                    setHint(`Selected: ${appliedFile.name}`, false);
+                } else {
+                    syncInputFile(null);
+                    setHint(defaultHint, false);
+                }
+                hideCropper();
             }
         });
 
         function openFilePicker() {
+            input.value = '';
             input.click();
         }
 
@@ -459,76 +590,11 @@
             const dt = new DataTransfer();
             dt.items.add(file);
             input.files = dt.files;
-            applyFile(file);
+            startCoverFlow(file);
         });
 
-        async function createScaledCover(file) {
-            if (!appliedImage) {
-                return file;
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 1200;
-            canvas.height = 1760;
-
-            const context = canvas.getContext('2d');
-            if (!context) {
-                return file;
-            }
-
-            const scale = Number(coverScaleField.value || String(appliedScale || 1));
-            const baseScale = Math.max(
-                canvas.width / appliedImage.naturalWidth,
-                canvas.height / appliedImage.naturalHeight
-            );
-            const finalScale = baseScale * scale;
-            const drawWidth = appliedImage.naturalWidth * finalScale;
-            const drawHeight = appliedImage.naturalHeight * finalScale;
-            const offsetX = (canvas.width - drawWidth) / 2;
-            const offsetY = (canvas.height - drawHeight) / 2;
-
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.imageSmoothingEnabled = true;
-            context.imageSmoothingQuality = 'high';
-            context.drawImage(appliedImage, offsetX, offsetY, drawWidth, drawHeight);
-
-            const outputType = (file.type || '').startsWith('image/png') ? 'image/png' : 'image/jpeg';
-            const blob = await new Promise((resolve) => {
-                canvas.toBlob(resolve, outputType, 0.94);
-            });
-
-            if (!blob) {
-                return file;
-            }
-
-            const baseName = file.name.replace(/\.[^.]+$/, '');
-            const extension = outputType === 'image/png' ? 'png' : 'jpg';
-            return new File([blob], `${baseName}-cover.${extension}`, {
-                type: outputType,
-                lastModified: Date.now()
-            });
-        }
-
-        form.addEventListener('submit', async (event) => {
-            if (isPreparingSubmit || !input.files || !input.files[0]) {
-                return;
-            }
-
-            event.preventDefault();
-            isPreparingSubmit = true;
-
-            try {
-                const scaledCover = await createScaledCover(input.files[0]);
-                const dt = new DataTransfer();
-                dt.items.add(scaledCover);
-                input.files = dt.files;
-                form.requestSubmit();
-            } catch (error) {
-                isPreparingSubmit = false;
-                setHint('Failed to prepare cover image. Try another file.', true);
-            }
-        });
-
+        modal.style.display = 'none';
+        modal.hidden = true;
         resetPreview();
         setHint(defaultHint, false);
     })();
