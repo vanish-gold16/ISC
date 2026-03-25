@@ -93,6 +93,7 @@
             <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
+            <input id="cover-scale" type="hidden" value="1" />
 
             <div class="form-grid">
                 <div class="cover-column">
@@ -112,6 +113,13 @@
                                 <img src="/images/private/icons/delete.png" alt="" />
                             </button>
                         </div>
+                    </div>
+                    <div class="cover-zoom" id="cover-zoom" hidden>
+                        <div class="cover-zoom__row">
+                            <span class="cover-zoom__label">Scale cover</span>
+                            <span class="cover-zoom__value" id="cover-zoom-value">100%</span>
+                        </div>
+                        <input id="cover-zoom-input" class="cover-zoom__slider" type="range" min="100" max="220" step="1" value="100" />
                     </div>
                     <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
                     <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
@@ -205,9 +213,17 @@
         const remove = document.getElementById('cover-remove');
         const uploader = document.getElementById('cover-uploader');
         const hint = document.getElementById('cover-hint');
+        const zoomWrap = document.getElementById('cover-zoom');
+        const zoomInput = document.getElementById('cover-zoom-input');
+        const zoomValue = document.getElementById('cover-zoom-value');
+        const coverScaleField = document.getElementById('cover-scale');
+        const form = document.querySelector('.new-review__form');
         const defaultHint = 'Vertical cover preferred. Max 5 MB.';
+        let previewUrl = '';
+        let sourceImage = null;
+        let isPreparingSubmit = false;
 
-        if (!input || !drop || !preview || !previewImg || !remove) return;
+        if (!input || !drop || !preview || !previewImg || !remove || !zoomWrap || !zoomInput || !zoomValue || !coverScaleField || !form) return;
 
         function setHint(text, isError) {
             if (!hint) return;
@@ -215,11 +231,27 @@
             hint.classList.toggle('field__hint--error', Boolean(isError));
         }
 
+        function updateZoom(value) {
+            const scale = Math.max(1, Number(value || 100) / 100);
+            coverScaleField.value = String(scale);
+            zoomInput.value = String(Math.round(scale * 100));
+            zoomValue.textContent = `${Math.round(scale * 100)}%`;
+            previewImg.style.transform = `scale(${scale})`;
+        }
+
         function resetPreview() {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = '';
+            }
             preview.hidden = true;
             drop.hidden = false;
             previewImg.src = '';
+            previewImg.style.transform = 'scale(1)';
             uploader.classList.remove('has-preview');
+            zoomWrap.hidden = true;
+            sourceImage = null;
+            updateZoom(100);
         }
 
         function validateFile(file) {
@@ -230,14 +262,19 @@
         }
 
         function showPreview(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImg.src = String(e.target.result || '');
-                preview.hidden = false;
-                drop.hidden = true;
-                uploader.classList.add('has-preview');
+            previewUrl = URL.createObjectURL(file);
+            previewImg.src = previewUrl;
+            preview.hidden = false;
+            drop.hidden = true;
+            zoomWrap.hidden = false;
+            uploader.classList.add('has-preview');
+            updateZoom(100);
+
+            const image = new Image();
+            image.onload = () => {
+                sourceImage = image;
             };
-            reader.readAsDataURL(file);
+            image.src = previewUrl;
         }
 
         function applyFile(file) {
@@ -267,6 +304,10 @@
             input.value = '';
             setHint(defaultHint, false);
             resetPreview();
+        });
+
+        zoomInput.addEventListener('input', () => {
+            updateZoom(zoomInput.value);
         });
 
         function openFilePicker() {
@@ -310,23 +351,95 @@
             input.files = dt.files;
             applyFile(file);
         });
+
+        async function createScaledCover(file) {
+            if (!sourceImage) {
+                return file;
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 1760;
+
+            const context = canvas.getContext('2d');
+            if (!context) {
+                return file;
+            }
+
+            const scale = Number(coverScaleField.value || '1');
+            const baseScale = Math.max(
+                canvas.width / sourceImage.naturalWidth,
+                canvas.height / sourceImage.naturalHeight
+            );
+            const finalScale = baseScale * scale;
+            const drawWidth = sourceImage.naturalWidth * finalScale;
+            const drawHeight = sourceImage.naturalHeight * finalScale;
+            const offsetX = (canvas.width - drawWidth) / 2;
+            const offsetY = (canvas.height - drawHeight) / 2;
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.imageSmoothingEnabled = true;
+            context.imageSmoothingQuality = 'high';
+            context.drawImage(sourceImage, offsetX, offsetY, drawWidth, drawHeight);
+
+            const outputType = (file.type || '').startsWith('image/png') ? 'image/png' : 'image/jpeg';
+            const blob = await new Promise((resolve) => {
+                canvas.toBlob(resolve, outputType, 0.94);
+            });
+
+            if (!blob) {
+                return file;
+            }
+
+            const baseName = file.name.replace(/\.[^.]+$/, '');
+            const extension = outputType === 'image/png' ? 'png' : 'jpg';
+            return new File([blob], `${baseName}-cover.${extension}`, {
+                type: outputType,
+                lastModified: Date.now()
+            });
+        }
+
+        form.addEventListener('submit', async (event) => {
+            if (isPreparingSubmit || !input.files || !input.files[0]) {
+                return;
+            }
+
+            event.preventDefault();
+            isPreparingSubmit = true;
+
+            try {
+                const scaledCover = await createScaledCover(input.files[0]);
+                const dt = new DataTransfer();
+                dt.items.add(scaledCover);
+                input.files = dt.files;
+                form.requestSubmit();
+            } catch (error) {
+                isPreparingSubmit = false;
+                setHint('Failed to prepare cover image. Try another file.', true);
+            }
+        });
+
+        resetPreview();
+        setHint(defaultHint, false);
     })();
 </script>
 
 <script>
     (function () {
         const reviewToggle = document.getElementById('review');
+        const switchWrap = reviewToggle ? reviewToggle.closest('.switch') : null;
         const titleField = document.getElementById('title-field');
         const bodyField = document.getElementById('body-field');
         const titleInput = document.getElementById('title');
         const bodyInput = document.getElementById('body');
         const hint = document.querySelector('[data-review-switch-hint]');
 
-        if (!reviewToggle || !titleField || !bodyField || !titleInput || !bodyInput) return;
+        if (!reviewToggle || !switchWrap || !titleField || !bodyField || !titleInput || !bodyInput) return;
 
         function syncReviewMode() {
             const isFullReview = reviewToggle.checked;
 
+            switchWrap.classList.toggle('is-on', isFullReview);
             titleField.hidden = !isFullReview;
             bodyField.hidden = !isFullReview;
             titleInput.disabled = !isFullReview;
@@ -343,6 +456,16 @@
                     : 'Score-only rating: review headline and body are hidden.';
             }
         }
+
+        switchWrap.addEventListener('click', (event) => {
+            if (event.target === reviewToggle) {
+                return;
+            }
+
+            event.preventDefault();
+            reviewToggle.checked = !reviewToggle.checked;
+            reviewToggle.dispatchEvent(new Event('change', { bubbles: true }));
+        });
 
         reviewToggle.addEventListener('change', syncReviewMode);
         syncReviewMode();

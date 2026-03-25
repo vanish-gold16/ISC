@@ -1,3 +1,15 @@
+.topbar,
+.topbar__inner,
+.topbar__actions {
+    overflow: visible;
+}
+
+.topbar__inner,
+.topbar__actions {
+    position: relative;
+    z-index: 2;
+}
+
 .topbar__actions {
     align-items: center;
 }
@@ -54,17 +66,20 @@
 
 .oc-notify-menu {
     position: relative;
+    z-index: 20;
 }
 
 .oc-notify-btn {
-    width: 54px;
-    min-height: 54px;
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
     padding: 0;
+    flex: 0 0 42px;
 }
 
 .oc-notify-btn__icon {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
     opacity: 0.92;
 }
@@ -108,7 +123,7 @@
     pointer-events: none;
     transform: translateY(-6px);
     transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 180ms;
-    z-index: 50;
+    z-index: 400;
 }
 
 .oc-notify-menu:hover .oc-notify-dropdown,
@@ -182,13 +197,17 @@
 
 .oc-profile-menu {
     position: relative;
+    z-index: 20;
 }
 
 .oc-profile-trigger {
     width: 42px;
+    height: 42px;
+    min-height: 42px;
     padding: 0;
     overflow: hidden;
     border: 0;
+    flex: 0 0 42px;
 }
 
 .oc-profile-trigger__img {
@@ -218,7 +237,11 @@
     pointer-events: none;
     transform: translateY(-6px);
     transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 180ms;
-    z-index: 50;
+    z-index: 400;
+}
+
+.oc-profile-panel[hidden] {
+    display: none !important;
 }
 
 .oc-profile-panel form {
