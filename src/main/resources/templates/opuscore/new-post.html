@@ -79,17 +79,17 @@
 
 <main class="container page new-review-page">
     <section class="page-content">
-    <section class="new-review">
-        <header class="new-review__header">
+        <section class="new-review">
+            <header class="new-review__header glass-panel">
             <div>
                 <p class="new-review__eyebrow">New review</p>
                 <h1 class="new-review__title">Add a fresh take</h1>
                 <p class="new-review__subtitle">Fill the core details, attach a cover, and publish.</p>
             </div>
             <div class="new-review__chip">OpusCore • Review</div>
-        </header>
+            </header>
 
-        <form class="new-review__form" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
+            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
 
@@ -166,7 +166,7 @@
                         <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
                     </div>
 
-                    <div class="criteria-section">
+                    <div class="criteria-section glass-panel">
                         <div class="criteria-section__title">Criteria</div>
                         <p class="criteria-section__hint">Select a type to load criteria. Scores are 0–10.</p>
                         <div class="criteria-grid" id="criteria-grid"></div>
@@ -189,8 +189,8 @@
             </div>
 
             <p class="form-error" th:if="${error}" th:text="${error}">Error</p>
-        </form>
-    </section>
+            </form>
+        </section>
     </section>
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
@@ -277,7 +277,7 @@
             const weight = typeof criterion.weight === 'number' ? criterion.weight : 1;
 
             const card = document.createElement('div');
-            card.className = 'criteria-card';
+            card.className = 'criteria-card glass-panel';
             card.innerHTML = `
                 <div class="criteria-header">
                     <div>

@@ -80,7 +80,7 @@ a { color: inherit; text-decoration: none; }
 button { font: inherit; cursor: pointer; }
 
 .container {
-    width: min(1100px, calc(100% - 32px));
+    width: min(1560px, calc(100% - 32px));
     margin: 0 auto;
 }
 
@@ -237,35 +237,6 @@ html.oc-entry-pending body::before {
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 34%);
     opacity: 0.75;
     pointer-events: none;
-}
-
-.opuscore-stage {
-    display: grid;
-    gap: 14px;
-    min-height: 240px;
-    padding: 34px 36px;
-    animation: fadeUp 0.4s ease both;
-}
-
-.opuscore-stage__eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(224, 229, 244, 0.72);
-}
-
-.opuscore-stage__title {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(32px, 5vw, 48px);
-    line-height: 1.02;
-    letter-spacing: -0.04em;
-    max-width: 10ch;
-}
-
-.opuscore-stage__text {
-    max-width: 560px;
-    color: var(--text-2);
 }
 
 .item-hero {
@@ -672,11 +643,6 @@ input[type="range"]::-moz-range-thumb {
     .page {
         grid-template-columns: 1fr;
         padding: 32px 0 60px;
-    }
-
-    .opuscore-stage {
-        min-height: 0;
-        padding: 24px 22px;
     }
 
     .item-hero {

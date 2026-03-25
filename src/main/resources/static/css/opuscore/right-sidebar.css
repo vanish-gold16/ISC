@@ -10,7 +10,7 @@
     position: relative;
     overflow: hidden;
     display: grid;
-    gap: 16px;
+    gap: 14px;
     padding: 18px;
     border-radius: 28px;
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -36,46 +36,18 @@
     pointer-events: none;
 }
 
-.oc-sidebar-card__glow {
-    position: absolute;
-    inset: auto -20% 58% 22%;
-    height: 120px;
-    border-radius: 999px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 68%);
-    filter: blur(14px);
-    pointer-events: none;
-}
-
-.oc-sidebar-card__eyebrow,
-.oc-sidebar-card__title,
-.oc-sidebar-card__text,
+.oc-sidebar-title,
 .oc-sidebar-nav {
     position: relative;
     z-index: 1;
 }
 
-.oc-sidebar-card__eyebrow {
+.oc-sidebar-title {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgba(224, 229, 244, 0.72);
-}
-
-.oc-sidebar-card__title {
-    margin-top: -6px;
-    font-family: 'DM Serif Display', serif;
-    font-size: 30px;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    color: #f7f9ff;
-}
-
-.oc-sidebar-card__text {
-    margin-top: -8px;
-    color: rgba(223, 228, 242, 0.76);
-    font-size: 14px;
-    line-height: 1.55;
 }
 
 .oc-sidebar-nav {
@@ -85,10 +57,9 @@
 
 .oc-sidebar-action {
     position: relative;
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: 12px;
+    display: flex;
     align-items: center;
+    gap: 12px;
     min-height: 74px;
     padding: 14px;
     border-radius: 22px;
@@ -154,23 +125,12 @@
         0 10px 22px rgba(18, 25, 44, 0.22);
 }
 
-.oc-sidebar-action__content {
+.oc-sidebar-action__label {
     position: relative;
     z-index: 1;
-    min-width: 0;
-    display: grid;
-    gap: 4px;
-}
-
-.oc-sidebar-action__label {
     font-size: 15px;
     font-weight: 600;
     color: #f7f9ff;
-}
-
-.oc-sidebar-action__meta {
-    font-size: 12px;
-    color: rgba(223, 228, 242, 0.7);
 }
 
 @media (max-width: 960px) {
