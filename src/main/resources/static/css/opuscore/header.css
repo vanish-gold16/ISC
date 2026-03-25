@@ -56,13 +56,14 @@
 }
 
 .oc-notify-btn {
-    width: 42px;
+    width: 54px;
+    min-height: 54px;
     padding: 0;
 }
 
 .oc-notify-btn__icon {
-    width: 18px;
-    height: 18px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     opacity: 0.92;
 }

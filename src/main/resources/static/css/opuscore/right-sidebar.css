@@ -36,18 +36,9 @@
     pointer-events: none;
 }
 
-.oc-sidebar-title,
 .oc-sidebar-nav {
     position: relative;
     z-index: 1;
-}
-
-.oc-sidebar-title {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(224, 229, 244, 0.72);
 }
 
 .oc-sidebar-nav {
@@ -117,12 +108,28 @@
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08)),
         linear-gradient(135deg, rgba(108, 142, 255, 0.34), rgba(192, 132, 252, 0.26));
-    color: #f7f9ff;
-    font-size: 24px;
-    line-height: 1;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.2),
         0 10px 22px rgba(18, 25, 44, 0.22);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px 24px;
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+    color: #f7f9ff;
+}
+
+.oc-sidebar-action__icon--my-ratings {
+    background-image: url('/images/private/sidebar-icons/opuscore-my-ratings.png');
+}
+
+.oc-sidebar-action__icon--profile {
+    background-image: url('/images/private/sidebar-icons/opuscore-profile.png');
+}
+
+.oc-sidebar-action__icon--discover {
+    background-image: url('/images/private/sidebar-icons/opuscore-discover.png');
 }
 
 .oc-sidebar-action__label {

@@ -98,8 +98,8 @@
                 <div class="cover-column">
                     <label class="cover-label">Cover</label>
                     <div class="cover-uploader" id="cover-uploader">
-                        <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" />
-                        <div class="cover-drop" id="cover-drop" role="button" tabindex="0" aria-label="Upload cover">
+                        <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" aria-label="Upload cover" />
+                        <div class="cover-drop" id="cover-drop" aria-hidden="true">
                             <div class="cover-drop__inner">
                                 <span class="cover-drop__icon">+</span>
                                 <span class="cover-drop__title">Drop cover here</span>
@@ -132,10 +132,10 @@
 
                         <div class="field field--switch">
                             <label for="review">Is it a full review?</label>
-                            <div class="switch">
+                            <label class="switch">
                                 <input id="review" type="checkbox" th:field="*{review}" />
                                 <span class="switch__track"></span>
-                            </div>
+                            </label>
                             <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
                             <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
                         </div>
@@ -269,29 +269,23 @@
             resetPreview();
         });
 
-        drop.addEventListener('click', () => input.click());
-        drop.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                input.click();
-            }
-        });
+        const dragTargets = [uploader, input, drop].filter(Boolean);
 
         ['dragenter', 'dragover'].forEach((evt) => {
-            drop.addEventListener(evt, (e) => {
+            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
                 e.preventDefault();
                 drop.classList.add('is-dragover');
-            });
+            }));
         });
 
         ['dragleave', 'drop'].forEach((evt) => {
-            drop.addEventListener(evt, (e) => {
+            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
                 e.preventDefault();
                 drop.classList.remove('is-dragover');
-            });
+            }));
         });
 
-        drop.addEventListener('drop', (e) => {
+        uploader.addEventListener('drop', (e) => {
             const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
             if (!file) return;
             const dt = new DataTransfer();

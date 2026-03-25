@@ -1,28 +1,33 @@
 <aside class="sidebar-right sidebar-right--opuscore" th:fragment="rightSidebar(active)">
     <link rel="stylesheet" th:href="@{/css/opuscore/right-sidebar.css}" href="/css/opuscore/right-sidebar.css" />
     <div class="oc-sidebar-card">
-        <div class="oc-sidebar-title">Navigation</div>
-
         <nav class="oc-sidebar-nav" aria-label="OpusCore navigation">
+            <a class="oc-sidebar-action"
+               th:href="@{/opuscore/new-review}"
+               href="/opuscore/new-review"
+               th:classappend="${active}=='new-review' ? ' is-active' : ''">
+                <span class="oc-sidebar-action__icon oc-sidebar-action__icon--new-review" aria-hidden="true">+</span>
+                <span class="oc-sidebar-action__label">New Review</span>
+            </a>
             <a class="oc-sidebar-action"
                th:href="@{/opuscore/my-ratings}"
                href="/opuscore/my-ratings"
                th:classappend="${active}=='my-ratings' ? ' is-active' : ''">
-                <span class="oc-sidebar-action__icon" aria-hidden="true">R</span>
+                <span class="oc-sidebar-action__icon oc-sidebar-action__icon--my-ratings" aria-hidden="true"></span>
                 <span class="oc-sidebar-action__label">My Ratings</span>
             </a>
             <a class="oc-sidebar-action"
                th:href="@{/profile}"
                href="/profile"
                th:classappend="${active}=='profile' ? ' is-active' : ''">
-                <span class="oc-sidebar-action__icon" aria-hidden="true">P</span>
+                <span class="oc-sidebar-action__icon oc-sidebar-action__icon--profile" aria-hidden="true"></span>
                 <span class="oc-sidebar-action__label">Profile</span>
             </a>
             <a class="oc-sidebar-action"
                th:href="@{/opuscore}"
                href="/opuscore"
                th:classappend="${active}=='discover' ? ' is-active' : ''">
-                <span class="oc-sidebar-action__icon" aria-hidden="true">D</span>
+                <span class="oc-sidebar-action__icon oc-sidebar-action__icon--discover" aria-hidden="true"></span>
                 <span class="oc-sidebar-action__label">Discover</span>
             </a>
         </nav>
