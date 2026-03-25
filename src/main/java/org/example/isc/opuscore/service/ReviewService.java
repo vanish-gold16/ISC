@@ -1,4 +1,4 @@
-package org.example.isc.opuscore;
+package org.example.isc.opuscore.service;
 
 import jakarta.transaction.Transactional;
 import org.example.isc.cloudinary.ImageService;

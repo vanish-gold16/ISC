@@ -1,4 +1,4 @@
-package org.example.isc.opuscore;
+package org.example.isc.opuscore.controller;
 
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;

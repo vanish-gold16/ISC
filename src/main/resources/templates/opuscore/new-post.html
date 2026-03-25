@@ -99,13 +99,13 @@
                     <label class="cover-label">Cover</label>
                     <div class="cover-uploader" id="cover-uploader">
                         <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" aria-label="Upload cover" />
-                        <div class="cover-drop" id="cover-drop" aria-hidden="true">
+                        <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
                             <div class="cover-drop__inner">
                                 <span class="cover-drop__icon">+</span>
                                 <span class="cover-drop__title">Drop cover here</span>
                                 <span class="cover-drop__hint">or click to upload</span>
                             </div>
-                        </div>
+                        </button>
                         <div class="cover-preview" id="cover-preview" hidden>
                             <img id="cover-preview-img" alt="Cover preview" />
                             <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
@@ -269,7 +269,19 @@
             resetPreview();
         });
 
-        const dragTargets = [uploader, input, drop].filter(Boolean);
+        function openFilePicker() {
+            input.click();
+        }
+
+        drop.addEventListener('click', openFilePicker);
+        drop.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openFilePicker();
+            }
+        });
+
+        const dragTargets = [uploader, drop].filter(Boolean);
 
         ['dragenter', 'dragover'].forEach((evt) => {
             dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
@@ -288,6 +300,11 @@
         uploader.addEventListener('drop', (e) => {
             const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
             if (!file) return;
+            if (typeof DataTransfer === 'undefined') {
+                setHint('Drag and drop is not supported here. Click to upload instead.', true);
+                return;
+            }
+
             const dt = new DataTransfer();
             dt.items.add(file);
             input.files = dt.files;

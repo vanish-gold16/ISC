@@ -21,12 +21,13 @@
     backdrop-filter: blur(22px) saturate(1.25);
     -webkit-backdrop-filter: blur(22px) saturate(1.25);
     transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    appearance: none;
 }
 
 .oc-return-badge:hover,
 .oc-notify-btn:hover,
 .oc-profile-trigger:hover,
-.oc-profile-menu[open] > .oc-profile-trigger {
+.oc-profile-menu.is-open .oc-profile-trigger {
     transform: translateY(-1px);
     border-color: rgba(255, 255, 255, 0.26);
     box-shadow:
@@ -62,8 +63,8 @@
 }
 
 .oc-notify-btn__icon {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
     opacity: 0.92;
 }
@@ -93,13 +94,13 @@
     width: min(320px, calc(100vw - 24px));
     padding: 12px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
-        linear-gradient(180deg, rgba(18, 22, 30, 0.84), rgba(10, 12, 17, 0.76));
-    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(26px) saturate(1.3);
-    -webkit-backdrop-filter: blur(26px) saturate(1.3);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+        linear-gradient(180deg, rgba(11, 14, 20, 0.96), rgba(7, 9, 14, 0.92));
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(18px) saturate(1.18);
+    -webkit-backdrop-filter: blur(18px) saturate(1.18);
     display: grid;
     gap: 10px;
     opacity: 0;
@@ -183,19 +184,11 @@
     position: relative;
 }
 
-.oc-profile-menu > summary {
-    list-style: none;
-    cursor: pointer;
-}
-
-.oc-profile-menu > summary::-webkit-details-marker {
-    display: none;
-}
-
 .oc-profile-trigger {
     width: 42px;
     padding: 0;
     overflow: hidden;
+    border: 0;
 }
 
 .oc-profile-trigger__img {
@@ -211,13 +204,13 @@
     width: min(280px, calc(100vw - 24px));
     padding: 12px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
-        linear-gradient(180deg, rgba(18, 22, 30, 0.84), rgba(10, 12, 17, 0.76));
-    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(26px) saturate(1.3);
-    -webkit-backdrop-filter: blur(26px) saturate(1.3);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+        linear-gradient(180deg, rgba(11, 14, 20, 0.97), rgba(7, 9, 14, 0.94));
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.46);
+    backdrop-filter: blur(18px) saturate(1.16);
+    -webkit-backdrop-filter: blur(18px) saturate(1.16);
     display: grid;
     gap: 8px;
     opacity: 0;
@@ -232,7 +225,7 @@
     display: contents;
 }
 
-.oc-profile-menu[open] .oc-profile-panel {
+.oc-profile-menu.is-open .oc-profile-panel {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
@@ -248,10 +241,11 @@
     text-align: left;
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
     color: #f7f9ff;
     text-decoration: none;
     font: inherit;
+    cursor: pointer;
 }
 
 .oc-profile-item--button {

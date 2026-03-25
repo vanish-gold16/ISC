@@ -52,14 +52,14 @@
                 </div>
             </div>
 
-            <details class="oc-profile-menu">
-                <summary class="oc-profile-trigger" aria-label="Open profile menu">
+            <div class="oc-profile-menu" data-profile-menu>
+                <button class="oc-profile-trigger" type="button" aria-label="Open profile menu" aria-expanded="false" data-profile-trigger>
                     <img class="oc-profile-trigger__img"
                          th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
                          alt="" />
-                </summary>
+                </button>
 
-                <nav class="oc-profile-panel" aria-label="Profile menu">
+                <nav class="oc-profile-panel" aria-label="Profile menu" data-profile-panel hidden>
                     <a class="oc-profile-item" th:href="@{/profile}">
                         <span class="oc-profile-item__title">Profile</span>
                         <span class="oc-profile-item__text">Open your public page.</span>
@@ -76,7 +76,62 @@
                         </button>
                     </form>
                 </nav>
-            </details>
+            </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const menus = document.querySelectorAll('[data-profile-menu]');
+            if (!menus.length) return;
+
+            menus.forEach((menu) => {
+                const trigger = menu.querySelector('[data-profile-trigger]');
+                const panel = menu.querySelector('[data-profile-panel]');
+                if (!trigger || !panel) return;
+
+                function closeMenu() {
+                    menu.classList.remove('is-open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                    panel.hidden = true;
+                }
+
+                function openMenu() {
+                    menu.classList.add('is-open');
+                    trigger.setAttribute('aria-expanded', 'true');
+                    panel.hidden = false;
+                }
+
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (menu.classList.contains('is-open')) {
+                        closeMenu();
+                    } else {
+                        document.querySelectorAll('[data-profile-menu].is-open').forEach((otherMenu) => {
+                            if (otherMenu === menu) return;
+                            otherMenu.classList.remove('is-open');
+                            const otherTrigger = otherMenu.querySelector('[data-profile-trigger]');
+                            const otherPanel = otherMenu.querySelector('[data-profile-panel]');
+                            if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+                            if (otherPanel) otherPanel.hidden = true;
+                        });
+                        openMenu();
+                    }
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!menu.contains(event.target)) {
+                        closeMenu();
+                    }
+                });
+
+                menu.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeMenu();
+                        trigger.focus();
+                    }
+                });
+            });
+        })();
+    </script>
 </header>

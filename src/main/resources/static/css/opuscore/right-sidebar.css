@@ -120,6 +120,15 @@
     color: #f7f9ff;
 }
 
+.oc-sidebar-action__icon--new-review {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
 .oc-sidebar-action__icon--my-ratings {
     background-image: url('/images/private/sidebar-icons/opuscore-my-ratings.png');
 }
