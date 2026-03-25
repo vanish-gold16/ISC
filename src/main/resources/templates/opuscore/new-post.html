@@ -114,13 +114,6 @@
                             </button>
                         </div>
                     </div>
-                    <div class="cover-zoom" id="cover-zoom" hidden>
-                        <div class="cover-zoom__row">
-                            <span class="cover-zoom__label">Scale cover</span>
-                            <span class="cover-zoom__value" id="cover-zoom-value">100%</span>
-                        </div>
-                        <input id="cover-zoom-input" class="cover-zoom__slider" type="range" min="100" max="220" step="1" value="100" />
-                    </div>
                     <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
                     <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
                 </div>
@@ -204,6 +197,38 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
+<div class="cover-modal" id="cover-modal" hidden>
+    <div class="cover-modal__backdrop" data-cover-modal-close></div>
+    <div class="cover-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="cover-modal-title">
+        <div class="cover-modal__head">
+            <div>
+                <p class="cover-modal__eyebrow">Cover editor</p>
+                <h2 class="cover-modal__title" id="cover-modal-title">Scale your cover</h2>
+            </div>
+            <button class="cover-modal__close" type="button" aria-label="Close cover editor" data-cover-modal-close>×</button>
+        </div>
+
+        <div class="cover-modal__preview-shell">
+            <div class="cover-modal__preview-frame">
+                <img id="cover-modal-preview-img" alt="Cover scaling preview" />
+            </div>
+        </div>
+
+        <div class="cover-modal__controls">
+            <div class="cover-modal__scale-row">
+                <span class="cover-modal__scale-label">Scale cover</span>
+                <span class="cover-modal__scale-value" id="cover-modal-zoom-value">100%</span>
+            </div>
+            <input id="cover-modal-zoom-input" class="cover-modal__slider" type="range" min="100" max="220" step="1" value="100" />
+        </div>
+
+        <div class="cover-modal__actions">
+            <button class="btn btn--submit" type="button" id="cover-modal-apply">Apply</button>
+            <button class="btn" type="button" data-cover-modal-close>Cancel</button>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
         const input = document.getElementById('image');
@@ -213,17 +238,26 @@
         const remove = document.getElementById('cover-remove');
         const uploader = document.getElementById('cover-uploader');
         const hint = document.getElementById('cover-hint');
-        const zoomWrap = document.getElementById('cover-zoom');
-        const zoomInput = document.getElementById('cover-zoom-input');
-        const zoomValue = document.getElementById('cover-zoom-value');
         const coverScaleField = document.getElementById('cover-scale');
         const form = document.querySelector('.new-review__form');
+        const modal = document.getElementById('cover-modal');
+        const modalPreviewImg = document.getElementById('cover-modal-preview-img');
+        const modalZoomInput = document.getElementById('cover-modal-zoom-input');
+        const modalZoomValue = document.getElementById('cover-modal-zoom-value');
+        const modalApply = document.getElementById('cover-modal-apply');
+        const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
         const defaultHint = 'Vertical cover preferred. Max 5 MB.';
-        let previewUrl = '';
-        let sourceImage = null;
+        let appliedPreviewUrl = '';
+        let pendingPreviewUrl = '';
+        let appliedFile = null;
+        let pendingFile = null;
+        let appliedScale = 1;
+        let pendingScale = 1;
+        let appliedImage = null;
+        let pendingImage = null;
         let isPreparingSubmit = false;
 
-        if (!input || !drop || !preview || !previewImg || !remove || !zoomWrap || !zoomInput || !zoomValue || !coverScaleField || !form) return;
+        if (!input || !drop || !preview || !previewImg || !remove || !coverScaleField || !form || !modal || !modalPreviewImg || !modalZoomInput || !modalZoomValue || !modalApply) return;
 
         function setHint(text, isError) {
             if (!hint) return;
@@ -231,27 +265,90 @@
             hint.classList.toggle('field__hint--error', Boolean(isError));
         }
 
-        function updateZoom(value) {
+        function updateScaleUi(value, imageEl) {
             const scale = Math.max(1, Number(value || 100) / 100);
-            coverScaleField.value = String(scale);
-            zoomInput.value = String(Math.round(scale * 100));
-            zoomValue.textContent = `${Math.round(scale * 100)}%`;
-            previewImg.style.transform = `scale(${scale})`;
+            pendingScale = scale;
+            modalZoomInput.value = String(Math.round(scale * 100));
+            modalZoomValue.textContent = `${Math.round(scale * 100)}%`;
+            imageEl.style.transform = `scale(${scale})`;
+        }
+
+        function syncInputFile(file) {
+            if (typeof DataTransfer === 'undefined') {
+                if (!file) {
+                    input.value = '';
+                }
+                return;
+            }
+
+            const dt = new DataTransfer();
+            if (file) {
+                dt.items.add(file);
+            }
+            input.files = dt.files;
         }
 
         function resetPreview() {
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-                previewUrl = '';
+            if (appliedPreviewUrl) {
+                URL.revokeObjectURL(appliedPreviewUrl);
+                appliedPreviewUrl = '';
             }
             preview.hidden = true;
             drop.hidden = false;
             previewImg.src = '';
             previewImg.style.transform = 'scale(1)';
             uploader.classList.remove('has-preview');
-            zoomWrap.hidden = true;
-            sourceImage = null;
-            updateZoom(100);
+            appliedFile = null;
+            appliedImage = null;
+            appliedScale = 1;
+            coverScaleField.value = '1';
+            syncInputFile(null);
+        }
+
+        function closeModal() {
+            if (pendingPreviewUrl) {
+                URL.revokeObjectURL(pendingPreviewUrl);
+                pendingPreviewUrl = '';
+            }
+
+            modal.hidden = true;
+            document.body.classList.remove('cover-modal-open');
+            modalPreviewImg.src = '';
+            modalPreviewImg.style.transform = 'scale(1)';
+            pendingFile = null;
+            pendingImage = null;
+            pendingScale = 1;
+            modalZoomInput.value = '100';
+            modalZoomValue.textContent = '100%';
+        }
+
+        function showAppliedPreview(file, scale) {
+            if (appliedPreviewUrl) {
+                URL.revokeObjectURL(appliedPreviewUrl);
+            }
+
+            appliedPreviewUrl = URL.createObjectURL(file);
+            previewImg.src = appliedPreviewUrl;
+            previewImg.style.transform = `scale(${scale})`;
+            preview.hidden = false;
+            drop.hidden = true;
+            uploader.classList.add('has-preview');
+        }
+
+        function openModal(file) {
+            pendingFile = file;
+            pendingScale = 1;
+            pendingPreviewUrl = URL.createObjectURL(file);
+            modalPreviewImg.src = pendingPreviewUrl;
+            updateScaleUi(100, modalPreviewImg);
+            modal.hidden = false;
+            document.body.classList.add('cover-modal-open');
+
+            const image = new Image();
+            image.onload = () => {
+                pendingImage = image;
+            };
+            image.src = pendingPreviewUrl;
         }
 
         function validateFile(file) {
@@ -259,22 +356,6 @@
             if (!(file.type || '').startsWith('image/')) return 'Only image files are allowed.';
             if (file.size > 5_000_000) return 'Image must be smaller than 5 MB.';
             return null;
-        }
-
-        function showPreview(file) {
-            previewUrl = URL.createObjectURL(file);
-            previewImg.src = previewUrl;
-            preview.hidden = false;
-            drop.hidden = true;
-            zoomWrap.hidden = false;
-            uploader.classList.add('has-preview');
-            updateZoom(100);
-
-            const image = new Image();
-            image.onload = () => {
-                sourceImage = image;
-            };
-            image.src = previewUrl;
         }
 
         function applyFile(file) {
@@ -293,7 +374,7 @@
             }
 
             setHint(`Selected: ${file.name}`, false);
-            showPreview(file);
+            openModal(file);
         }
 
         input.addEventListener('change', () => {
@@ -306,8 +387,37 @@
             resetPreview();
         });
 
-        zoomInput.addEventListener('input', () => {
-            updateZoom(zoomInput.value);
+        modalZoomInput.addEventListener('input', () => {
+            updateScaleUi(modalZoomInput.value, modalPreviewImg);
+        });
+
+        modalApply.addEventListener('click', () => {
+            if (!pendingFile) {
+                closeModal();
+                return;
+            }
+
+            appliedFile = pendingFile;
+            appliedImage = pendingImage;
+            appliedScale = pendingScale;
+            coverScaleField.value = String(appliedScale);
+            syncInputFile(appliedFile);
+            showAppliedPreview(appliedFile, appliedScale);
+            closeModal();
+        });
+
+        modalCloseButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                closeModal();
+                syncInputFile(appliedFile);
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+                syncInputFile(appliedFile);
+            }
         });
 
         function openFilePicker() {
@@ -353,7 +463,7 @@
         });
 
         async function createScaledCover(file) {
-            if (!sourceImage) {
+            if (!appliedImage) {
                 return file;
             }
 
@@ -366,21 +476,21 @@
                 return file;
             }
 
-            const scale = Number(coverScaleField.value || '1');
+            const scale = Number(coverScaleField.value || String(appliedScale || 1));
             const baseScale = Math.max(
-                canvas.width / sourceImage.naturalWidth,
-                canvas.height / sourceImage.naturalHeight
+                canvas.width / appliedImage.naturalWidth,
+                canvas.height / appliedImage.naturalHeight
             );
             const finalScale = baseScale * scale;
-            const drawWidth = sourceImage.naturalWidth * finalScale;
-            const drawHeight = sourceImage.naturalHeight * finalScale;
+            const drawWidth = appliedImage.naturalWidth * finalScale;
+            const drawHeight = appliedImage.naturalHeight * finalScale;
             const offsetX = (canvas.width - drawWidth) / 2;
             const offsetY = (canvas.height - drawHeight) / 2;
 
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.imageSmoothingEnabled = true;
             context.imageSmoothingQuality = 'high';
-            context.drawImage(sourceImage, offsetX, offsetY, drawWidth, drawHeight);
+            context.drawImage(appliedImage, offsetX, offsetY, drawWidth, drawHeight);
 
             const outputType = (file.type || '').startsWith('image/png') ? 'image/png' : 'image/jpeg';
             const blob = await new Promise((resolve) => {
