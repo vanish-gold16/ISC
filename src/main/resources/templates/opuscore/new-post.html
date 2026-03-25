@@ -98,7 +98,7 @@
                     <label class="cover-label">Cover</label>
                     <div class="cover-uploader" id="cover-uploader">
                         <input id="image" class="cover-input" type="file" th:field="*{image}" accept="image/*" />
-                        <div class="cover-drop" id="cover-drop">
+                        <div class="cover-drop" id="cover-drop" role="button" tabindex="0" aria-label="Upload cover">
                             <div class="cover-drop__inner">
                                 <span class="cover-drop__icon">+</span>
                                 <span class="cover-drop__title">Drop cover here</span>
@@ -112,7 +112,7 @@
                             </button>
                         </div>
                     </div>
-                    <p class="field__hint">Vertical cover preferred.</p>
+                    <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
                     <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
                 </div>
 
@@ -135,7 +135,7 @@
                                 <input id="review" type="checkbox" th:field="*{review}" />
                                 <span class="switch__track"></span>
                             </div>
-                            <p class="field__hint">Turn on for long-form review, off for short rating.</p>
+                            <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
                             <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
                         </div>
                     </div>
@@ -153,13 +153,13 @@
                         <p class="field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
                     </div>
 
-                    <div class="field">
+                    <div class="field" id="title-field">
                         <label for="title">Review headline</label>
                         <input id="title" class="input" type="text" th:field="*{title}" placeholder="Your verdict in one line" maxlength="50" />
                         <p class="field__error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</p>
                     </div>
 
-                    <div class="field">
+                    <div class="field" id="body-field">
                         <label for="body">Review body</label>
                         <textarea id="body" class="input input--textarea input--tall" rows="8" th:field="*{body}" placeholder="Write your review..." maxlength="2000"></textarea>
                         <p class="field__hint">Max 2000 characters.</p>
@@ -203,8 +203,30 @@
         const previewImg = document.getElementById('cover-preview-img');
         const remove = document.getElementById('cover-remove');
         const uploader = document.getElementById('cover-uploader');
+        const hint = document.getElementById('cover-hint');
+        const defaultHint = 'Vertical cover preferred. Max 5 MB.';
 
         if (!input || !drop || !preview || !previewImg || !remove) return;
+
+        function setHint(text, isError) {
+            if (!hint) return;
+            hint.textContent = text;
+            hint.classList.toggle('field__hint--error', Boolean(isError));
+        }
+
+        function resetPreview() {
+            preview.hidden = true;
+            drop.hidden = false;
+            previewImg.src = '';
+            uploader.classList.remove('has-preview');
+        }
+
+        function validateFile(file) {
+            if (!file) return 'Choose an image file.';
+            if (!(file.type || '').startsWith('image/')) return 'Only image files are allowed.';
+            if (file.size > 5_000_000) return 'Image must be smaller than 5 MB.';
+            return null;
+        }
 
         function showPreview(file) {
             const reader = new FileReader();
@@ -217,23 +239,41 @@
             reader.readAsDataURL(file);
         }
 
-        input.addEventListener('change', () => {
-            const file = input.files && input.files[0];
+        function applyFile(file) {
             if (!file) {
-                preview.hidden = true;
-                drop.hidden = false;
-                uploader.classList.remove('has-preview');
+                setHint(defaultHint, false);
+                resetPreview();
                 return;
             }
+
+            const validationError = validateFile(file);
+            if (validationError) {
+                input.value = '';
+                setHint(validationError, true);
+                resetPreview();
+                return;
+            }
+
+            setHint(`Selected: ${file.name}`, false);
             showPreview(file);
+        }
+
+        input.addEventListener('change', () => {
+            applyFile(input.files && input.files[0]);
         });
 
         remove.addEventListener('click', () => {
             input.value = '';
-            preview.hidden = true;
-            drop.hidden = false;
-            previewImg.src = '';
-            uploader.classList.remove('has-preview');
+            setHint(defaultHint, false);
+            resetPreview();
+        });
+
+        drop.addEventListener('click', () => input.click());
+        drop.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                input.click();
+            }
         });
 
         ['dragenter', 'dragover'].forEach((evt) => {
@@ -256,8 +296,44 @@
             const dt = new DataTransfer();
             dt.items.add(file);
             input.files = dt.files;
-            showPreview(file);
+            applyFile(file);
         });
+    })();
+</script>
+
+<script>
+    (function () {
+        const reviewToggle = document.getElementById('review');
+        const titleField = document.getElementById('title-field');
+        const bodyField = document.getElementById('body-field');
+        const titleInput = document.getElementById('title');
+        const bodyInput = document.getElementById('body');
+        const hint = document.querySelector('[data-review-switch-hint]');
+
+        if (!reviewToggle || !titleField || !bodyField || !titleInput || !bodyInput) return;
+
+        function syncReviewMode() {
+            const isFullReview = reviewToggle.checked;
+
+            titleField.hidden = !isFullReview;
+            bodyField.hidden = !isFullReview;
+            titleInput.disabled = !isFullReview;
+            bodyInput.disabled = !isFullReview;
+
+            if (!isFullReview) {
+                titleInput.value = '';
+                bodyInput.value = '';
+            }
+
+            if (hint) {
+                hint.textContent = isFullReview
+                    ? 'Turn on for long-form review, off for score-only rating.'
+                    : 'Score-only rating: review headline and body are hidden.';
+            }
+        }
+
+        reviewToggle.addEventListener('change', syncReviewMode);
+        syncReviewMode();
     })();
 </script>
 

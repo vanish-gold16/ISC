@@ -110,6 +110,7 @@
     background: linear-gradient(140deg, rgba(255, 255, 255, 0.03), rgba(108, 142, 255, 0.08));
     transition: border-color 160ms ease, background 160ms ease;
     z-index: 2;
+    cursor: pointer;
 }
 
 .cover-drop.is-dragover {
@@ -209,6 +210,10 @@
     color: var(--muted);
 }
 
+.field__hint--error {
+    color: #fca5a5;
+}
+
 .field__error {
     font-size: 12px;
     color: #fca5a5;
@@ -237,6 +242,11 @@
 .input:focus {
     outline: 3px solid rgba(108, 142, 255, 0.25);
     outline-offset: 1px;
+}
+
+.cover-drop:focus-visible {
+    outline: 3px solid rgba(183, 206, 255, 0.22);
+    outline-offset: 3px;
 }
 
 .input--textarea {

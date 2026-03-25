@@ -47,13 +47,20 @@ public class ReviewService {
             photoUrl = imageService.uploadReviewImage(form.getImage(), me.getId());
         }
 
+        String title = blankToNull(form.getTitle());
+        String body = blankToNull(form.getBody());
+        if (!form.isReview()) {
+            title = null;
+            body = null;
+        }
+
         Review review = new Review(
                 form.getArtType(),
                 form.isReview(),
                 form.getName(),
                 form.getDescription(),
-                form.getTitle(),
-                form.getBody(),
+                title,
+                body,
                 form.getCriteria()
         );
         if (review.getCriteriaScores() != null) {
@@ -92,5 +99,13 @@ public class ReviewService {
         }
 
         return score;
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

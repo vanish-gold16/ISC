@@ -106,9 +106,9 @@ public class ImageService {
         Map uploadResult = cloudinary.uploader().upload(
                 photo.getBytes(),
                 Map.of("folder", "reviews",
-                        "public_id", "post_" + userId,
+                        "public_id", "review_" + userId,
                         "overwrite", true,
-                        "resourse_type", "image")
+                        "resource_type", "image")
         );
         return  (String) uploadResult.get("secure_url");
     }
