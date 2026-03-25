@@ -77,6 +77,14 @@
 </header>
 
 <main class="container page">
+    <section class="page-content">
+        <section class="glass-panel opuscore-stage">
+            <p class="opuscore-stage__eyebrow">OpusCore</p>
+            <h1 class="opuscore-stage__title">Review workspace</h1>
+            <p class="opuscore-stage__text">The right rail now mirrors the regular ISC layout and exposes the review entry point.</p>
+        </section>
+    </section>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('main')}"></aside>
 </main>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>

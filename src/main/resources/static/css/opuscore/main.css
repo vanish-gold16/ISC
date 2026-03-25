@@ -84,6 +84,18 @@ button { font: inherit; cursor: pointer; }
     margin: 0 auto;
 }
 
+.page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    align-items: start;
+    padding: 48px 0 80px;
+}
+
+.page-content {
+    min-width: 0;
+}
+
 /* ─── TOPBAR ─── */
 .topbar {
     position: sticky;
@@ -170,10 +182,6 @@ button { font: inherit; cursor: pointer; }
 }
 
 /* ─── PAGE LAYOUT ─── */
-.page {
-    padding: 48px 0 80px;
-}
-
 .topbar,
 .page {
     transition:
@@ -203,6 +211,63 @@ html.oc-entry-pending body::before {
 }
 
 /* ─── HERO / ITEM HEADER ─── */
+.glass-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+        linear-gradient(135deg, rgba(108, 142, 255, 0.14), rgba(192, 132, 252, 0.08) 55%, rgba(255, 255, 255, 0.02));
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(26px) saturate(1.35);
+    -webkit-backdrop-filter: blur(26px) saturate(1.35);
+}
+
+.glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.03) 34%, transparent 62%),
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 34%);
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+.opuscore-stage {
+    display: grid;
+    gap: 14px;
+    min-height: 240px;
+    padding: 34px 36px;
+    animation: fadeUp 0.4s ease both;
+}
+
+.opuscore-stage__eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(224, 229, 244, 0.72);
+}
+
+.opuscore-stage__title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    max-width: 10ch;
+}
+
+.opuscore-stage__text {
+    max-width: 560px;
+    color: var(--text-2);
+}
+
 .item-hero {
     display: grid;
     grid-template-columns: 200px 1fr;
@@ -597,7 +662,23 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ─── RESPONSIVE ─── */
+@media (max-width: 960px) {
+    .page {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 640px) {
+    .page {
+        grid-template-columns: 1fr;
+        padding: 32px 0 60px;
+    }
+
+    .opuscore-stage {
+        min-height: 0;
+        padding: 24px 22px;
+    }
+
     .item-hero {
         grid-template-columns: 1fr;
     }

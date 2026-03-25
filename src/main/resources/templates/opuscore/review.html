@@ -78,6 +78,7 @@
 </header>
 
 <main class="container page review-page">
+    <section class="page-content">
     <section class="review-hero">
         <div class="review-cover">
             <img th:if="${review != null && review.photoUrl != null}" th:src="${review.photoUrl}" alt="Cover" />
@@ -141,6 +142,8 @@
             <div class="criteria-empty" th:if="${criteriaScores == null}">No criteria set yet.</div>
         </div>
     </section>
+    </section>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('review')}"></aside>
 </main>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>

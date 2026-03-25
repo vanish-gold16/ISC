@@ -78,6 +78,7 @@
 </header>
 
 <main class="container page new-review-page">
+    <section class="page-content">
     <section class="new-review">
         <header class="new-review__header">
             <div>
@@ -190,6 +191,8 @@
             <p class="form-error" th:if="${error}" th:text="${error}">Error</p>
         </form>
     </section>
+    </section>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
 <script>

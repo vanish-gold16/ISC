@@ -3,9 +3,9 @@
 
     const STORAGE_KEY = 'opuscore:transition';
     const ENTRY_WINDOW_MS = 2600;
-    const BG = "linear-gradient(180deg, rgba(5, 7, 11, 0.22) 0%, rgba(5, 7, 11, 0.62) 100%), radial-gradient(circle at top, rgba(108, 142, 255, 0.16), transparent 42%), url('/images/private/opuscore-bg.png') center/cover no-repeat";
-    const SQUISH_DELAY = 150;
-    const NAV_DELAY = 560;
+    const BG = "linear-gradient(180deg, rgba(5, 7, 11, 0.24) 0%, rgba(5, 7, 11, 0.68) 100%), radial-gradient(circle at top, rgba(108, 142, 255, 0.14), transparent 44%), radial-gradient(circle at 78% 18%, rgba(192, 132, 252, 0.09), transparent 30%), url('/images/private/opuscore-bg.png') center/cover no-repeat";
+    const SQUISH_DELAY = 230;
+    const NAV_DELAY = 620;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const root = document.documentElement;
 
@@ -56,16 +56,17 @@
     }
 
     .topbar-opuscore.oc-squish {
-      animation: ocSquish 460ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation: ocSquish 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
       transform-origin: center;
     }
 
     @keyframes ocSquish {
       0% { transform: scale(1) rotate(0deg); filter: none; opacity: 1; }
-      22% { transform: scaleX(0.82) scaleY(0.92) rotate(-2deg); }
-      44% { transform: scaleX(0.58) scaleY(1.08) rotate(2deg); }
-      62% { transform: scaleX(0.5) scaleY(0.96); }
-      100% { transform: scale(0.42); filter: blur(4px); opacity: 0.16; }
+      18% { transform: scaleX(0.9) scaleY(0.96) rotate(-1deg); }
+      38% { transform: scaleX(0.74) scaleY(0.9) rotate(-3deg); }
+      56% { transform: scaleX(0.5) scaleY(1.12) rotate(2deg); }
+      74% { transform: scaleX(0.46) scaleY(0.88) rotate(-1deg); }
+      100% { transform: scaleX(0.42) scaleY(0.98); filter: blur(5px); opacity: 0.14; }
     }
 
     #oc-reveal,
@@ -79,9 +80,10 @@
 
     #oc-reveal {
       opacity: 0;
-      clip-path: circle(var(--or-start, 0px) at var(--ox, 50%) var(--oy, 50%));
+      clip-path: ellipse(var(--orx-start, 0px) var(--ory-start, 0px) at var(--ox, 50%) var(--oy, 50%));
       will-change: clip-path, opacity, transform;
-      transform: scale(0.985);
+      transform-origin: var(--ox, 50%) var(--oy, 50%);
+      transform: scaleX(0.84) scaleY(1.14) rotate(-5deg);
       filter: saturate(1.08) contrast(1.02);
     }
 
@@ -91,10 +93,10 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at var(--ox, 50%) var(--oy, 50%), rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.1) 14%, rgba(255, 255, 255, 0) 36%),
-        radial-gradient(circle at calc(var(--ox, 50%) - 4%) calc(var(--oy, 50%) - 6%), rgba(255, 255, 255, 0.12), transparent 28%);
+        radial-gradient(circle at var(--ox, 50%) var(--oy, 50%), rgba(146, 176, 255, 0.18) 0%, rgba(146, 176, 255, 0.08) 16%, rgba(146, 176, 255, 0) 40%),
+        radial-gradient(circle at calc(var(--ox, 50%) - 5%) calc(var(--oy, 50%) - 7%), rgba(198, 166, 255, 0.08), transparent 24%);
       mix-blend-mode: screen;
-      opacity: 0.94;
+      opacity: 0.7;
     }
 
     #oc-reveal::after,
@@ -107,12 +109,12 @@
 
     #oc-reveal.oc-open {
       opacity: 1;
-      clip-path: circle(var(--or-end, 0px) at var(--ox, 50%) var(--oy, 50%));
-      transform: scale(1.02);
+      clip-path: ellipse(var(--orx-end, 0px) var(--ory-end, 0px) at var(--ox, 50%) var(--oy, 50%));
+      transform: scaleX(1.05) scaleY(0.98) rotate(0deg);
       transition:
-        clip-path 860ms cubic-bezier(0.16, 1, 0.3, 1),
+        clip-path 980ms cubic-bezier(0.16, 1, 0.3, 1),
         opacity 180ms ease-out,
-        transform 860ms cubic-bezier(0.16, 1, 0.3, 1);
+        transform 980ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #oc-entry-screen {
@@ -135,18 +137,21 @@
       z-index: 9999;
       pointer-events: none;
       opacity: 0;
-      background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%), rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.12) 12%, rgba(255, 255, 255, 0) 34%);
-      transform: scale(0.14);
+      background:
+        radial-gradient(circle at var(--ox, 50%) var(--oy, 50%), rgba(132, 164, 255, 0.2), rgba(132, 164, 255, 0.08) 14%, rgba(132, 164, 255, 0) 38%),
+        radial-gradient(circle at calc(var(--ox, 50%) - 3%) calc(var(--oy, 50%) - 6%), rgba(196, 152, 255, 0.12), rgba(196, 152, 255, 0) 34%);
+      transform: scaleX(0.16) scaleY(0.22);
     }
 
     #oc-flash.oc-burst {
-      animation: ocFlash 540ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: ocFlash 760ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes ocFlash {
-      0% { opacity: 0; transform: scale(0.14); }
-      18% { opacity: 1; }
-      100% { opacity: 0; transform: scale(2.8); }
+      0% { opacity: 0; transform: scaleX(0.16) scaleY(0.22); }
+      18% { opacity: 0.72; }
+      52% { opacity: 0.34; transform: scaleX(1.4) scaleY(2.2); }
+      100% { opacity: 0; transform: scaleX(2.8) scaleY(3.6); }
     }
 
     #oc-ring {
@@ -167,13 +172,14 @@
     }
 
     #oc-ring.oc-burst {
-      animation: ocRing 760ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: ocRing 920ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes ocRing {
-      0% { width: 18px; height: 18px; opacity: 0; }
-      14% { opacity: 1; }
-      100% { width: 420px; height: 420px; opacity: 0; }
+      0% { width: 18px; height: 22px; opacity: 0; transform: translate(-50%, -50%) scaleX(0.82) scaleY(1.12); }
+      18% { opacity: 0.72; }
+      56% { width: 240px; height: 340px; opacity: 0.26; transform: translate(-50%, -50%) scaleX(0.94) scaleY(1.08); }
+      100% { width: 460px; height: 390px; opacity: 0; transform: translate(-50%, -50%) scaleX(1.08) scaleY(0.94); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -272,15 +278,19 @@
             const cy = rect.top + (rect.height / 2);
             const maxX = Math.max(cx, window.innerWidth - cx);
             const maxY = Math.max(cy, window.innerHeight - cy);
-            const endRadius = Math.hypot(maxX, maxY) + 140;
-            const startRadius = Math.max(rect.width, rect.height) * 0.4;
+            const endRadiusX = maxX + 220;
+            const endRadiusY = maxY + 220;
+            const startRadiusX = Math.max(rect.width * 0.42, 14);
+            const startRadiusY = Math.max(rect.height * 0.28, 10);
             const ox = toPercent(cx / window.innerWidth);
             const oy = toPercent(cy / window.innerHeight);
 
             reveal.style.setProperty('--ox', ox);
             reveal.style.setProperty('--oy', oy);
-            reveal.style.setProperty('--or-start', `${startRadius}px`);
-            reveal.style.setProperty('--or-end', `${endRadius}px`);
+            reveal.style.setProperty('--orx-start', `${startRadiusX}px`);
+            reveal.style.setProperty('--ory-start', `${startRadiusY}px`);
+            reveal.style.setProperty('--orx-end', `${endRadiusX}px`);
+            reveal.style.setProperty('--ory-end', `${endRadiusY}px`);
             flash.style.setProperty('--ox', ox);
             flash.style.setProperty('--oy', oy);
 
