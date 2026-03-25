@@ -59,7 +59,8 @@
 </head>
 <body>
 
-<header class="topbar">
+<header th:replace="~{/opuscore/blocks/header :: header}"></header>
+<header class="topbar" hidden>
     <div class="topbar__inner container">
         <a class="brand" href="/opuscore">
             <span class="brand__logo-stack">

@@ -28,4 +28,14 @@ public class MainController {
         return "/opuscore/main";
     }
 
+    @GetMapping("/my-ratings")
+    public String getMyRatings(Authentication authentication, Model model){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        model.addAttribute("title", "My Ratings");
+
+        return "/opuscore/my-ratings";
+    }
+
 }

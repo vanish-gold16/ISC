@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-    <title>OpusCore — Rate &amp; Reflect</title>
+    <title>OpusCore | My Ratings</title>
     <script>
         (function () {
             try {
@@ -54,32 +54,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="../../static/css/opuscore/main.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="/css/opuscore/main.css" />
 </head>
 <body>
 
 <header th:replace="~{/opuscore/blocks/header :: header}"></header>
-<header class="topbar" hidden>
-    <div class="topbar__inner container">
-        <a class="brand" href="/">
-            <span class="brand__logo-stack">
-                <img class="brand__logo-img"
-                     th:src="@{/images/brand/logo-submark.png}"
-                     src="/images/brand/logo-submark.png"
-                     alt="" />
-            </span>
-            <span class="brand__text">OpusCore</span>
-            <span class="brand__sub">beta</span>
-        </a>
-        <div class="topbar__actions">
-            <a class="btn" href="/home">← Back</a>
-        </div>
-    </div>
-</header>
 
 <main class="container page">
     <section class="page-content"></section>
-    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('discover')}"></aside>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('my-ratings')}"></aside>
 </main>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>

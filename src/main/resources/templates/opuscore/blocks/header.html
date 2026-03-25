@@ -1,0 +1,82 @@
+<header class="topbar" th:fragment="header">
+    <link rel="stylesheet" th:href="@{/css/opuscore/header.css}" href="/css/opuscore/header.css" />
+    <div class="topbar__inner container">
+        <a class="brand" th:href="@{/opuscore}" href="/opuscore">
+            <span class="brand__logo-stack">
+                <img class="brand__logo-img"
+                     th:src="@{/images/brand/logo-submark.png}"
+                     src="/images/brand/logo-submark.png"
+                     alt="" />
+            </span>
+            <span class="brand__text">OpusCore</span>
+            <span class="brand__sub">beta</span>
+        </a>
+
+        <div class="topbar__actions">
+            <a class="oc-return-badge" th:href="@{/home}" href="/home">Back to ISC</a>
+
+            <div class="oc-notify-menu">
+                <a class="oc-notify-btn" th:href="@{/notifications}" href="/notifications" aria-label="Notifications">
+                    <img class="oc-notify-btn__icon"
+                         th:src="@{/images/private/header/notifications.png}"
+                         src="/images/private/header/notifications.png"
+                         alt="" />
+                    <span class="oc-notify-badge"
+                          th:if="${unreadNotifications != null and unreadNotifications > 0}"
+                          th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}">1</span>
+                </a>
+
+                <div class="oc-notify-dropdown" role="menu" aria-label="Latest notifications">
+                    <div class="oc-notify-dropdown__head">
+                        <p class="oc-notify-dropdown__title">Notifications</p>
+                        <a class="oc-notify-dropdown__link" th:href="@{/notifications}" href="/notifications">View all</a>
+                    </div>
+
+                    <div th:if="${notificationsPreview != null and !#lists.isEmpty(notificationsPreview)}">
+                        <a class="oc-notify-item"
+                           th:href="@{/notifications/{id}/open(id=${n.notificationId})}"
+                           th:each="n : ${#lists.size(notificationsPreview) > 5 ? notificationsPreview.subList(0,5) : notificationsPreview}">
+                            <img class="oc-notify-item__avatar"
+                                 th:src="${n.sender != null and n.sender.profile != null and n.sender.profile.avatarUrl != null} ? ${n.sender.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
+                                 alt="" />
+                            <div class="oc-notify-item__content">
+                                <p class="oc-notify-item__title" th:text="${n.title} ?: 'Notification'">Notification</p>
+                                <p class="oc-notify-item__body" th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <p class="oc-notify-empty" th:if="${notificationsPreview == null or #lists.isEmpty(notificationsPreview)}">
+                        No notifications yet.
+                    </p>
+                </div>
+            </div>
+
+            <details class="oc-profile-menu">
+                <summary class="oc-profile-trigger" aria-label="Open profile menu">
+                    <img class="oc-profile-trigger__img"
+                         th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                         alt="" />
+                </summary>
+
+                <nav class="oc-profile-panel" aria-label="Profile menu">
+                    <a class="oc-profile-item" th:href="@{/profile}">
+                        <span class="oc-profile-item__title">Profile</span>
+                        <span class="oc-profile-item__text">Open your public page.</span>
+                    </a>
+                    <a class="oc-profile-item" th:href="@{/profile/edit}">
+                        <span class="oc-profile-item__title">Edit profile</span>
+                        <span class="oc-profile-item__text">Avatar, bio and details.</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button class="oc-profile-item oc-profile-item--button" type="submit">
+                            <span class="oc-profile-item__title">Logout</span>
+                            <span class="oc-profile-item__text">End current session.</span>
+                        </button>
+                    </form>
+                </nav>
+            </details>
+        </div>
+    </div>
+</header>

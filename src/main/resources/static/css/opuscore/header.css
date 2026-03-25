@@ -1,0 +1,275 @@
+.topbar__actions {
+    align-items: center;
+}
+
+.oc-return-badge,
+.oc-notify-btn,
+.oc-profile-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)),
+        linear-gradient(135deg, rgba(108, 142, 255, 0.14), rgba(192, 132, 252, 0.08));
+    box-shadow:
+        0 14px 32px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(22px) saturate(1.25);
+    -webkit-backdrop-filter: blur(22px) saturate(1.25);
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.oc-return-badge:hover,
+.oc-notify-btn:hover,
+.oc-profile-trigger:hover,
+.oc-profile-menu[open] > .oc-profile-trigger {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.26);
+    box-shadow:
+        0 18px 36px rgba(20, 32, 64, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.oc-return-badge:focus-visible,
+.oc-notify-btn:focus-visible,
+.oc-profile-trigger:focus-visible,
+.oc-profile-item:focus-visible {
+    outline: 2px solid rgba(183, 206, 255, 0.32);
+    outline-offset: 2px;
+}
+
+.oc-return-badge {
+    padding: 0 16px;
+    color: #eef0f6;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.oc-notify-menu {
+    position: relative;
+}
+
+.oc-notify-btn {
+    width: 42px;
+    padding: 0;
+}
+
+.oc-notify-btn__icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    opacity: 0.92;
+}
+
+.oc-notify-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #f97316;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.oc-notify-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    width: min(320px, calc(100vw - 24px));
+    padding: 12px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, rgba(18, 22, 30, 0.84), rgba(10, 12, 17, 0.76));
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(26px) saturate(1.3);
+    -webkit-backdrop-filter: blur(26px) saturate(1.3);
+    display: grid;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 180ms;
+    z-index: 50;
+}
+
+.oc-notify-menu:hover .oc-notify-dropdown,
+.oc-notify-menu:focus-within .oc-notify-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 0ms;
+}
+
+.oc-notify-dropdown__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 4px 6px;
+}
+
+.oc-notify-dropdown__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f7f9ff;
+}
+
+.oc-notify-dropdown__link {
+    font-size: 12px;
+    color: #b8c8ff;
+}
+
+.oc-notify-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.oc-notify-item__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.oc-notify-item__content {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.oc-notify-item__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f7f9ff;
+}
+
+.oc-notify-item__body,
+.oc-notify-empty {
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(223, 228, 242, 0.74);
+}
+
+.oc-notify-empty {
+    padding: 6px 4px 2px;
+}
+
+.oc-profile-menu {
+    position: relative;
+}
+
+.oc-profile-menu > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.oc-profile-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.oc-profile-trigger {
+    width: 42px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.oc-profile-trigger__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.oc-profile-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    width: min(280px, calc(100vw - 24px));
+    padding: 12px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, rgba(18, 22, 30, 0.84), rgba(10, 12, 17, 0.76));
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(26px) saturate(1.3);
+    -webkit-backdrop-filter: blur(26px) saturate(1.3);
+    display: grid;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 180ms;
+    z-index: 50;
+}
+
+.oc-profile-panel form {
+    display: contents;
+}
+
+.oc-profile-menu[open] .oc-profile-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 0ms;
+}
+
+.oc-profile-item {
+    display: grid;
+    gap: 3px;
+    width: 100%;
+    padding: 12px 14px;
+    text-align: left;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    color: #f7f9ff;
+    text-decoration: none;
+    font: inherit;
+}
+
+.oc-profile-item--button {
+    cursor: pointer;
+}
+
+.oc-profile-item__title {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.oc-profile-item__text {
+    font-size: 12px;
+    color: rgba(223, 228, 242, 0.72);
+}
+
+@media (max-width: 640px) {
+    .oc-return-badge {
+        padding: 0 12px;
+        font-size: 10px;
+    }
+}
