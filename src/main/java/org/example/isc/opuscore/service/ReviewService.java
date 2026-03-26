@@ -5,6 +5,7 @@ import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
+import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.models.ReviewCriterion;
@@ -80,6 +81,7 @@ public class ReviewService {
             });
         }
         review.setValue(countScore(review));
+        review.setStatus(ReviewStatusEnum.PENDING);
         review.setPhotoUrl(photoUrl);
 
         reviewRepository.save(review);
@@ -102,7 +104,7 @@ public class ReviewService {
             score += criterion.getScore() * weight;
         }
 
-        return score;
+        return Math.max(0, Math.min(100, Math.round(score / 10.0f)));
     }
 
     private String blankToNull(String value) {

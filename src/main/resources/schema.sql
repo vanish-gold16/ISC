@@ -166,6 +166,111 @@ $$;
 
 DO $$
 BEGIN
+    IF to_regclass('public.reviews') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'reviews_art_type_check'
+          AND conrelid = 'reviews'::regclass
+    ) THEN
+        ALTER TABLE reviews DROP CONSTRAINT reviews_art_type_check;
+    END IF;
+
+    ALTER TABLE reviews
+        ADD CONSTRAINT reviews_art_type_check
+            CHECK (
+                art_type IN (
+                    'MUSIC',
+                    'MOVIE',
+                    'SHOW',
+                    'GAME',
+                    'ANIME',
+                    'MANGA'
+                )
+            );
+END;
+$$;
+@@
+
+DO $$
+BEGIN
+    IF to_regclass('public.reviews') IS NULL OR to_regclass('public.review_criterion') IS NULL THEN
+        RETURN;
+    END IF;
+
+    WITH ranked AS (
+        SELECT
+            rc.id,
+            r.art_type,
+            row_number() OVER (PARTITION BY rc.review ORDER BY rc.id) AS pos
+        FROM review_criterion rc
+        JOIN reviews r ON r.id = rc.review
+        WHERE r.art_type IN ('ANIME', 'MANGA')
+    )
+    UPDATE review_criterion rc
+    SET
+        name = CASE ranked.pos
+            WHEN 1 THEN 'Plot'
+            WHEN 2 THEN 'Characters'
+            WHEN 3 THEN 'World realism'
+            WHEN 4 THEN 'Visual style'
+            WHEN 5 THEN 'Ideologic'
+            WHEN 6 THEN 'Emotional impact'
+            WHEN 7 THEN 'Own experience'
+            ELSE rc.name
+        END,
+        description = CASE ranked.pos
+            WHEN 1 THEN 'not done yet'
+            WHEN 2 THEN '(not done yet)'
+            WHEN 3 THEN '(not done yet)'
+            WHEN 4 THEN '(not done yet)'
+            WHEN 5 THEN '(not done yet)'
+            WHEN 6 THEN '(not done yet)'
+            WHEN 7 THEN '(not done yet)'
+            ELSE rc.description
+        END,
+        weight = CASE ranked.pos
+            WHEN 1 THEN 20
+            WHEN 2 THEN 15
+            WHEN 3 THEN 10
+            WHEN 4 THEN 10
+            WHEN 5 THEN 10
+            WHEN 6 THEN 10
+            WHEN 7 THEN 25
+            ELSE rc.weight
+        END
+    FROM ranked
+    WHERE rc.id = ranked.id;
+
+    UPDATE reviews r
+    SET value = GREATEST(
+        0,
+        LEAST(
+            100,
+            CAST(
+                ROUND(
+                    COALESCE(
+                        (
+                            SELECT SUM(rc.value * rc.weight)
+                            FROM review_criterion rc
+                            WHERE rc.review = r.id
+                        ),
+                        0
+                    ) / 10.0
+                ) AS INTEGER
+            )
+        )
+    )
+    WHERE r.art_type IN ('ANIME', 'MANGA');
+END;
+$$;
+@@
+
+DO $$
+BEGIN
     IF to_regclass('public.homeworks') IS NULL OR to_regclass('public.day_subject') IS NULL THEN
         RETURN;
     END IF;

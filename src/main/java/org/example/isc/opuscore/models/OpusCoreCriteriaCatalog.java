@@ -5,6 +5,7 @@ import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +13,12 @@ import java.util.Map;
 @Component
 public class OpusCoreCriteriaCatalog {
 
-    private final Map<ArtTypeEnum, List<CriterionDTO>>  criteriaByType;
+    private final Map<ArtTypeEnum, List<CriterionDTO>> criteriaByType;
+    private final Map<Long, CriterionDTO> criteriaById;
 
     public OpusCoreCriteriaCatalog() {
-        criteriaByType = new HashMap<>();
+        criteriaByType = new EnumMap<>(ArtTypeEnum.class);
+        criteriaById = new HashMap<>();
         putMusic();
         putGames();
         putMovies();
@@ -68,16 +71,16 @@ public class OpusCoreCriteriaCatalog {
                 30,
                 5
         )));
-        criteriaByType.put(ArtTypeEnum.MUSIC, criteria);
+        register(ArtTypeEnum.MUSIC, criteria);
     }
 
     //TODO
     private void putMovies(){
-        criteriaByType.put(ArtTypeEnum.MOVIE, new ArrayList<>());
+        register(ArtTypeEnum.MOVIE, new ArrayList<>());
     }
 
     private void putShows(){
-        criteriaByType.put(ArtTypeEnum.SHOW, new ArrayList<>());
+        register(ArtTypeEnum.SHOW, new ArrayList<>());
     }
 
     private void putGames(){
@@ -125,7 +128,7 @@ public class OpusCoreCriteriaCatalog {
                 24,
                 5
         ));
-        criteriaByType.put(ArtTypeEnum.GAME, criteria);
+        register(ArtTypeEnum.GAME, criteria);
     }
 
     private void putAnime(){
@@ -152,88 +155,101 @@ public class OpusCoreCriteriaCatalog {
                 5
         ));
         criteria.add(new CriterionDTO(
-                14L,
+                16L,
                 "Visual style",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                15L,
+                17L,
                 "Ideologic",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                16L,
+                18L,
                 "Emotional impact",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                17L,
+                19L,
                 "Own experience",
                 "(not done yet)",
                 25,
                 5
         ));
-        criteriaByType.put(ArtTypeEnum.ANIME, criteria);
+        register(ArtTypeEnum.ANIME, criteria);
     }
 
     private void putManga(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(
-                13L,
+                20L,
                 "Plot",
                 "not done yet",
                 20,
                 5
         ));
         criteria.add(new CriterionDTO(
-                14L,
+                21L,
                 "Characters",
                 "(not done yet)",
                 15,
                 5
         ));
         criteria.add(new CriterionDTO(
-                15L,
+                22L,
                 "World realism",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                14L,
+                23L,
                 "Visual style",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                15L,
+                24L,
                 "Ideologic",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                16L,
+                25L,
                 "Emotional impact",
                 "(not done yet)",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                17L,
+                26L,
                 "Own experience",
                 "(not done yet)",
                 25,
                 5
         ));
-        criteriaByType.put(ArtTypeEnum.MANGA, criteria);
+        register(ArtTypeEnum.MANGA, criteria);
+    }
+
+    private void register(ArtTypeEnum type, List<CriterionDTO> criteria) {
+        criteriaByType.put(type, criteria);
+        for (CriterionDTO criterion : criteria) {
+            if (criterion.getId() == null) {
+                throw new IllegalArgumentException("Criterion id is missing for " + type);
+            }
+            CriterionDTO previous = criteriaById.putIfAbsent(criterion.getId(), criterion);
+            if (previous != null) {
+                throw new IllegalStateException("Duplicate OpusCore criterion id: " + criterion.getId());
+            }
+        }
     }
 
     public Map<ArtTypeEnum, List<CriterionDTO>> getCriteriaByType() {
@@ -241,12 +257,9 @@ public class OpusCoreCriteriaCatalog {
     }
 
     public CriterionDTO getById(Long id) {
-        for (List<CriterionDTO> criteria : criteriaByType.values()) {
-            for (CriterionDTO criterion : criteria) {
-                if (criterion.getId() != null && criterion.getId().equals(id)) {
-                    return criterion;
-                }
-            }
+        CriterionDTO criterion = criteriaById.get(id);
+        if (criterion != null) {
+            return criterion;
         }
         throw new IllegalArgumentException("Unknown criterion id: " + id);
     }
