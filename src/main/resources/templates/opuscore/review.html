@@ -89,28 +89,33 @@
         </div>
 
         <div class="review-info">
-            <div class="review-tag">
-                <span class="dot"></span>
-                <span th:text="${review != null && review.type != null} ? ${review.type} : 'ART'">ART</span>
+            <div class="review-topline">
+                <div class="review-topline__main">
+                    <div class="review-tag">
+                        <span class="dot"></span>
+                        <span th:text="${review != null && review.type != null} ? ${review.type} : 'ART'">ART</span>
+                    </div>
+                    <h1 class="review-title" th:text="${review != null && review.artName != null} ? ${review.artName} : 'Untitled Work'">Untitled Work</h1>
+                </div>
+
+                <a class="review-author"
+                   th:if="${reviewAuthorId != null}"
+                   th:href="@{/opuscore/profile/{id}(id=${reviewAuthorId})}"
+                   href="/opuscore/profile/1">
+                    <span class="review-author__label">by</span>
+                    <img class="review-author__avatar"
+                         th:src="${reviewAuthorAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                         src="/images/private/profile/common-profile.png"
+                         alt="" />
+                    <span class="review-author__name" th:text="${reviewAuthorUsername} ?: 'isc-user'">isc-user</span>
+                </a>
             </div>
-            <h1 class="review-title" th:text="${review != null && review.artName != null} ? ${review.artName} : 'Untitled Work'">Untitled Work</h1>
+
             <p class="review-desc" th:text="${review != null && review.artDescription != null} ? ${review.artDescription} : 'Short description about the work.'">Short description about the work.</p>
 
             <div class="review-score">
-                <span class="review-score__value" th:text="${avgScore != null} ? ${avgScore} : '-'">-</span>
-                <span class="review-score__max">/10</span>
-                <span class="review-score__label">avg score</span>
-            </div>
-
-            <div class="review-meta">
-                <div>
-                    <span class="meta-label">Review title</span>
-                    <span class="meta-value" th:text="${review != null && review.title != null} ? ${review.title} : 'No title yet'">No title yet</span>
-                </div>
-                <div>
-                    <span class="meta-label">Overall score</span>
-                    <span class="meta-value" th:text="${review != null && review.value != null} ? ${review.value} : '-'">-</span>
-                </div>
+                <span class="review-score__value" th:text="${review != null && review.value != null} ? ${review.value} : '0'">0</span>
+                <span class="review-score__max">/100</span>
             </div>
         </div>
     </section>

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Locale;
 
 @Controller
 @RequestMapping("/opuscore")
@@ -95,9 +94,21 @@ public class ReviewController {
         model.addAttribute("user", me);
         model.addAttribute("review", review);
         model.addAttribute("criteriaScores", review.getCriteriaScores());
-        model.addAttribute("avgScore", String.format(Locale.US, "%.1f", review.getValue() / 10.0));
+        if (review.getUser() != null) {
+            model.addAttribute("reviewAuthorId", review.getUser().getId());
+            model.addAttribute("reviewAuthorUsername", review.getUser().getUsername());
+            String authorAvatarUrl = review.getUser().getProfile() != null && review.getUser().getProfile().getAvatarUrl() != null
+                    ? review.getUser().getProfile().getAvatarUrl()
+                    : "/images/private/profile/common-profile.png";
+            model.addAttribute("reviewAuthorAvatarUrl", authorAvatarUrl);
+        }
 
         return "/opuscore/review";
+    }
+
+    @GetMapping("/profile/{id}")
+    public String getOpusCoreProfile(@PathVariable Long id) {
+        return "redirect:/profile/" + id;
     }
 
     @PostMapping("/new-review")

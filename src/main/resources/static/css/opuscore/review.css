@@ -39,7 +39,20 @@
 }
 
 .review-info {
+    display: grid;
+    gap: 16px;
     padding-top: 6px;
+}
+
+.review-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.review-topline__main {
+    min-width: 0;
 }
 
 .review-tag {
@@ -68,7 +81,7 @@
     font-family: 'DM Serif Display', serif;
     font-size: 40px;
     line-height: 1.1;
-    margin: 12px 0 10px;
+    margin: 12px 0 0;
 }
 
 .review-desc {
@@ -76,17 +89,64 @@
     max-width: 600px;
 }
 
+.review-author {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
+        rgba(14, 18, 28, 0.6);
+    box-shadow:
+        0 16px 32px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.review-author:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.24);
+    box-shadow:
+        0 20px 36px rgba(20, 32, 64, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.review-author__label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.review-author__avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.review-author__name {
+    font-weight: 600;
+    color: var(--text);
+}
+
 .review-score {
     display: flex;
     align-items: baseline;
     gap: 6px;
-    margin-top: 18px;
 }
 
 .review-score__value {
     font-family: 'DM Serif Display', serif;
-    font-size: 60px;
-    line-height: 1;
+    font-size: clamp(72px, 11vw, 132px);
+    line-height: 0.9;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -94,37 +154,8 @@
 }
 
 .review-score__max {
-    font-size: 20px;
+    font-size: 24px;
     color: var(--muted);
-}
-
-.review-score__label {
-    font-size: 12px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-left: 6px;
-}
-
-.review-meta {
-    margin-top: 18px;
-    display: grid;
-    gap: 10px;
-    max-width: 420px;
-}
-
-.meta-label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 4px;
-}
-
-.meta-value {
-    font-weight: 600;
 }
 
 .review-body {
@@ -220,6 +251,11 @@
         width: 100%;
         height: 360px;
     }
+
+    .review-topline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 @media (max-width: 640px) {
@@ -229,5 +265,10 @@
 
     .review-title {
         font-size: 32px;
+    }
+
+    .review-author {
+        width: 100%;
+        justify-content: flex-start;
     }
 }

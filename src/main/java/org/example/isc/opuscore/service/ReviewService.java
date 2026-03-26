@@ -68,6 +68,7 @@ public class ReviewService {
                 body,
                 form.getCriteria()
         );
+        review.setUser(me);
         if (review.getCriteriaScores() != null) {
             review.getCriteriaScores().forEach(reviewCriterion -> {
                 reviewCriterion.setReview(review);

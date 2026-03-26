@@ -1,6 +1,7 @@
 package org.example.isc.opuscore.models;
 
 import jakarta.persistence.*;
+import org.example.isc.main.secured.models.users.User;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 
@@ -39,6 +40,10 @@ public class Review {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ReviewStatusEnum status = ReviewStatusEnum.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(name = "photo_url")
     private String photoUrl;
@@ -89,6 +94,14 @@ public class Review {
 
     public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Long getId() {

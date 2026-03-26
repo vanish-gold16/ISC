@@ -170,6 +170,27 @@ BEGIN
         RETURN;
     END IF;
 
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'reviews'
+          AND column_name = 'user_id'
+    ) THEN
+        ALTER TABLE reviews ADD COLUMN user_id BIGINT;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_reviews_user'
+          AND conrelid = 'reviews'::regclass
+    ) THEN
+        ALTER TABLE reviews
+            ADD CONSTRAINT fk_reviews_user
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+    END IF;
+
     IF EXISTS (
         SELECT 1
         FROM pg_constraint
