@@ -81,8 +81,7 @@
                 <div class="oc-profile-copy">
                     <h1 class="oc-profile-name">
                         <span th:text="${profileUser != null ? (profileUser.firstName + ' ' + profileUser.lastName) : 'ISC Member'}">ISC Member</span>
-                        <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${profileUser != null and profileUser.role != null and profileUser.role.name() == 'ADMIN'})}"></th:block>
-                    </h1>
+                        </h1>
                     <p class="oc-profile-username">
                         <span th:text="${profileUser != null && profileUser.username != null ? '@' + profileUser.username : '@username'}">@username</span>
                         <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${profileUser != null and profileUser.role != null and profileUser.role.name() == 'ADMIN'})}"></th:block>
