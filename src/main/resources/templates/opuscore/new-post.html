@@ -121,17 +121,25 @@
         <section class="new-review">
             <header class="new-review__header glass-panel">
             <div>
-                <p class="new-review__eyebrow">New review</p>
-                <h1 class="new-review__title">Add a fresh take</h1>
-                <p class="new-review__subtitle">Fill the core details, attach a cover, and publish.</p>
+                <p class="new-review__eyebrow">New art request</p>
+                <h1 class="new-review__title">Submit a new work</h1>
+                <p class="new-review__subtitle">Fill the work details, attach a cover, and send the request to admins for moderation.</p>
             </div>
-            <div class="new-review__chip">OpusCore / Review</div>
+            <div class="new-review__chip">OpusCore / Art request</div>
             </header>
 
             <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
             <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
+
+            <section class="request-note">
+                <div class="request-note__icon">A</div>
+                <div class="request-note__copy">
+                    <h2 class="request-note__title">This goes to the admin queue</h2>
+                    <p class="request-note__text">After submission, the request should be reviewed by an admin, who can edit the work card, approve it, or reject it before it enters the shared catalog.</p>
+                </div>
+            </section>
 
             <div class="form-grid">
                 <div class="cover-column">
@@ -230,7 +238,7 @@
             </div>
 
             <div class="form-actions">
-                <button class="btn btn--submit" type="submit">Publish review</button>
+                <button class="btn btn--submit" type="submit">Send request</button>
                 <a class="btn" href="/opuscore">Cancel</a>
             </div>
 

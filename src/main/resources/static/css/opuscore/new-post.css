@@ -63,6 +63,47 @@
     animation: fadeUp 0.4s ease 0.05s both;
 }
 
+.request-note {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    padding: 18px 20px;
+    border-radius: 22px;
+    border: 1px solid rgba(108, 142, 255, 0.24);
+    background: linear-gradient(135deg, rgba(108, 142, 255, 0.12), rgba(15, 23, 42, 0.22));
+}
+
+.request-note__icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(108, 142, 255, 0.86), rgba(79, 70, 229, 0.78));
+    color: #f8fbff;
+    font-weight: 800;
+    font-size: 18px;
+    box-shadow: 0 14px 26px rgba(108, 142, 255, 0.24);
+}
+
+.request-note__copy {
+    display: grid;
+    gap: 6px;
+}
+
+.request-note__title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.request-note__text {
+    margin: 0;
+    color: var(--text-2);
+    line-height: 1.6;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
@@ -845,6 +886,10 @@ body.cover-modal-open {
 
     .cover-uploader {
         max-width: 320px;
+    }
+
+    .request-note {
+        grid-template-columns: 1fr;
     }
 }
 
