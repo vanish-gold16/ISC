@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-    <title th:text="${title} ?: 'OpusCore | My Ratings'">OpusCore | My Ratings</title>
+    <title th:text="${title} ?: 'OpusCore | Profile'">OpusCore | Profile</title>
     <script>
         (function () {
             try {
@@ -55,58 +55,51 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="/css/opuscore/main.css" />
-    <link rel="stylesheet" th:href="@{/css/opuscore/my-ratings.css}" href="/css/opuscore/my-ratings.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/profile.css}" href="/css/opuscore/profile.css" />
 </head>
 <body>
 
 <header th:replace="~{/opuscore/blocks/header :: header}"></header>
 
-<main class="container page oc-ratings-page">
+<main class="container page oc-profile-page">
     <section class="page-content">
-        <section class="oc-ratings-head glass-panel">
-            <p class="oc-ratings-head__eyebrow">Library</p>
-            <h1 class="oc-ratings-head__title">My Ratings</h1>
-            <p class="oc-ratings-head__text">All your OpusCore scores across every type, sorted from highest to lowest.</p>
-        </section>
+        <section class="oc-profile-card glass-panel">
+            <div class="oc-profile-cover">
+                <img th:src="${profileCoverUrl}" src="/images/private/profile/common-cover.png" alt="" />
+                <div class="oc-profile-cover__veil"></div>
+            </div>
 
-        <section class="oc-ratings-list" th:if="${ratings != null and !#lists.isEmpty(ratings)}">
-            <a class="oc-rating-card glass-panel"
-               th:each="rating : ${ratings}"
-               th:href="@{/opuscore/{id}(id=${rating.id})}"
-               href="/opuscore/1">
-                <div class="oc-rating-card__cover">
-                    <img th:if="${rating.photoUrl != null}" th:src="${rating.photoUrl}" alt="" />
-                    <div class="oc-rating-card__cover-fallback" th:if="${rating.photoUrl == null}">
-                        <span th:text="${rating.type != null ? rating.type : 'ART'}">ART</span>
+            <div class="oc-profile-body">
+                <div class="oc-profile-avatar-shell">
+                    <div class="oc-profile-avatar">
+                        <img th:src="${profileAvatarUrl}" src="/images/private/profile/common-profile.png" alt="" />
                     </div>
+                    <span class="oc-profile-avatar__status"
+                          th:classappend="${profileOnline} ? ' is-online' : ' is-offline'"></span>
                 </div>
 
-                <div class="oc-rating-card__body">
-                    <div class="oc-rating-card__meta">
-                        <span class="oc-rating-card__tag" th:text="${rating.type != null ? rating.type : 'ART'}">ART</span>
-                        <span class="oc-rating-card__score"><span th:text="${rating.value}">0</span>/100</span>
-                    </div>
-
-                    <h2 class="oc-rating-card__title" th:text="${rating.artName} ?: 'Untitled work'">Untitled work</h2>
-                    <p class="oc-rating-card__author" th:if="${rating.artAuthor != null and !#strings.isEmpty(rating.artAuthor)}" th:text="${rating.artAuthor}">Unknown creator</p>
-                    <p class="oc-rating-card__desc"
-                       th:if="${rating.artDescription != null and !#strings.isEmpty(rating.artDescription)}"
-                       th:text="${rating.artDescription}">
-                        Short description about the work.
+                <div class="oc-profile-copy">
+                    <h1 class="oc-profile-name"
+                        th:text="${profileUser != null ? (profileUser.firstName + ' ' + profileUser.lastName) : 'ISC Member'}">
+                        ISC Member
+                    </h1>
+                    <p class="oc-profile-username"
+                       th:text="${profileUser != null && profileUser.username != null ? '@' + profileUser.username : '@username'}">
+                        @username
                     </p>
+                    <div class="oc-profile-status">
+                        <span class="oc-profile-status__dot"
+                              th:classappend="${profileOnline} ? ' is-online' : ' is-offline'"></span>
+                        <span th:text="${profileOnline} ? 'Online now' : 'Offline'">Offline</span>
+                    </div>
                 </div>
-            </a>
-        </section>
-
-        <section class="oc-ratings-empty glass-panel" th:if="${ratings == null or #lists.isEmpty(ratings)}">
-            <h2>No ratings yet</h2>
-            <p>Start with a new review and your library will show up here.</p>
-            <a class="btn" th:href="@{/opuscore/new-review}" href="/opuscore/new-review">New Review</a>
+            </div>
         </section>
     </section>
 
-    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('my-ratings')}"></aside>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('profile')}"></aside>
 </main>
+
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>
 </html>

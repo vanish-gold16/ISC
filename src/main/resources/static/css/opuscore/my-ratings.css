@@ -1,0 +1,199 @@
+.oc-ratings-page {
+    padding: 48px 0 80px;
+}
+
+.oc-ratings-head {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.4s ease both;
+}
+
+.oc-ratings-head__eyebrow {
+    margin: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.oc-ratings-head__title {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 5vw, 54px);
+    line-height: 1;
+}
+
+.oc-ratings-head__text {
+    margin: 0;
+    max-width: 620px;
+    color: var(--text-2);
+}
+
+.oc-ratings-list {
+    display: grid;
+    gap: 18px;
+    animation: fadeUp 0.4s ease 0.08s both;
+}
+
+.oc-rating-card {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;
+    text-decoration: none;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.oc-rating-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+        0 28px 60px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.oc-rating-card__cover {
+    width: 108px;
+    min-height: 150px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.oc-rating-card__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.oc-rating-card__cover-fallback {
+    width: 100%;
+    height: 100%;
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    background:
+        linear-gradient(180deg, rgba(108, 142, 255, 0.16), rgba(192, 132, 252, 0.16)),
+        rgba(13, 17, 25, 0.76);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.oc-rating-card__body {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+.oc-rating-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.oc-rating-card__tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(108, 142, 255, 0.24);
+    background: rgba(108, 142, 255, 0.12);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.oc-rating-card__score {
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.oc-rating-card__score span {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--text);
+    margin-right: 2px;
+}
+
+.oc-rating-card__title {
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 3.4vw, 38px);
+    line-height: 1;
+    color: var(--text);
+}
+
+.oc-rating-card__author {
+    margin: 0;
+    color: rgba(238, 240, 246, 0.8);
+    font-size: 19px;
+    line-height: 1.2;
+}
+
+.oc-rating-card__desc {
+    margin: 0;
+    color: var(--text-2);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.oc-ratings-empty {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    animation: fadeUp 0.4s ease both;
+}
+
+.oc-ratings-empty h2,
+.oc-ratings-empty p {
+    margin: 0;
+}
+
+@media (max-width: 760px) {
+    .oc-rating-card {
+        grid-template-columns: 88px minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .oc-rating-card__cover,
+    .oc-rating-card__cover-fallback {
+        min-height: 126px;
+    }
+
+    .oc-rating-card__author {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 560px) {
+    .oc-ratings-page {
+        padding: 32px 0 60px;
+    }
+
+    .oc-rating-card {
+        grid-template-columns: 1fr;
+    }
+
+    .oc-rating-card__cover {
+        width: 100%;
+        max-width: 132px;
+    }
+}

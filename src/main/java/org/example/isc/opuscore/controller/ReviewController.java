@@ -106,18 +106,6 @@ public class ReviewController {
         return "/opuscore/review";
     }
 
-    @GetMapping("/profile/{id}")
-    public String getOpusCoreProfile(@PathVariable Long id, Authentication authentication) {
-        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
-
-        if (me.getId().equals(id)) {
-            return "/profile";
-        }
-
-        return "/profile/" + id;
-    }
-
     @PostMapping("/new-review")
     public String postNewReview(
             @Valid @ModelAttribute("form") NewReviewDTO form,
