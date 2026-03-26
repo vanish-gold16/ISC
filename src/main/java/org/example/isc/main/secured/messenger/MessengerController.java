@@ -137,12 +137,14 @@ public class MessengerController {
         boolean online = false;
         LocalDateTime lastSeenAt = null;
         Long otherUserId = null;
+        boolean otherUserAdmin = false;
 
         if (conversation.getType() == ConversationType.DIRECT) {
             other = conversationMemberRepository.findOtherUserByConversationDirect(conversation, me);
             if (other != null) {
                 name = other.getFirstName() + " " + other.getLastName();
                 subtitle = "@" + other.getUsername();
+                otherUserAdmin = other.getRole() != null && "ADMIN".equals(other.getRole().name());
                 if (other.getProfile() != null && other.getProfile().getAvatarUrl() != null) {
                 avatar = other.getProfile().getAvatarUrl();
             }
@@ -202,6 +204,7 @@ public class MessengerController {
         view.put("subtitle", subtitle);
         view.put("otherUserId", otherUserId);
         view.put("lastSeenAtIso", lastSeenAtIso);
+        view.put("admin", otherUserAdmin);
         view.put("unread", unreadCount);
         return view;
     }
@@ -214,6 +217,7 @@ public class MessengerController {
         boolean online = false;
         LocalDateTime lastSeenAt = null;
         Long otherUserId = null;
+        boolean otherUserAdmin = false;
 
         Optional<Message> lastMessage = messageRepository.findByConversationAndDeletedAtIsNullOrderByCreatedAtDesc(
                 conversation, PageRequest.of(0, 1)
@@ -226,6 +230,7 @@ public class MessengerController {
             if (other != null) {
                 name = other.getFirstName() + " " + other.getLastName();
                 subtitle = "@" + other.getUsername();
+                otherUserAdmin = other.getRole() != null && "ADMIN".equals(other.getRole().name());
                 if (other.getProfile() != null && other.getProfile().getAvatarUrl() != null) {
                     avatar = other.getProfile().getAvatarUrl();
                 }
@@ -258,6 +263,7 @@ public class MessengerController {
         view.put("friend", false);
         view.put("type", conversation.getType().name());
         view.put("otherUserId", otherUserId);
+        view.put("admin", otherUserAdmin);
         view.put("lastSeenAtIso", lastSeenAt == null ? null
                 : lastSeenAt.atZone(ZoneId.systemDefault()).toInstant().toString());
         return view;
@@ -273,6 +279,9 @@ public class MessengerController {
             boolean fromMe = message.getSender() != null && message.getSender().getId().equals(me.getId());
             String senderName = message.getSender() != null ? message.getSender().getFirstName() : "Unknown";
             Long senderId = message.getSender() != null ? message.getSender().getId() : null;
+            boolean senderAdmin = message.getSender() != null
+                    && message.getSender().getRole() != null
+                    && "ADMIN".equals(message.getSender().getRole().name());
             String text = message.getText();
             if (text == null) {
                 text = "";
@@ -283,6 +292,7 @@ public class MessengerController {
                     "time", formatTime(message.getCreatedAt()),
                     "senderName", senderName,
                     "senderId", senderId,
+                    "senderAdmin", senderAdmin,
                     "sentAt", message.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toString()
             ));
         }

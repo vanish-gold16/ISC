@@ -1,0 +1,7 @@
+<th:block th:fragment="adminBadge(isAdmin)" xmlns:th="http://www.thymeleaf.org">
+    <img th:if="${isAdmin}"
+         th:src="@{/images/private/admin/admin-badge.png}"
+         src="/images/private/admin/admin-badge.png"
+         alt="Admin"
+         style="display:inline-block;width:18px;height:18px;margin-left:6px;vertical-align:text-bottom;object-fit:contain;flex:0 0 auto;" />
+</th:block>

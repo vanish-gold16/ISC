@@ -11,6 +11,7 @@ public class CommentView {
     private final String authorName;
     private final String authorUsername;
     private final Long authorId;
+    private final boolean authorAdmin;
     private final boolean friendAuthor;
     private final long likes;
     private final boolean liked;
@@ -23,6 +24,7 @@ public class CommentView {
                        String authorName,
                        String authorUsername,
                        Long authorId,
+                       boolean authorAdmin,
                        boolean friendAuthor,
                        long likes,
                        boolean liked,
@@ -33,6 +35,7 @@ public class CommentView {
         this.authorName = authorName;
         this.authorUsername = authorUsername;
         this.authorId = authorId;
+        this.authorAdmin = authorAdmin;
         this.friendAuthor = friendAuthor;
         this.likes = likes;
         this.liked = liked;
@@ -58,6 +61,10 @@ public class CommentView {
 
     public Long getAuthorId() {
         return authorId;
+    }
+
+    public boolean isAuthorAdmin() {
+        return authorAdmin;
     }
 
     public boolean isFriendAuthor() {

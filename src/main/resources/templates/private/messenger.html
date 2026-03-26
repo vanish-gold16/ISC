@@ -39,6 +39,7 @@
                     <div class="conversation-body">
                         <div class="conversation-name">
                             <span th:text="${c.name}">Name</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${c.admin})}"></th:block>
                             <span class="friend-badge" th:if="${c.friend}">Friend</span>
                             <span class="status-dot" th:classappend="${c.online} ? ' is-online' : ''"></span>
                         </div>
@@ -71,7 +72,10 @@
                 <div class="chat-head-left" th:attr="data-active-user-id=${activeConversation.otherUserId}">
                     <img class="chat-avatar" th:src="${activeConversation.avatar}" alt="" />
                     <div>
-                        <h2 class="chat-title" th:text="${activeConversation.name}">Active chat</h2>
+                        <h2 class="chat-title">
+                            <span th:text="${activeConversation.name}">Active chat</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${activeConversation.admin})}"></th:block>
+                        </h2>
                         <p class="chat-subtitle" th:text="${activeConversation.subtitle}">Subtitle</p>
                         <div class="chat-status">
                             <span class="status-dot" th:classappend="${activeConversation.online} ? ' is-online' : ''"></span>
@@ -98,8 +102,10 @@
                          th:classappend="${m['fromMe']} ? ' message--me' : ' message--them'"
                          th:attr="data-sent-at=${m['sentAt']},data-sender-id=${m['senderId']}">
                         <div class="message__sender"
-                             th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}"
-                             th:text="${m['senderName']}">Sender</div>
+                             th:if="${!m['fromMe'] and activeConversation.type != 'DIRECT'}">
+                            <span th:text="${m['senderName']}">Sender</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${m['senderAdmin']})}"></th:block>
+                        </div>
                         <div class="message__bubble" th:text="${m['text']}">Message</div>
                     </div>
                     <div class="message-actions">

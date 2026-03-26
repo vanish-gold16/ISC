@@ -921,6 +921,7 @@
                                         <span th:if="${n.sender != null}"
                                               th:text="${n.sender.username}"
                                               style="color: #1d4ed8; font-weight: 600;">User</span>
+                                        <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${n.sender != null and n.sender.role != null and n.sender.role.name() == 'ADMIN'})}"></th:block>
                                         <span th:text="${n.body} ?: 'Open notifications to view details.'">wants to be your friend</span>
                                     </p>
                                     <p class="notify-item__date"

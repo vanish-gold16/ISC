@@ -149,8 +149,11 @@
                 <div class="user-card__info">
                     <p class="user-card__name">
                         <span th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</span>
+                        <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${user.role != null and user.role.name() == 'ADMIN'})}"></th:block>
                     </p>
-                    <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
+                    <p class="user-card__username">
+                        <span th:text="'@' + ${user.username}">@username</span>
+                    </p>
                 </div>
                 <div class="user-card__actions">
                     <span class="user-card__friend-badge" th:if="${friendIds.contains(user.id)}">Friend</span>
@@ -188,9 +191,13 @@
                              : '/images/private/profile/common-profile.png'"
                      alt="" />
                 <div class="user-card__info">
-                    <p class="user-card__name"
-                       th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</p>
-                    <p class="user-card__username" th:text="'@' + ${user.username}">@username</p>
+                    <p class="user-card__name">
+                        <span th:text="${(user.firstName ?: '') + ' ' + (user.lastName ?: '')}">Name</span>
+                        <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${user.role != null and user.role.name() == 'ADMIN'})}"></th:block>
+                    </p>
+                    <p class="user-card__username">
+                        <span th:text="'@' + ${user.username}">@username</span>
+                    </p>
                 </div>
                 <div class="user-card__actions">
                     <span class="user-card__friend-badge">Friend</span>

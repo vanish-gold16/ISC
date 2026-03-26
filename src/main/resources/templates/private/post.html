@@ -155,8 +155,10 @@
                 </div>
                 <div class="post__meta">
                     <div>
-                        <div class="post__name"
-                             th:text="${post.user != null ? (post.user.firstName + ' ' + post.user.lastName) : 'ISC Member'}">ISC Member</div>
+                        <div class="post__name">
+                            <span th:text="${post.user != null ? (post.user.firstName + ' ' + post.user.lastName) : 'ISC Member'}">ISC Member</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${post.user != null and post.user.role != null and post.user.role.name() == 'ADMIN'})}"></th:block>
+                        </div>
                         <div class="post__sub muted">
                             <span th:text="${post.user != null && post.user.username != null ? '@' + post.user.username : '@user'}">@user</span>
                         </div>
@@ -226,11 +228,13 @@
                 <div class="comment__head">
                     <a class="comment__name"
                        th:if="${commentView.authorId != null}"
-                       th:href="@{/profile/{id}(id=${commentView.authorId})}"
-                       th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</a>
+                       th:href="@{/profile/{id}(id=${commentView.authorId})}">
+                        <span th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</span>
+                    </a>
                     <div class="comment__name"
                          th:if="${commentView.authorId == null}"
                          th:text="${commentView.authorName != null ? commentView.authorName : 'ISC Member'}">ISC Member</div>
+                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${commentView.authorAdmin})}"></th:block>
                     <span class="comment__friend-badge" th:if="${commentView.friendAuthor}">Friend</span>
                     <a class="comment__meta muted"
                        th:if="${commentView.authorId != null and commentView.authorUsername != null}"

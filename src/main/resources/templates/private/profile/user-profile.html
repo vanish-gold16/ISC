@@ -50,12 +50,16 @@
                     <div class="profile-topline">
                         <div class="profile-namewrap">
                             <div class="profile-name-row">
-                                <h1 class="profile-name"
-                                    th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</h1>
+                                <h1 class="profile-name">
+                                    <span th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</span>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${user != null and user.role != null and user.role.name() == 'ADMIN'})}"></th:block>
+                                </h1>
                                 <span class="badge-friends" th:if="${isFriend}">Friends</span>
                             </div>
 
-                            <div class="profile-username muted" th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</div>
+                            <div class="profile-username muted">
+                                <span th:text="${user != null && user.username != null ? '@' + user.username : '@username'}">@username</span>
+                            </div>
                             <div class="profile-status user-status" th:if="${user != null}"
                                  th:attr="data-user-id=${user.id}">
                                 <div class="user-status__copy">
@@ -192,8 +196,10 @@
                                      alt="" />
                             </div>
                             <div class="post__meta">
-                                <div class="post__name"
-                                     th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
+                                <div class="post__name">
+                                    <span th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</span>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${p.user != null and p.user.role != null and p.user.role.name() == 'ADMIN'})}"></th:block>
+                                </div>
                                 <div class="post__sub muted">
                                     <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
                                 </div>
@@ -243,8 +249,13 @@
                                  th:src="${f.profile != null and f.profile.avatarUrl != null} ? ${f.profile.avatarUrl} : '/images/private/profile/common-profile.png'"
                                  alt="" />
                             <div class="friend__info">
-                                <div class="friend__name" th:text="${f.firstName + ' ' + f.lastName}">ISC Member</div>
-                                <div class="friend__sub muted" th:text="${'@' + f.username}">@user</div>
+                                <div class="friend__name">
+                                    <span th:text="${f.firstName + ' ' + f.lastName}">ISC Member</span>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${f.role != null and f.role.name() == 'ADMIN'})}"></th:block>
+                                </div>
+                                <div class="friend__sub muted">
+                                    <span th:text="${'@' + f.username}">@user</span>
+                                </div>
                             </div>
                         </a>
                     </div>

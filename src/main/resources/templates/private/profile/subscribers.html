@@ -32,10 +32,13 @@
 
                 <div class="subscription-info">
                     <a class="subscription-name"
-                       th:href="@{/profile/{id}(id=${user.id})}"
-                       th:text="${user.firstName + ' ' + user.lastName}">ISC Member</a>
-                    <div class="subscription-username"
-                         th:text="${'@' + user.username}">@username</div>
+                       th:href="@{/profile/{id}(id=${user.id})}">
+                        <span th:text="${user.firstName + ' ' + user.lastName}">ISC Member</span>
+                        <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${user.role != null and user.role.name() == 'ADMIN'})}"></th:block>
+                    </a>
+                    <div class="subscription-username">
+                        <span th:text="${'@' + user.username}">@username</span>
+                    </div>
                     <div class="subscription-meta">
                         <span th:if="${user.profile?.city != null}"
                               th:text="${user.profile.city}">City</span>

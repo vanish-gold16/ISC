@@ -11,7 +11,10 @@
                 <div class="about-list">
                     <div class="about-row">
                         <div class="about-k muted">Full name</div>
-                        <div class="about-v" th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</div>
+                        <div class="about-v">
+                            <span th:text="${user != null ? (user.firstName + ' ' + user.lastName) : 'ISC Member'}">ISC Member</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${user != null and user.role != null and user.role.name() == 'ADMIN'})}"></th:block>
+                        </div>
                     </div>
                     <div class="about-row">
                         <div class="about-k muted">Username</div>

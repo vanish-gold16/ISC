@@ -134,7 +134,11 @@
                                  alt="" />
                             <div class="oc-notify-item__content">
                                 <p class="oc-notify-item__title" th:text="${n.title} ?: 'Notification'">Notification</p>
-                                <p class="oc-notify-item__body" th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</p>
+                                <p class="oc-notify-item__body">
+                                    <span th:if="${n.sender != null}" th:text="${n.sender.username}">user</span>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${n.sender != null and n.sender.role != null and n.sender.role.name() == 'ADMIN'})}"></th:block>
+                                    <span th:text="${n.body} ?: 'Open notifications to view details.'">Open notifications to view details.</span>
+                                </p>
                             </div>
                         </a>
                     </div>

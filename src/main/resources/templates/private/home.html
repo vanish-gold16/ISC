@@ -45,8 +45,10 @@
                 </div>
                 <div class="post__meta">
                     <div>
-                        <div class="post__name"
-                             th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</div>
+                        <div class="post__name">
+                            <span th:text="${p.user != null ? (p.user.firstName + ' ' + p.user.lastName) : 'ISC Member'}">ISC Member</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${p.user != null and p.user.role != null and p.user.role.name() == 'ADMIN'})}"></th:block>
+                        </div>
                         <div class="post__sub muted">
                             <span th:text="${p.user != null && p.user.username != null ? '@' + p.user.username : '@user'}">@user</span>
                             <img class="post__friend-badge" th:if="${p.friendPost}" src="/images/private/icons/friend-badge.png" alt="" />

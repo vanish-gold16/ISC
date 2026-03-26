@@ -48,13 +48,12 @@
                          src="/images/private/profile/common-profile.png"
                          alt="" />
                     <div class="friend__info">
-                        <div class="friend__name"
-                             th:text="${(friend.firstName ?: 'ISC') + ' ' + (friend.lastName ?: 'Member')}">
-                            ISC Member
+                        <div class="friend__name">
+                            <span th:text="${(friend.firstName ?: 'ISC') + ' ' + (friend.lastName ?: 'Member')}">ISC Member</span>
+                            <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${friend.role != null and friend.role.name() == 'ADMIN'})}"></th:block>
                         </div>
-                        <div class="friend__sub muted"
-                             th:text="${'@' + (friend.username ?: 'user')}">
-                            @user
+                        <div class="friend__sub muted">
+                            <span th:text="${'@' + (friend.username ?: 'user')}">@user</span>
                         </div>
                     </div>
                 </div>

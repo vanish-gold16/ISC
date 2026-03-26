@@ -5,22 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
     <title th:text="${title} ?: 'ISC | Admin panel'">ISC | Admin panel</title>
+    <link rel="stylesheet" th:href="@{/css/private/home.css}" href="/css/private/home.css" />
     <link rel="stylesheet" th:href="@{/css/private/admin/management.css}" href="/css/private/admin/management.css" />
 </head>
 <body>
-<main class="admin-shell">
-    <div class="admin-topbar">
-        <div class="admin-user-chip">
-            <div class="admin-user-copy">
-                <span class="admin-user-greeting"
-                      th:text="${user != null && user.username != null ? 'Hello, ' + user.username : 'Hello, user'}">Hello, user</span>
+<header th:replace="~{private/blocks/private-header :: header}"></header>
+
+<main class="container page admin-page">
+    <section class="admin-main">
+        <article class="card admin-hero">
+            <div class="admin-hero__body">
+                <p class="admin-hero__eyebrow">Admin Panel</p>
+                <h1 class="admin-hero__title"
+                    th:text="${user != null && user.username != null ? 'Hello, ' + user.username : 'Hello, user'}">Hello, user</h1>
+                <p class="admin-hero__subtitle">Welcome to the admin workspace.</p>
+                <div class="admin-widget-grid">
+                    <a class="admin-widget"
+                       th:classappend="${adminSection == 'new-reviews'} ? ' is-active' : ''"
+                       th:href="@{/admin/new-reviews}">
+                        <span class="admin-widget__eyebrow">Admin</span>
+                        <span class="admin-widget__title">New Reviews</span>
+                    </a>
+                    <a class="admin-widget"
+                       th:classappend="${adminSection == 'new-arts'} ? ' is-active' : ''"
+                       th:href="@{/admin/new-arts}">
+                        <span class="admin-widget__eyebrow">Admin</span>
+                        <span class="admin-widget__title">New Arts</span>
+                    </a>
+                </div>
             </div>
-            <img class="admin-user-avatar"
-                 th:src="${userAvatarUrl} ?: '/images/private/profile/common-profile.png'"
-                 src="/images/private/profile/common-profile.png"
-                 alt="User avatar" />
-        </div>
-    </div>
+        </article>
+    </section>
+
+    <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('admin')}"></aside>
 </main>
+
+<footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 </body>
 </html>

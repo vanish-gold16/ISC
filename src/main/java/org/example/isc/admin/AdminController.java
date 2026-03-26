@@ -23,13 +23,29 @@ public class AdminController {
             Authentication authentication,
             Model model
     ){
+        populateAdminModel(authentication, model, "Admin panel", "dashboard");
+        return "private/admin/management";
+    }
+
+    @GetMapping("/new-reviews")
+    public String getNewReviews(Authentication authentication, Model model) {
+        populateAdminModel(authentication, model, "Admin panel | New reviews", "new-reviews");
+        return "private/admin/management";
+    }
+
+    @GetMapping("/new-arts")
+    public String getNewArts(Authentication authentication, Model model) {
+        populateAdminModel(authentication, model, "Admin panel | New arts", "new-arts");
+        return "private/admin/management";
+    }
+
+    private void populateAdminModel(Authentication authentication, Model model, String title, String adminSection) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        model.addAttribute("title", "Admin panel");
+        model.addAttribute("title", title);
         model.addAttribute("user", me);
-
-        return "private/admin/management";
+        model.addAttribute("adminSection", adminSection);
     }
 
 }

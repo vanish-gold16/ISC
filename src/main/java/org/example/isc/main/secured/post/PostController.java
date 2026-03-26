@@ -121,6 +121,7 @@ public class PostController {
             String authorName = "ISC Member";
             String authorUsername = null;
             Long authorId = null;
+            boolean authorAdmin = false;
             boolean friendAuthor = false;
             if (comment.getUser() != null) {
                 String first = comment.getUser().getFirstName();
@@ -134,6 +135,8 @@ public class PostController {
                     authorId = comment.getUser().getId();
                     friendAuthor = friendIds.contains(comment.getUser().getId());
                 }
+                authorAdmin = comment.getUser().getRole() != null
+                        && "ADMIN".equals(comment.getUser().getRole().name());
             }
             Long parentId = null;
             if (comment.getParentComment() != null) {
@@ -145,6 +148,7 @@ public class PostController {
                     authorName,
                     authorUsername,
                     authorId,
+                    authorAdmin,
                     friendAuthor,
                     likes,
                     liked,

@@ -291,6 +291,7 @@
                                        th:href="@{/profile/{id}(id=${n.sender.id})}"
                                        th:text="${n.sender.username}"
                                        style="color: #1d4ed8; text-decoration: none; font-weight: 600;">User</a>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${n.sender != null and n.sender.role != null and n.sender.role.name() == 'ADMIN'})}"></th:block>
                                     <span th:text="${n.body} ?: 'You have a new update.'">body</span>
                                 </p>
 
@@ -407,6 +408,7 @@
                                        th:href="@{/profile/{id}(id=${n.sender.id})}"
                                        th:text="${n.sender.username}"
                                        style="color: #64748b; text-decoration: none; font-weight: 600;">User</a>
+                                    <th:block th:replace="~{private/blocks/admin-badge :: adminBadge(${n.sender != null and n.sender.role != null and n.sender.role.name() == 'ADMIN'})}"></th:block>
                                     <span th:text="${n.body} ?: 'You have a new update.'">body</span>
                                 </p>
 
