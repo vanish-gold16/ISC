@@ -46,7 +46,7 @@ public class Artwork {
     public Artwork() {
     }
 
-    public Artwork(ArtTypeEnum type, String name, String author, String description, String coverUrl, User creator, User approver, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Artwork(ArtTypeEnum type, String name, String author, String description, String coverUrl, User creator, User approver, LocalDateTime createdAt) {
         this.type = type;
         this.name = name;
         this.author = author;
@@ -55,7 +55,6 @@ public class Artwork {
         this.creator = creator;
         this.approver = approver;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public Long getId() {

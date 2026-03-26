@@ -58,20 +58,13 @@ public class NewArtRequest {
     public NewArtRequest() {
     }
 
-    public NewArtRequest(User requester, ReviewStatusEnum status, ArtTypeEnum type, String name, String author, String description, String coverUrl, String adminNote, String rejectionReason, Long approvedArtworkId, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime decidedAt) {
-        this.requester = requester;
+    public NewArtRequest(ReviewStatusEnum status, ArtTypeEnum type, String name, String author, String description, LocalDateTime createdAt) {
         this.status = status;
         this.type = type;
         this.name = name;
         this.author = author;
         this.description = description;
-        this.coverUrl = coverUrl;
-        this.adminNote = adminNote;
-        this.rejectionReason = rejectionReason;
-        this.approvedArtworkId = approvedArtworkId;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.decidedAt = decidedAt;
     }
 
     public Long getId() {

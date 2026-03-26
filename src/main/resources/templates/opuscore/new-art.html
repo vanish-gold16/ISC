@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-    <title th:text="${title} ?: 'OpusCore | New Review'">OpusCore | New Review</title>
+    <title th:text="${title} ?: 'OpusCore | New Art Request'">OpusCore | New Art Request</title>
     <script>
         (function () {
             try {
@@ -120,125 +120,91 @@
     <section class="page-content">
         <section class="new-review">
             <header class="new-review__header glass-panel">
-            <div>
-                <p class="new-review__eyebrow">New review</p>
-                <h1 class="new-review__title">Rate a work</h1>
-                <p class="new-review__subtitle">Choose a type, score the work across criteria, and publish your review to OpusCore.</p>
-            </div>
-            <div class="new-review__chip">OpusCore / Review</div>
+                <div>
+                    <p class="new-review__eyebrow">New art request</p>
+                    <h1 class="new-review__title">Submit a new work</h1>
+                    <p class="new-review__subtitle">Fill in the work details, attach a cover, and send the request to admins for moderation.</p>
+                </div>
+                <div class="new-review__chip">OpusCore / Art request</div>
             </header>
 
-            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-            <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
-            <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
+            <form class="new-review__form glass-panel" id="new-art-form" novalidate>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input id="imageUrl" type="hidden" />
 
-            <div class="form-grid">
-                <div class="cover-column">
-                    <label class="cover-label">Cover</label>
-                    <div class="cover-uploader" id="cover-uploader">
-                        <input id="image" class="cover-input" type="file" accept="image/*" aria-label="Upload cover" />
-                        <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
-                            <span class="cover-drop__inner">
-                                <span class="cover-drop__icon">+</span>
-                                <span class="cover-drop__title">Drop cover here</span>
-                                <span class="cover-drop__hint">or click to upload</span>
-                            </span>
-                        </button>
-                        <div class="cover-preview" id="cover-preview" hidden>
-                            <img id="cover-preview-img" alt="Cover preview" />
-                            <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
-                                <img src="/images/private/icons/delete.png" alt="" />
-                            </button>
-                        </div>
+                <section class="request-note">
+                    <div class="request-note__icon">A</div>
+                    <div class="request-note__copy">
+                        <h2 class="request-note__title">This goes to the admin queue</h2>
+                        <p class="request-note__text">After submission, the request should be reviewed by an admin, who can edit the work card, approve it, or reject it before it enters the shared catalog.</p>
                     </div>
-                    <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
-                    <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
-                </div>
+                </section>
 
-                <div class="fields-column">
-                    <div class="field-grid">
+                <div class="form-grid">
+                    <div class="cover-column">
+                        <label class="cover-label">Cover</label>
+                        <div class="cover-uploader" id="cover-uploader">
+                            <input id="image" class="cover-input" type="file" accept="image/*" aria-label="Upload cover" />
+                            <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
+                                <span class="cover-drop__inner">
+                                    <span class="cover-drop__icon">+</span>
+                                    <span class="cover-drop__title">Drop cover here</span>
+                                    <span class="cover-drop__hint">or click to upload</span>
+                                </span>
+                            </button>
+                            <div class="cover-preview" id="cover-preview" hidden>
+                                <img id="cover-preview-img" alt="Cover preview" />
+                                <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
+                                    <img src="/images/private/icons/delete.png" alt="" />
+                                </button>
+                            </div>
+                        </div>
+                        <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
+                    </div>
+
+                    <div class="fields-column">
                         <div class="field">
                             <label for="artType">Type</label>
-                            <select id="artType" class="input" th:field="*{artType}">
-                                <option value="" disabled selected>Select a type</option>
+                            <select id="artType" class="input" required>
+                                <option value="" selected disabled>Select a type</option>
                                 <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
                                         th:value="${t}"
                                         th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
                             </select>
-                            <p class="field__error" th:if="${#fields.hasErrors('artType')}" th:errors="*{artType}">Type error</p>
+                            <p class="field__hint">Choose the type that best matches the work.</p>
                         </div>
 
-                        <div class="field field--switch">
-                            <label for="review">Is it a full review?</label>
-                            <label class="switch">
-                                <input id="review" type="checkbox" th:field="*{review}" />
-                                <span class="switch__track"></span>
-                            </label>
-                            <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
-                            <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
+                        <div class="field">
+                            <label for="name">Work name</label>
+                            <input id="name" class="input" type="text" placeholder="Title of the work" maxlength="100" required />
+                        </div>
+
+                        <div class="field">
+                            <label for="author">Author / creator</label>
+                            <input id="author" class="input" type="text" placeholder="Writer, artist, director, band..." maxlength="50" required />
+                        </div>
+
+                        <div class="field">
+                            <label for="description">Short description</label>
+                            <textarea id="description" class="input input--textarea input--tall" rows="8" placeholder="Genre, vibe, or quick context" maxlength="500"></textarea>
+                            <p class="field__hint">Max 500 characters.</p>
                         </div>
                     </div>
-
-                    <div class="field">
-                        <label for="name">Work name</label>
-                        <input id="name" class="input" type="text" th:field="*{name}" placeholder="Title of the work" maxlength="100" />
-                        <p class="field__error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</p>
-                    </div>
-
-                    <div class="field">
-                        <label for="author">Author / creator</label>
-                        <input id="author" class="input" type="text" th:field="*{author}" placeholder="Writer, artist, director, band..." maxlength="120" />
-                        <p class="field__error" th:if="${#fields.hasErrors('author')}" th:errors="*{author}">Author error</p>
-                    </div>
-
-                    <div class="field">
-                        <label for="description">Short description</label>
-                        <textarea id="description" class="input input--textarea" rows="3" th:field="*{description}" placeholder="Genre, vibe, or quick context" maxlength="300"></textarea>
-                        <p class="field__hint">Max 300 characters.</p>
-                        <p class="field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
-                    </div>
-
-                    <div class="field" id="title-field">
-                        <label for="title">Review headline</label>
-                        <input id="title" class="input" type="text" th:field="*{title}" placeholder="Your verdict in one line" maxlength="50" />
-                        <p class="field__error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</p>
-                    </div>
-
-                    <div class="field" id="body-field">
-                        <label for="body">Review body</label>
-                        <textarea id="body" class="input input--textarea input--tall" rows="8" th:field="*{body}" placeholder="Write your review..." maxlength="2000"></textarea>
-                        <p class="field__hint">Max 2000 characters.</p>
-                        <p class="field__error" th:if="${#fields.hasErrors('body')}" th:errors="*{body}">Body error</p>
-                    </div>
-
-                    <div class="criteria-section glass-panel">
-                        <div class="criteria-section__title">Criteria</div>
-                        <p class="criteria-section__hint">Select a type to load criteria. Scores are 0-10.</p>
-                        <div class="criteria-grid" id="criteria-grid"></div>
-                        <div class="criteria-empty" id="criteria-empty" hidden>No criteria for the selected type yet.</div>
-                        <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
-                    </div>
-
-                    <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
                 </div>
-            </div>
 
-            <div class="score-dock" aria-live="polite" aria-atomic="true">
-                <div class="score-dock__label">Total score</div>
-                <div class="score-dock__value"><span id="value-display" th:text="*{value} ?: 0">0</span><span class="score-dock__max">/100</span></div>
-            </div>
+                <div class="form-actions">
+                    <button class="btn btn--submit" type="submit" id="new-art-submit">Send request</button>
+                    <a class="btn" href="/opuscore">Cancel</a>
+                </div>
 
-            <div class="form-actions">
-                <button class="btn btn--submit" type="submit">Publish review</button>
-                <a class="btn" href="/opuscore">Cancel</a>
-            </div>
-
-            <p class="form-error" th:if="${error}" th:text="${error}">Error</p>
+                <div class="request-status" id="request-status" hidden>
+                    <div class="request-status__label">Queue status</div>
+                    <p class="request-status__text" id="request-status-text">Request status will appear here.</p>
+                </div>
             </form>
         </section>
     </section>
-    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-art')}"></aside>
 </main>
 
 <div class="cover-modal" id="cover-modal" hidden aria-hidden="true">
@@ -249,7 +215,7 @@
                 <p class="cover-modal__eyebrow">Cover editor</p>
                 <h2 class="cover-modal__title" id="cover-modal-title">Adjust your cover</h2>
             </div>
-            <button class="cover-modal__close" type="button" aria-label="Close cover editor" data-cover-modal-close>×</button>
+            <button class="cover-modal__close" type="button" aria-label="Close cover editor" data-cover-modal-close>&times;</button>
         </div>
 
         <div class="cover-modal__canvas-wrap">
@@ -273,7 +239,7 @@
 
 <script>
     (function () {
-        const form = document.querySelector('.new-review__form');
+        const form = document.getElementById('new-art-form');
         const input = document.getElementById('image');
         const drop = document.getElementById('cover-drop');
         const preview = document.getElementById('cover-preview');
@@ -293,7 +259,7 @@
         const defaultHint = 'Vertical cover preferred. Max 5 MB.';
         const outputWidth = 720;
         const outputHeight = 1056;
-        const optimizedCoverMaxBytes = 700_000;
+        const optimizedCoverMaxBytes = 700000;
         const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
         let appliedPreviewUrl = '';
         let cropperState = null;
@@ -353,7 +319,10 @@
             uploadedImageUrlField.value = '';
             input.value = '';
             syncInputFile(null);
+            setHint(defaultHint, false);
         }
+
+        window.__resetArtRequestCover = resetPreview;
 
         function showCropper() {
             modal.hidden = false;
@@ -453,7 +422,7 @@
         function validateFile(file) {
             if (!file) return 'Choose an image file.';
             if (!(file.type || '').startsWith('image/')) return 'Only image files are allowed.';
-            if (file.size > 5_000_000) return 'Image must be smaller than 5 MB.';
+            if (file.size > 5000000) return 'Image must be smaller than 5 MB.';
             return null;
         }
 
@@ -499,7 +468,7 @@
                 return;
             }
 
-            setHint(`Selected: ${file.name}`, false);
+            setHint('Selected: ' + file.name, false);
             openCropper(file);
         }
 
@@ -511,14 +480,13 @@
 
         remove.addEventListener('click', () => {
             input.value = '';
-            setHint(defaultHint, false);
             resetPreview();
         });
 
         modalZoomInput.addEventListener('input', () => {
             if (!cropperState) return;
             cropperState.zoom = Number(modalZoomInput.value || '1');
-            modalZoomValue.textContent = `${Math.round(cropperState.zoom * 100)}%`;
+            modalZoomValue.textContent = Math.round(cropperState.zoom * 100) + '%';
             drawCropper();
         });
 
@@ -535,7 +503,7 @@
             }
 
             const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
-            const optimizedFile = new File([blob], `${baseName}-cover.jpg`, {
+            const optimizedFile = new File([blob], baseName + '-cover.jpg', {
                 type: 'image/jpeg',
                 lastModified: Date.now()
             });
@@ -556,7 +524,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.status}`);
+                    throw new Error('Upload failed: ' + response.status);
                 }
 
                 const uploadedUrl = (await response.text()).trim();
@@ -651,21 +619,21 @@
         const dragTargets = [uploader, drop].filter(Boolean);
 
         ['dragenter', 'dragover'].forEach((evt) => {
-            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
-                e.preventDefault();
+            dragTargets.forEach((target) => target.addEventListener(evt, (event) => {
+                event.preventDefault();
                 drop.classList.add('is-dragover');
             }));
         });
 
         ['dragleave', 'drop'].forEach((evt) => {
-            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
-                e.preventDefault();
+            dragTargets.forEach((target) => target.addEventListener(evt, (event) => {
+                event.preventDefault();
                 drop.classList.remove('is-dragover');
             }));
         });
 
-        uploader.addEventListener('drop', (e) => {
-            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        uploader.addEventListener('drop', (event) => {
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
             if (!file) return;
             if (typeof DataTransfer === 'undefined') {
                 setHint('Drag and drop is not supported here. Click to upload instead.', true);
@@ -678,12 +646,6 @@
             startCoverFlow(file);
         });
 
-        form.addEventListener('submit', () => {
-            input.disabled = true;
-            input.value = '';
-            syncInputFile(null);
-        });
-
         modal.style.display = 'none';
         modal.hidden = true;
         input.value = '';
@@ -693,145 +655,125 @@
             setHint('Cover uploaded.', false);
         } else {
             resetPreview();
-            setHint(defaultHint, false);
         }
     })();
 </script>
 
 <script>
     (function () {
-        const reviewToggle = document.getElementById('review');
-        const switchWrap = reviewToggle ? reviewToggle.closest('.switch') : null;
-        const titleField = document.getElementById('title-field');
-        const bodyField = document.getElementById('body-field');
-        const titleInput = document.getElementById('title');
-        const bodyInput = document.getElementById('body');
-        const hint = document.querySelector('[data-review-switch-hint]');
+        const form = document.getElementById('new-art-form');
+        const submit = document.getElementById('new-art-submit');
+        const status = document.getElementById('request-status');
+        const statusText = document.getElementById('request-status-text');
+        const csrfField = form ? form.querySelector('input[name="_csrf"]') : null;
+        const typeField = document.getElementById('artType');
+        const nameField = document.getElementById('name');
+        const authorField = document.getElementById('author');
+        const descriptionField = document.getElementById('description');
+        const imageUrlField = document.getElementById('imageUrl');
 
-        if (!reviewToggle || !switchWrap || !titleField || !bodyField || !titleInput || !bodyInput) return;
+        if (!form || !submit || !status || !statusText || !typeField || !nameField || !authorField || !descriptionField || !imageUrlField) return;
 
-        function syncReviewMode() {
-            const isFullReview = reviewToggle.checked;
-
-            switchWrap.classList.toggle('is-on', isFullReview);
-            titleField.hidden = !isFullReview;
-            bodyField.hidden = !isFullReview;
-            titleInput.disabled = !isFullReview;
-            bodyInput.disabled = !isFullReview;
-
-            if (!isFullReview) {
-                titleInput.value = '';
-                bodyInput.value = '';
-            }
-
-            if (hint) {
-                hint.textContent = isFullReview
-                    ? 'Turn on for long-form review, off for score-only rating.'
-                    : 'Score-only rating: review headline and body are hidden.';
-            }
+        function showStatus(kind, text) {
+            status.hidden = false;
+            status.classList.remove('is-loading', 'is-success', 'is-error');
+            status.classList.add('is-' + kind);
+            statusText.textContent = text;
         }
 
-        switchWrap.addEventListener('click', (event) => {
-            if (event.target === reviewToggle) {
-                return;
-            }
+        function clearStatus() {
+            status.hidden = true;
+            status.classList.remove('is-loading', 'is-success', 'is-error');
+            statusText.textContent = 'Request status will appear here.';
+        }
 
+        function validate() {
+            if (!typeField.value) {
+                showStatus('error', 'Choose a type before sending the request.');
+                typeField.focus();
+                return false;
+            }
+            if (!nameField.value.trim()) {
+                showStatus('error', 'Enter the work name.');
+                nameField.focus();
+                return false;
+            }
+            if (!authorField.value.trim()) {
+                showStatus('error', 'Enter the author or creator.');
+                authorField.focus();
+                return false;
+            }
+            if (authorField.value.trim().length > 50) {
+                showStatus('error', 'Author or creator must be 50 characters or fewer.');
+                authorField.focus();
+                return false;
+            }
+            return true;
+        }
+
+        [typeField, nameField, authorField, descriptionField].forEach((field) => {
+            field.addEventListener('input', clearStatus);
+            field.addEventListener('change', clearStatus);
+        });
+
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            reviewToggle.checked = !reviewToggle.checked;
-            reviewToggle.dispatchEvent(new Event('change', { bubbles: true }));
-        });
 
-        reviewToggle.addEventListener('change', syncReviewMode);
-        syncReviewMode();
-    })();
-</script>
-
-<script th:inline="javascript">
-    (function () {
-        const criteriaByType = /*[[${criteriaByType}]]*/ {};
-        const typeSelect = document.getElementById('artType');
-        const grid = document.getElementById('criteria-grid');
-        const emptyState = document.getElementById('criteria-empty');
-        const totalField = document.getElementById('value');
-        const totalDisplay = document.getElementById('value-display');
-
-        if (!typeSelect || !grid || !emptyState || !totalField || !totalDisplay) return;
-
-        function buildCriteriaCard(criterion, index) {
-            const score = typeof criterion.defaultScore === 'number' ? criterion.defaultScore : 5;
-            const weight = typeof criterion.weight === 'number' ? criterion.weight : 1;
-
-            const card = document.createElement('div');
-            card.className = 'criteria-card glass-panel';
-            card.innerHTML = `
-                <div class="criteria-header">
-                    <div>
-                        <div class="criteria-name">${criterion.name || 'Criterion'}</div>
-                        <div class="criteria-desc">${criterion.description || ''}</div>
-                    </div>
-                    <div class="criteria-score">
-                        <span class="criteria-score__value" data-score>${score}</span>
-                        <span class="criteria-score__max">/10</span>
-                    </div>
-                </div>
-                <input type="hidden" name="criteria[${index}].criterionId" value="${criterion.id}">
-                <div class="criteria-slider-wrap">
-                    <input class="criteria-slider" type="range" min="0" max="10" step="1"
-                           name="criteria[${index}].score" value="${score}" data-weight="${weight}" />
-                    <span class="criteria-slider-star" aria-hidden="true"></span>
-                </div>
-            `;
-            return card;
-        }
-
-        function updateSliderVisual(slider) {
-            if (!slider) return;
-            const min = Number(slider.min || 0);
-            const max = Number(slider.max || 10);
-            const value = Number(slider.value || 0);
-            const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
-            slider.closest('.criteria-slider-wrap')?.style.setProperty('--slider-percent', `${percent}%`);
-        }
-
-        function updateTotal() {
-            const sliders = grid.querySelectorAll('.criteria-slider');
-            let total = 0;
-            sliders.forEach((slider) => {
-                const weight = Number(slider.dataset.weight || 1);
-                total += Number(slider.value) * weight;
-                updateSliderVisual(slider);
-            });
-            const normalizedTotal = Math.round(total / 10);
-            totalField.value = normalizedTotal;
-            totalDisplay.textContent = normalizedTotal;
-        }
-
-        function renderCriteria(type) {
-            const list = criteriaByType && typeSelect.value ? criteriaByType[type] : [];
-            grid.innerHTML = '';
-            if (!list || list.length === 0) {
-                emptyState.hidden = false;
-                updateTotal();
+            if (!validate()) {
                 return;
             }
 
-            emptyState.hidden = true;
-            list.forEach((criterion, index) => {
-                grid.appendChild(buildCriteriaCard(criterion, index));
-            });
-            updateTotal();
-        }
+            submit.disabled = true;
+            showStatus('loading', 'Sending the request to the admin queue...');
 
-        grid.addEventListener('input', (event) => {
-            const target = event.target;
-            if (!target || !target.classList.contains('criteria-slider')) return;
-            const valueEl = target.closest('.criteria-card')?.querySelector('[data-score]');
-            if (valueEl) valueEl.textContent = target.value;
-            updateTotal();
+            const payload = {
+                requesterId: 0,
+                type: typeField.value,
+                name: nameField.value.trim(),
+                author: authorField.value.trim(),
+                description: descriptionField.value.trim() || null,
+                imageUrl: imageUrlField.value.trim() || null
+            };
+
+            try {
+                const response = await fetch('/opuscore/art-requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/html,application/json,*/*',
+                        ...(csrfField && csrfField.value ? { 'X-CSRF-TOKEN': csrfField.value } : {})
+                    },
+                    body: JSON.stringify(payload),
+                    redirect: 'follow'
+                });
+
+                if (response.redirected && response.ok) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                if (response.redirected && response.url.indexOf('/opuscore/art-page/') !== -1) {
+                    form.reset();
+                    imageUrlField.value = '';
+                    if (window.__resetArtRequestCover) {
+                        window.__resetArtRequestCover();
+                    }
+                    showStatus('success', 'Request created. The backend redirected to an art page route that is not wired yet, so the request is saved but there is no destination screen yet.');
+                    return;
+                }
+
+                const responseText = await response.text();
+                if (responseText && responseText.indexOf('Cover image must be 5 MB or smaller.') !== -1) {
+                    showStatus('error', 'Cover image must be 5 MB or smaller.');
+                } else {
+                    showStatus('error', 'Could not send the request. Check the backend controller contract and try again.');
+                }
+            } catch (error) {
+                showStatus('error', 'Could not send the request. Check the endpoint and try again.');
+            } finally {
+                submit.disabled = false;
+            }
         });
-
-        typeSelect.addEventListener('change', () => renderCriteria(typeSelect.value));
-        renderCriteria(typeSelect.value);
     })();
 </script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>

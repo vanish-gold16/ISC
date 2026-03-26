@@ -124,6 +124,13 @@
     background-image: url('/images/private/sidebar-icons/opuscore-new-review.png');
 }
 
+.oc-sidebar-action__icon--new-art {
+    background-image: none;
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    letter-spacing: 0.02em;
+}
+
 .oc-sidebar-action__icon--my-ratings {
     background-image: url('/images/private/sidebar-icons/opuscore-my-ratings.png');
 }

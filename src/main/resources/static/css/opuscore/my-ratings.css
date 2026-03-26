@@ -179,6 +179,12 @@
     margin: 0;
 }
 
+.oc-ratings-empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
 @media (max-width: 760px) {
     .oc-ratings-head {
         padding: 24px 24px 26px 28px;

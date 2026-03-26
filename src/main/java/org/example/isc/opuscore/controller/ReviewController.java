@@ -137,7 +137,7 @@ public class ReviewController {
 
     @PostMapping("/new-review/cover")
     @ResponseBody
-    public ResponseEntity<String> uploadReviewCover(
+    public ResponseEntity<String> uploadArtCover(
             @RequestParam("file") MultipartFile file,
             Authentication authentication
     ) throws IOException {

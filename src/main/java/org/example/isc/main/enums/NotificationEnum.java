@@ -7,5 +7,7 @@ public enum NotificationEnum {
     FRIEND_REQUEST_ACCEPT,
     COMMENT,
     MESSAGE,
-    SYSTEM
+    SYSTEM,
+    REVIEW_STATUS,
+    ART_REQUEST_STATUS
 }
