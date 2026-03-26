@@ -37,6 +37,14 @@
                 <span class="oc-sidebar-action__icon oc-sidebar-action__icon--discover" aria-hidden="true"></span>
                 <span class="oc-sidebar-action__label">Discover</span>
             </a>
+            <a class="oc-sidebar-action"
+               th:if="${isAdmin}"
+               th:href="@{/admin}"
+               href="/admin"
+               th:classappend="${active}=='admin' ? ' is-active' : ''">
+                <span class="oc-sidebar-action__icon" aria-hidden="true">A</span>
+                <span class="oc-sidebar-action__label">Admin Panel</span>
+            </a>
         </nav>
     </div>
 </aside>

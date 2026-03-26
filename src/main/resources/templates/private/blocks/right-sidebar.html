@@ -51,7 +51,15 @@
                th:classappend="${active}=='friends' ? ' is-active' : ''">
                 <img class="nav__icon" th:src="@{/images/private/sidebar-icons/friends.png}" src="/images/private/sidebar-icons/friends.png" alt="" aria-hidden="true" />
                 <span class="nav__label">Friends</span>
-                </a>
+            </a>
+
+            <a class="nav__item"
+               th:if="${isAdmin}"
+               th:href="@{/admin}"
+               th:classappend="${active}=='admin' ? ' is-active' : ''">
+                <span class="nav__icon nav__icon--admin" aria-hidden="true">A</span>
+                <span class="nav__label">Admin Panel</span>
+            </a>
         </nav>
     </div>
     <script>

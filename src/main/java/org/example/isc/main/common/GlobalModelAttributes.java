@@ -6,6 +6,7 @@ import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -28,6 +29,17 @@ public class GlobalModelAttributes {
         return authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
+    @ModelAttribute("isAdmin")
+    public boolean isAdmin(Authentication authentication) {
+        if (!isAuthenticated(authentication)) {
+            return false;
+        }
+
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
     }
 
     @ModelAttribute("unreadNotifications")

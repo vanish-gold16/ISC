@@ -87,6 +87,17 @@
     flex-shrink: 0;
 }
 
+.nav__icon--admin {
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1d4ed8, #0f172a);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+}
+
 .nav__item:hover{
     background: var(--panel-hover);
     transform: translateY(-1px);
