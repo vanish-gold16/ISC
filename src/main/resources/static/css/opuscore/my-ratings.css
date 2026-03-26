@@ -92,18 +92,21 @@
 .oc-rating-card__body {
     min-width: 0;
     display: grid;
-    align-content: start;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 20px;
+    row-gap: 10px;
+    align-items: start;
 }
 
 .oc-rating-card__meta {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+    display: contents;
 }
 
 .oc-rating-card__tag {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    width: fit-content;
     display: inline-flex;
     align-items: center;
     padding: 5px 10px;
@@ -118,9 +121,13 @@
 }
 
 .oc-rating-card__score {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    justify-self: end;
     font-family: 'DM Serif Display', serif;
     align-self: center;
-    margin-top: 18px;
+    padding-right: 22px;
+    margin-top: 0;
     font-size: clamp(56px, 7vw, 84px);
     line-height: 0.88;
     color: rgba(255, 255, 255, 0.96);
@@ -130,6 +137,8 @@
 }
 
 .oc-rating-card__title {
+    grid-column: 1;
+    grid-row: 2;
     margin: 0;
     font-family: 'DM Serif Display', serif;
     font-size: clamp(28px, 3.4vw, 38px);
@@ -138,6 +147,8 @@
 }
 
 .oc-rating-card__author {
+    grid-column: 1;
+    grid-row: 3;
     margin: 0;
     color: rgba(238, 240, 246, 0.8);
     font-size: 19px;
@@ -145,6 +156,8 @@
 }
 
 .oc-rating-card__desc {
+    grid-column: 1;
+    grid-row: 4;
     margin: 0;
     color: var(--text-2);
     line-height: 1.6;
@@ -176,6 +189,10 @@
         gap: 14px;
     }
 
+    .oc-rating-card__body {
+        column-gap: 14px;
+    }
+
     .oc-rating-card__cover,
     .oc-rating-card__cover-fallback {
         min-height: 126px;
@@ -202,5 +219,15 @@
     .oc-rating-card__cover {
         width: 100%;
         max-width: 132px;
+    }
+
+    .oc-rating-card__body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .oc-rating-card__score {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: start;
     }
 }
