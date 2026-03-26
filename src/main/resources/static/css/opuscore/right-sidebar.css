@@ -132,6 +132,10 @@
     background-image: url('/images/private/sidebar-icons/opuscore-profile.png');
 }
 
+.oc-sidebar-action__icon--home {
+    background-image: url('/images/private/sidebar-icons/opuscore-home.png');
+}
+
 .oc-sidebar-action__icon--discover {
     background-image: url('/images/private/sidebar-icons/opuscore-discover.png');
 }
