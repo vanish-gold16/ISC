@@ -112,10 +112,10 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         if (me.getId().equals(id)) {
-            return "forward:/profile";
+            return "/profile";
         }
 
-        return "forward:/profile/" + id;
+        return "/profile/" + id;
     }
 
     @PostMapping("/new-review")
