@@ -25,6 +25,9 @@ public class Review {
     @Column(name = "art_name",  nullable = false)
     private String artName;
 
+    @Column(name = "art_author")
+    private String artAuthor;
+
     @Column(name = "art_description")
     private String artDescription;
 
@@ -62,10 +65,20 @@ public class Review {
         this.criteriaScores = criteriaScores;
     }
 
-    public Review(ArtTypeEnum type, Boolean isReview, String artName, String artDescription, String title, String body, List<ReviewCriterion> criteriaScores) {
+    public Review(
+            ArtTypeEnum type,
+            Boolean isReview,
+            String artName,
+            String artAuthor,
+            String artDescription,
+            String title,
+            String body,
+            List<ReviewCriterion> criteriaScores
+    ) {
         this.type = type;
         this.isReview = isReview;
         this.artName = artName;
+        this.artAuthor = artAuthor;
         this.artDescription = artDescription;
         this.title = title;
         this.body = body;
@@ -142,6 +155,14 @@ public class Review {
 
     public void setArtDescription(String artDescription) {
         this.artDescription = artDescription;
+    }
+
+    public String getArtAuthor() {
+        return artAuthor;
+    }
+
+    public void setArtAuthor(String artAuthor) {
+        this.artAuthor = artAuthor;
     }
 
     public String getTitle() {

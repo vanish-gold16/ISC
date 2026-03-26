@@ -42,17 +42,22 @@
     display: grid;
     gap: 16px;
     padding-top: 6px;
+    min-height: 320px;
 }
 
 .review-topline {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+    align-items: stretch;
+    gap: 24px;
+    min-height: 100%;
 }
 
 .review-topline__main {
     min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 14px;
 }
 
 .review-tag {
@@ -84,13 +89,52 @@
     margin: 12px 0 0;
 }
 
+.review-work-author {
+    margin: -2px 0 0;
+    color: rgba(238, 240, 246, 0.82);
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.review-desc-wrap {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    max-width: 640px;
+}
+
 .review-desc {
+    margin: 0;
     color: var(--text-2);
-    max-width: 600px;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.review-desc--clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
+.review-desc.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+
+.review-desc__toggle {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
 }
 
 .review-author {
-    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -137,10 +181,21 @@
     color: var(--text);
 }
 
+.review-side {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
 .review-score {
     display: flex;
     align-items: baseline;
     gap: 6px;
+    justify-content: flex-end;
+    margin-top: auto;
 }
 
 .review-score__value {
@@ -253,8 +308,15 @@
     }
 
     .review-topline {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .review-side {
         align-items: flex-start;
+    }
+
+    .review-score {
+        justify-content: flex-start;
     }
 }
 
@@ -267,8 +329,16 @@
         font-size: 32px;
     }
 
+    .review-work-author {
+        font-size: 22px;
+    }
+
     .review-author {
         width: 100%;
         justify-content: flex-start;
+    }
+
+    .review-score__value {
+        font-size: clamp(56px, 18vw, 88px);
     }
 }

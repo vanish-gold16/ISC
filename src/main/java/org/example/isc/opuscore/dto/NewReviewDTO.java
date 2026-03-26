@@ -22,6 +22,9 @@ public class NewReviewDTO {
     @Size(min =  1, max = 100)
     private String name;
 
+    @Size(max = 120)
+    private String author;
+
     @Size(min = 1, max = 300)
     private String description;
 
@@ -69,10 +72,11 @@ public class NewReviewDTO {
     public NewReviewDTO() {
     }
 
-    public NewReviewDTO(ArtTypeEnum artType, boolean isReview, String name, String description, String title, String body, Long value) {
+    public NewReviewDTO(ArtTypeEnum artType, boolean isReview, String name, String author, String description, String title, String body, Long value) {
         this.artType = artType;
         this.isReview = isReview;
         this.name = name;
+        this.author = author;
         this.description = description;
         this.title = title;
         this.body = body;
@@ -101,6 +105,14 @@ public class NewReviewDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
     public String getDescription() {

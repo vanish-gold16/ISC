@@ -96,26 +96,39 @@
                         <span th:text="${review != null && review.type != null} ? ${review.type} : 'ART'">ART</span>
                     </div>
                     <h1 class="review-title" th:text="${review != null && review.artName != null} ? ${review.artName} : 'Untitled Work'">Untitled Work</h1>
+                    <p class="review-work-author"
+                       th:text="${review != null ? (review.artAuthor != null ? review.artAuthor : (review.artDescription != null ? review.artDescription : 'Unknown creator')) : 'Unknown creator'}">
+                        Unknown creator
+                    </p>
+
+                    <th:block th:with="heroDescription=${review != null && review.artAuthor != null ? review.artDescription : null}">
+                        <div class="review-desc-wrap" th:if="${heroDescription != null && !#strings.isEmpty(heroDescription)}">
+                            <p class="review-desc review-desc--clamped" id="review-desc" th:text="${heroDescription}">
+                                Short description about the work.
+                            </p>
+                            <button class="review-desc__toggle" id="review-desc-toggle" type="button" hidden>Show more</button>
+                        </div>
+                    </th:block>
                 </div>
 
-                <a class="review-author"
-                   th:if="${reviewAuthorId != null}"
-                   th:href="@{/opuscore/profile/{id}(id=${reviewAuthorId})}"
-                   href="/opuscore/profile/1">
-                    <span class="review-author__label">by</span>
-                    <img class="review-author__avatar"
-                         th:src="${reviewAuthorAvatarUrl} ?: '/images/private/profile/common-profile.png'"
-                         src="/images/private/profile/common-profile.png"
-                         alt="" />
-                    <span class="review-author__name" th:text="${reviewAuthorUsername} ?: 'isc-user'">isc-user</span>
-                </a>
-            </div>
+                <div class="review-side">
+                    <a class="review-author"
+                       th:if="${reviewAuthorId != null}"
+                       th:href="@{/opuscore/profile/{id}(id=${reviewAuthorId})}"
+                       href="/opuscore/profile/1">
+                        <span class="review-author__label">by</span>
+                        <img class="review-author__avatar"
+                             th:src="${reviewAuthorAvatarUrl} ?: '/images/private/profile/common-profile.png'"
+                             src="/images/private/profile/common-profile.png"
+                             alt="" />
+                        <span class="review-author__name" th:text="${reviewAuthorUsername} ?: 'isc-user'">isc-user</span>
+                    </a>
 
-            <p class="review-desc" th:text="${review != null && review.artDescription != null} ? ${review.artDescription} : 'Short description about the work.'">Short description about the work.</p>
-
-            <div class="review-score">
-                <span class="review-score__value" th:text="${review != null && review.value != null} ? ${review.value} : '0'">0</span>
-                <span class="review-score__max">/100</span>
+                    <div class="review-score">
+                        <span class="review-score__value" th:text="${review != null && review.value != null} ? ${review.value} : '0'">0</span>
+                        <span class="review-score__max">/100</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -152,5 +165,41 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('review')}"></aside>
 </main>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
+<script>
+    (function () {
+        const description = document.getElementById('review-desc');
+        const toggle = document.getElementById('review-desc-toggle');
+        if (!description || !toggle) {
+            return;
+        }
+
+        const collapsedClass = 'review-desc--clamped';
+
+        const syncToggle = () => {
+            description.classList.add(collapsedClass);
+            const needsToggle = description.scrollHeight > description.clientHeight + 4;
+            toggle.hidden = !needsToggle;
+            if (!needsToggle) {
+                description.classList.remove('is-expanded');
+                toggle.textContent = 'Show more';
+            }
+        };
+
+        toggle.addEventListener('click', () => {
+            description.classList.toggle('is-expanded');
+            const expanded = description.classList.contains('is-expanded');
+            toggle.textContent = expanded ? 'Show less' : 'Show more';
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(syncToggle);
+        } else {
+            window.addEventListener('load', syncToggle, { once: true });
+        }
+
+        window.addEventListener('resize', syncToggle);
+        syncToggle();
+    })();
+</script>
 </body>
 </html>

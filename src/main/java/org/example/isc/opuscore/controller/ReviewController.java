@@ -107,8 +107,15 @@ public class ReviewController {
     }
 
     @GetMapping("/profile/{id}")
-    public String getOpusCoreProfile(@PathVariable Long id) {
-        return "redirect:/profile/" + id;
+    public String getOpusCoreProfile(@PathVariable Long id, Authentication authentication) {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        if (me.getId().equals(id)) {
+            return "forward:/profile";
+        }
+
+        return "forward:/profile/" + id;
     }
 
     @PostMapping("/new-review")

@@ -187,6 +187,12 @@
                     </div>
 
                     <div class="field">
+                        <label for="author">Author / creator</label>
+                        <input id="author" class="input" type="text" th:field="*{author}" placeholder="Writer, artist, director, band..." maxlength="120" />
+                        <p class="field__error" th:if="${#fields.hasErrors('author')}" th:errors="*{author}">Author error</p>
+                    </div>
+
+                    <div class="field">
                         <label for="description">Short description</label>
                         <textarea id="description" class="input input--textarea" rows="3" th:field="*{description}" placeholder="Genre, vibe, or quick context" maxlength="300"></textarea>
                         <p class="field__hint">Max 300 characters.</p>

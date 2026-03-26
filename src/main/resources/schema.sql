@@ -175,6 +175,16 @@ BEGIN
         FROM information_schema.columns
         WHERE table_schema = 'public'
           AND table_name = 'reviews'
+          AND column_name = 'art_author'
+    ) THEN
+        ALTER TABLE reviews ADD COLUMN art_author VARCHAR(120);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'reviews'
           AND column_name = 'user_id'
     ) THEN
         ALTER TABLE reviews ADD COLUMN user_id BIGINT;

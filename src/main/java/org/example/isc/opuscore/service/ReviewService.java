@@ -63,6 +63,7 @@ public class ReviewService {
                 form.getArtType(),
                 form.isReview(),
                 form.getName(),
+                blankToNull(form.getAuthor()),
                 form.getDescription(),
                 title,
                 body,
