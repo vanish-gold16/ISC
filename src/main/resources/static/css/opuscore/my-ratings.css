@@ -6,6 +6,7 @@
     display: grid;
     gap: 12px;
     margin-bottom: 24px;
+    padding: 28px 36px 30px 44px;
     animation: fadeUp 0.4s ease both;
 }
 
@@ -97,7 +98,7 @@
 
 .oc-rating-card__meta {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
 }
@@ -117,17 +118,15 @@
 }
 
 .oc-rating-card__score {
-    font-family: 'DM Mono', monospace;
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.oc-rating-card__score span {
     font-family: 'DM Serif Display', serif;
-    font-size: 32px;
-    line-height: 1;
-    color: var(--text);
-    margin-right: 2px;
+    align-self: center;
+    margin-top: 18px;
+    font-size: clamp(56px, 7vw, 84px);
+    line-height: 0.88;
+    color: rgba(255, 255, 255, 0.96);
+    letter-spacing: -0.03em;
+    flex: 0 0 auto;
+    text-align: center;
 }
 
 .oc-rating-card__title {
@@ -168,6 +167,10 @@
 }
 
 @media (max-width: 760px) {
+    .oc-ratings-head {
+        padding: 24px 24px 26px 28px;
+    }
+
     .oc-rating-card {
         grid-template-columns: 88px minmax(0, 1fr);
         gap: 14px;
@@ -186,6 +189,10 @@
 @media (max-width: 560px) {
     .oc-ratings-page {
         padding: 32px 0 60px;
+    }
+
+    .oc-ratings-head {
+        padding: 22px 18px 24px 22px;
     }
 
     .oc-rating-card {

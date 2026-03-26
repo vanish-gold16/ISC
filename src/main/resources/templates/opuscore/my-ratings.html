@@ -84,7 +84,7 @@
                 <div class="oc-rating-card__body">
                     <div class="oc-rating-card__meta">
                         <span class="oc-rating-card__tag" th:text="${rating.type != null ? rating.type : 'ART'}">ART</span>
-                        <span class="oc-rating-card__score"><span th:text="${rating.value}">0</span>/100</span>
+                        <span class="oc-rating-card__score" th:text="${rating.value}">0</span>
                     </div>
 
                     <h2 class="oc-rating-card__title" th:text="${rating.artName} ?: 'Untitled work'">Untitled work</h2>
