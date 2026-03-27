@@ -100,10 +100,9 @@
 
         <section class="oc-ratings-empty glass-panel" th:if="${ratings == null or #lists.isEmpty(ratings)}">
             <h2>No ratings yet</h2>
-            <p>Start with a new review and your library will show up here.</p>
+            <p>Start with a new review. If the work is missing from the catalog, you can create it from that same flow.</p>
             <div class="oc-ratings-empty__actions">
                 <a class="btn" th:href="@{/opuscore/new-review}" href="/opuscore/new-review">New Review</a>
-                <a class="btn" th:href="@{/opuscore/art-requests}" href="/opuscore/art-requests">Submit New Art</a>
             </div>
         </section>
     </section>

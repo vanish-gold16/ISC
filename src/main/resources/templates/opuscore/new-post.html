@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-    <title th:text="${title} ?: 'OpusCore | New Review'">OpusCore | New Review</title>
+    <title th:text="${title != null ? title : 'OpusCore | New Review'}">OpusCore | New Review</title>
     <script>
         (function () {
             try {
@@ -50,44 +50,6 @@
         html.oc-entry-pending .page {
             opacity: 0;
         }
-
-        .cover-modal {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 2400 !important;
-            display: none !important;
-            place-items: center !important;
-            padding: 24px !important;
-            background: rgba(4, 6, 10, 0.82) !important;
-            backdrop-filter: blur(18px) !important;
-            -webkit-backdrop-filter: blur(18px) !important;
-        }
-
-        .cover-modal.is-open {
-            display: grid !important;
-        }
-
-        .cover-modal[hidden] {
-            display: none !important;
-        }
-
-        .cover-modal__backdrop {
-            position: absolute !important;
-            inset: 0 !important;
-            background: transparent !important;
-        }
-
-        .cover-modal__dialog {
-            position: relative !important;
-            z-index: 1 !important;
-            width: min(560px, calc(100vw - 32px)) !important;
-        }
-
-        #cover-cropper-canvas {
-            width: min(100%, 320px) !important;
-            aspect-ratio: 3 / 4.4 !important;
-            display: block !important;
-        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -98,105 +60,72 @@
 <body>
 
 <header th:replace="~{/opuscore/blocks/header :: header}"></header>
-<header class="topbar" hidden>
-    <div class="topbar__inner container">
-        <a class="brand" href="/opuscore">
-            <span class="brand__logo-stack">
-                <img class="brand__logo-img"
-                     th:src="@{/images/brand/logo-submark.png}"
-                     src="/images/brand/logo-submark.png"
-                     alt="" />
-            </span>
-            <span class="brand__text">OpusCore</span>
-            <span class="brand__sub">beta</span>
-        </a>
-        <div class="topbar__actions">
-            <a class="btn" href="/opuscore">&larr; Back</a>
-        </div>
-    </div>
-</header>
 
 <main class="container page new-review-page">
     <section class="page-content">
         <section class="new-review">
             <header class="new-review__header glass-panel">
-            <div>
-                <p class="new-review__eyebrow">New review</p>
-                <h1 class="new-review__title">Rate a work</h1>
-                <p class="new-review__subtitle">Choose a type, score the work across criteria, and publish your review to OpusCore.</p>
-            </div>
-            <div class="new-review__chip">OpusCore / Review</div>
+                <div>
+                    <p class="new-review__eyebrow">New review</p>
+                    <h1 class="new-review__title">Pick a work first</h1>
+                    <p class="new-review__subtitle">Search the catalog, pick an existing work, then write the review. If nothing matches, create a new work request from here and continue from its pending page.</p>
+                </div>
+                <div class="new-review__chip">OpusCore / Review</div>
             </header>
 
-            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-            <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
-            <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
+            <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" id="new-review-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input id="artworkId" type="hidden" th:field="*{artworkId}" />
+                <input id="artType" type="hidden" th:field="*{artType}" />
+                <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
+                <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
 
-            <div class="form-grid">
-                <div class="cover-column">
-                    <label class="cover-label">Cover</label>
-                    <div class="cover-uploader" id="cover-uploader">
-                        <input id="image" class="cover-input" type="file" accept="image/*" aria-label="Upload cover" />
-                        <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
-                            <span class="cover-drop__inner">
-                                <span class="cover-drop__icon">+</span>
-                                <span class="cover-drop__title">Drop cover here</span>
-                                <span class="cover-drop__hint">or click to upload</span>
-                            </span>
-                        </button>
-                        <div class="cover-preview" id="cover-preview" hidden>
-                            <img id="cover-preview-img" alt="Cover preview" />
-                            <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
-                                <img src="/images/private/icons/delete.png" alt="" />
-                            </button>
+                <section class="review-search glass-panel">
+                    <div class="review-search__head">
+                        <div>
+                            <p class="review-search__eyebrow">Step 1</p>
+                            <h2 class="review-search__title">Search by title or author</h2>
                         </div>
+                        <button class="btn btn--ghost" type="button" id="review-change-art" hidden>Change work</button>
                     </div>
-                    <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
-                    <p class="field__error" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</p>
-                </div>
 
-                <div class="fields-column">
-                    <div class="field-grid">
-                        <div class="field">
-                            <label for="artType">Type</label>
-                            <select id="artType" class="input" th:field="*{artType}">
-                                <option value="" disabled selected>Select a type</option>
-                                <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
-                                        th:value="${t}"
-                                        th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
-                            </select>
-                            <p class="field__error" th:if="${#fields.hasErrors('artType')}" th:errors="*{artType}">Type error</p>
-                        </div>
+                    <div class="review-search__bar">
+                        <input class="input review-search__input"
+                               id="review-search-input"
+                               type="search"
+                               placeholder="Search for a book, album, film, game..." />
+                        <button class="btn btn--submit" type="button" id="review-search-button">Search</button>
+                    </div>
 
-                        <div class="field field--switch">
-                            <label for="review">Is it a full review?</label>
-                            <label class="switch">
-                                <input id="review" type="checkbox" th:field="*{review}" />
-                                <span class="switch__track"></span>
-                            </label>
-                            <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
-                            <p class="field__error" th:if="${#fields.hasErrors('review')}" th:errors="*{review}">Review error</p>
+                    <div class="review-selected glass-panel" id="review-selected-art" hidden>
+                        <div class="review-selected__cover" id="review-selected-cover">ART</div>
+                        <div class="review-selected__copy">
+                            <p class="review-selected__eyebrow">Selected work</p>
+                            <h3 class="review-selected__title" id="review-selected-name">Untitled work</h3>
+                            <p class="review-selected__author" id="review-selected-author">Unknown creator</p>
+                            <p class="review-selected__meta" id="review-selected-type">ART</p>
                         </div>
                     </div>
 
-                    <div class="field">
-                        <label for="name">Work name</label>
-                        <input id="name" class="input" type="text" th:field="*{name}" placeholder="Title of the work" maxlength="100" />
-                        <p class="field__error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</p>
+                    <div class="review-search__results" id="review-search-results"></div>
+
+                    <div class="review-search__empty glass-panel" id="review-search-empty" hidden>
+                        <p class="review-search__empty-title">Nothing matched this search</p>
+                        <p class="review-search__empty-text">Create a new work request and continue from its pending page after submission.</p>
+                        <a class="btn btn--submit" href="/opuscore/art-requests" id="review-create-art-link">Create new work</a>
                     </div>
 
-                    <div class="field">
-                        <label for="author">Author / creator</label>
-                        <input id="author" class="input" type="text" th:field="*{author}" placeholder="Writer, artist, director, band..." maxlength="120" />
-                        <p class="field__error" th:if="${#fields.hasErrors('author')}" th:errors="*{author}">Author error</p>
-                    </div>
+                    <p class="form-error" id="review-search-feedback" hidden></p>
+                </section>
 
-                    <div class="field">
-                        <label for="description">Short description</label>
-                        <textarea id="description" class="input input--textarea" rows="3" th:field="*{description}" placeholder="Genre, vibe, or quick context" maxlength="300"></textarea>
-                        <p class="field__hint">Max 300 characters.</p>
-                        <p class="field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
+                <section class="review-editor" id="review-editor" hidden>
+                    <div class="field field--switch">
+                        <label for="review">Is it a full review?</label>
+                        <label class="switch">
+                            <input id="review" type="checkbox" th:field="*{review}" />
+                            <span class="switch__track"></span>
+                        </label>
+                        <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
                     </div>
 
                     <div class="field" id="title-field">
@@ -214,489 +143,35 @@
 
                     <div class="criteria-section glass-panel">
                         <div class="criteria-section__title">Criteria</div>
-                        <p class="criteria-section__hint">Select a type to load criteria. Scores are 0-10.</p>
+                        <p class="criteria-section__hint" id="criteria-section-hint">Pick a work to load the right criteria. Scores are 0-10.</p>
                         <div class="criteria-grid" id="criteria-grid"></div>
-                        <div class="criteria-empty" id="criteria-empty" hidden>No criteria for the selected type yet.</div>
+                        <div class="criteria-empty" id="criteria-empty">Choose a work first.</div>
                         <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
                     </div>
 
+                    <p class="field__error" th:if="${#fields.hasErrors('artworkId')}" th:errors="*{artworkId}">Artwork error</p>
+                    <p class="field__error" th:if="${#fields.hasErrors('artType')}" th:errors="*{artType}">Type error</p>
                     <p class="field__error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Value error</p>
-                </div>
-            </div>
 
-            <div class="score-dock" aria-live="polite" aria-atomic="true">
-                <div class="score-dock__label">Total score</div>
-                <div class="score-dock__value"><span id="value-display" th:text="*{value} ?: 0">0</span><span class="score-dock__max">/100</span></div>
-            </div>
+                    <div class="score-dock" aria-live="polite" aria-atomic="true">
+                        <div class="score-dock__label">Total score</div>
+                        <div class="score-dock__value"><span id="value-display" th:text="*{value} ?: 0">0</span><span class="score-dock__max">/100</span></div>
+                    </div>
 
-            <div class="form-actions">
-                <button class="btn btn--submit" type="submit">Publish review</button>
-                <a class="btn" href="/opuscore">Cancel</a>
-            </div>
+                    <div class="form-actions">
+                        <button class="btn btn--submit" type="submit" id="review-submit-button">Publish review</button>
+                        <a class="btn" href="/opuscore">Cancel</a>
+                    </div>
 
-            <p class="form-error" th:if="${error}" th:text="${error}">Error</p>
+                    <p class="form-error" id="review-submit-feedback" hidden></p>
+                </section>
+
+                <p class="form-error" th:if="${error}" th:text="${error}">Error</p>
             </form>
         </section>
     </section>
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
-
-<div class="cover-modal" id="cover-modal" hidden aria-hidden="true">
-    <div class="cover-modal__backdrop" data-cover-modal-close></div>
-    <div class="cover-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="cover-modal-title">
-        <div class="cover-modal__head">
-            <div>
-                <p class="cover-modal__eyebrow">Cover editor</p>
-                <h2 class="cover-modal__title" id="cover-modal-title">Adjust your cover</h2>
-            </div>
-            <button class="cover-modal__close" type="button" aria-label="Close cover editor" data-cover-modal-close>×</button>
-        </div>
-
-        <div class="cover-modal__canvas-wrap">
-            <canvas id="cover-cropper-canvas" width="900" height="1320"></canvas>
-        </div>
-
-        <div class="cover-modal__controls">
-            <div class="cover-modal__scale-row">
-                <span class="cover-modal__scale-label">Scale</span>
-                <span class="cover-modal__scale-value" id="cover-modal-zoom-value">100%</span>
-            </div>
-            <input id="cover-modal-zoom-input" class="cover-modal__slider" type="range" min="1" max="3" step="0.01" value="1" />
-        </div>
-
-        <div class="cover-modal__actions">
-            <button class="btn btn--submit" type="button" id="cover-modal-apply">Apply</button>
-            <button class="btn" type="button" data-cover-modal-close>Cancel</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    (function () {
-        const form = document.querySelector('.new-review__form');
-        const input = document.getElementById('image');
-        const drop = document.getElementById('cover-drop');
-        const preview = document.getElementById('cover-preview');
-        const previewImg = document.getElementById('cover-preview-img');
-        const remove = document.getElementById('cover-remove');
-        const uploader = document.getElementById('cover-uploader');
-        const hint = document.getElementById('cover-hint');
-        const uploadedImageUrlField = document.getElementById('imageUrl');
-        const csrfField = document.querySelector('input[name="_csrf"]');
-        const modal = document.getElementById('cover-modal');
-        const cropperCanvas = document.getElementById('cover-cropper-canvas');
-        const cropperContext = cropperCanvas ? cropperCanvas.getContext('2d') : null;
-        const modalZoomInput = document.getElementById('cover-modal-zoom-input');
-        const modalZoomValue = document.getElementById('cover-modal-zoom-value');
-        const modalApply = document.getElementById('cover-modal-apply');
-        const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
-        const defaultHint = 'Vertical cover preferred. Max 5 MB.';
-        const outputWidth = 720;
-        const outputHeight = 1056;
-        const optimizedCoverMaxBytes = 700_000;
-        const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
-        let appliedPreviewUrl = '';
-        let cropperState = null;
-        let cropperImage = null;
-        let cropperObjectUrl = '';
-        let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-
-        if (!form || !input || !drop || !preview || !previewImg || !remove || !uploadedImageUrlField || !modal || !cropperCanvas || !cropperContext || !modalZoomInput || !modalZoomValue || !modalApply) return;
-
-        cropperCanvas.width = outputWidth;
-        cropperCanvas.height = outputHeight;
-
-        function setHint(text, isError) {
-            if (!hint) return;
-            hint.textContent = text;
-            hint.classList.toggle('field__hint--error', Boolean(isError));
-        }
-
-        function syncInputFile(file) {
-            if (typeof DataTransfer === 'undefined') {
-                input.value = '';
-                return;
-            }
-
-            const dt = new DataTransfer();
-            if (file) {
-                dt.items.add(file);
-            }
-            input.files = dt.files;
-        }
-
-        function revokeCropperObjectUrl() {
-            if (!cropperObjectUrl) return;
-            URL.revokeObjectURL(cropperObjectUrl);
-            cropperObjectUrl = '';
-        }
-
-        function clearAppliedPreviewUrl() {
-            if (!appliedPreviewUrl) return;
-            if (appliedPreviewUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(appliedPreviewUrl);
-            }
-            appliedPreviewUrl = '';
-        }
-
-        function hasUploadedCover() {
-            return Boolean(uploadedImageUrlField.value);
-        }
-
-        function resetPreview() {
-            clearAppliedPreviewUrl();
-            preview.hidden = true;
-            drop.hidden = false;
-            previewImg.src = '';
-            uploader.classList.remove('has-preview');
-            uploadedImageUrlField.value = '';
-            input.value = '';
-            syncInputFile(null);
-        }
-
-        function showCropper() {
-            modal.hidden = false;
-            modal.style.display = 'grid';
-            modal.classList.add('is-open');
-            modal.setAttribute('aria-hidden', 'false');
-            document.documentElement.classList.add('cover-modal-open');
-            document.body.classList.add('cover-modal-open');
-        }
-
-        function hideCropper() {
-            modal.classList.remove('is-open');
-            modal.style.display = 'none';
-            modal.hidden = true;
-            modal.setAttribute('aria-hidden', 'true');
-            document.documentElement.classList.remove('cover-modal-open');
-            document.body.classList.remove('cover-modal-open');
-            revokeCropperObjectUrl();
-            cropperImage = null;
-            cropperState = null;
-            isDragging = false;
-            modalZoomInput.value = '1';
-            modalZoomValue.textContent = '100%';
-        }
-
-        function showAppliedPreview(url) {
-            clearAppliedPreviewUrl();
-            appliedPreviewUrl = url;
-            previewImg.src = url;
-            preview.hidden = false;
-            drop.hidden = true;
-            uploader.classList.add('has-preview');
-        }
-
-        function clampOffsets(scale) {
-            if (!cropperState || !cropperImage) return;
-            const imageWidth = cropperImage.width * scale;
-            const imageHeight = cropperImage.height * scale;
-            const minX = (cropperCanvas.width - imageWidth) / 2;
-            const minY = (cropperCanvas.height - imageHeight) / 2;
-            const maxX = -minX;
-            const maxY = -minY;
-
-            cropperState.offsetX = Math.min(Math.max(cropperState.offsetX, minX), maxX);
-            cropperState.offsetY = Math.min(Math.max(cropperState.offsetY, minY), maxY);
-        }
-
-        function drawCropper() {
-            if (!cropperState || !cropperImage) return;
-            const scale = cropperState.baseScale * cropperState.zoom;
-            clampOffsets(scale);
-
-            const imageWidth = cropperImage.width * scale;
-            const imageHeight = cropperImage.height * scale;
-            const drawX = (cropperCanvas.width - imageWidth) / 2 + cropperState.offsetX;
-            const drawY = (cropperCanvas.height - imageHeight) / 2 + cropperState.offsetY;
-
-            cropperContext.clearRect(0, 0, cropperCanvas.width, cropperCanvas.height);
-            cropperContext.imageSmoothingEnabled = true;
-            cropperContext.imageSmoothingQuality = 'high';
-            cropperContext.drawImage(cropperImage, drawX, drawY, imageWidth, imageHeight);
-        }
-
-        function openCropper(file) {
-            revokeCropperObjectUrl();
-            cropperImage = new Image();
-            cropperImage.onload = () => {
-                const baseScale = Math.max(
-                    cropperCanvas.width / cropperImage.width,
-                    cropperCanvas.height / cropperImage.height
-                );
-
-                cropperState = {
-                    file,
-                    baseScale,
-                    zoom: 1,
-                    offsetX: 0,
-                    offsetY: 0
-                };
-
-                modalZoomInput.value = '1';
-                modalZoomValue.textContent = '100%';
-                drawCropper();
-                showCropper();
-                revokeCropperObjectUrl();
-            };
-            cropperImage.onerror = () => {
-                setHint('Could not open that image. Try another file.', true);
-                input.value = '';
-                syncInputFile(null);
-                hideCropper();
-            };
-            cropperObjectUrl = URL.createObjectURL(file);
-            cropperImage.src = cropperObjectUrl;
-        }
-
-        function validateFile(file) {
-            if (!file) return 'Choose an image file.';
-            if (!(file.type || '').startsWith('image/')) return 'Only image files are allowed.';
-            if (file.size > 5_000_000) return 'Image must be smaller than 5 MB.';
-            return null;
-        }
-
-        function canvasToBlob(type, quality) {
-            return new Promise((resolve) => {
-                cropperCanvas.toBlob(resolve, type, quality);
-            });
-        }
-
-        async function createOptimizedCoverBlob() {
-            let lastBlob = null;
-
-            for (const quality of coverQualitySteps) {
-                const blob = await canvasToBlob('image/jpeg', quality);
-                if (!blob) {
-                    continue;
-                }
-
-                lastBlob = blob;
-                if (blob.size <= optimizedCoverMaxBytes) {
-                    return blob;
-                }
-            }
-
-            return lastBlob;
-        }
-
-        function startCoverFlow(file) {
-            if (!file) {
-                setHint(defaultHint, false);
-                return;
-            }
-
-            const validationError = validateFile(file);
-            if (validationError) {
-                input.value = '';
-                setHint(validationError, true);
-                if (!hasUploadedCover()) {
-                    resetPreview();
-                } else {
-                    syncInputFile(null);
-                }
-                return;
-            }
-
-            setHint(`Selected: ${file.name}`, false);
-            openCropper(file);
-        }
-
-        function handleInputSelection() {
-            startCoverFlow(input.files && input.files[0]);
-        }
-
-        input.addEventListener('change', handleInputSelection);
-
-        remove.addEventListener('click', () => {
-            input.value = '';
-            setHint(defaultHint, false);
-            resetPreview();
-        });
-
-        modalZoomInput.addEventListener('input', () => {
-            if (!cropperState) return;
-            cropperState.zoom = Number(modalZoomInput.value || '1');
-            modalZoomValue.textContent = `${Math.round(cropperState.zoom * 100)}%`;
-            drawCropper();
-        });
-
-        modalApply.addEventListener('click', async () => {
-            if (!cropperState) {
-                hideCropper();
-                return;
-            }
-
-            const blob = await createOptimizedCoverBlob();
-            if (!blob || !cropperState) {
-                setHint('Failed to prepare cover image. Try another file.', true);
-                return;
-            }
-
-            const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
-            const optimizedFile = new File([blob], `${baseName}-cover.jpg`, {
-                type: 'image/jpeg',
-                lastModified: Date.now()
-            });
-
-            const formData = new FormData();
-            formData.append('file', optimizedFile);
-
-            modalApply.disabled = true;
-            setHint('Uploading cover...', false);
-
-            try {
-                const response = await fetch('/opuscore/new-review/cover', {
-                    method: 'POST',
-                    body: formData,
-                    headers: csrfField && csrfField.value ? {
-                        'X-CSRF-TOKEN': csrfField.value
-                    } : {}
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Upload failed: ${response.status}`);
-                }
-
-                const uploadedUrl = (await response.text()).trim();
-                if (!uploadedUrl) {
-                    throw new Error('Upload returned empty URL');
-                }
-
-                uploadedImageUrlField.value = uploadedUrl;
-                input.value = '';
-                syncInputFile(null);
-                showAppliedPreview(uploadedUrl);
-                setHint('Cover uploaded.', false);
-                hideCropper();
-            } catch (error) {
-                setHint('Failed to upload cover. Try again.', true);
-            } finally {
-                modalApply.disabled = false;
-            }
-        });
-
-        modalCloseButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                input.value = '';
-                syncInputFile(null);
-                if (hasUploadedCover()) {
-                    showAppliedPreview(uploadedImageUrlField.value);
-                    setHint('Cover uploaded.', false);
-                } else {
-                    preview.hidden = true;
-                    drop.hidden = false;
-                    uploader.classList.remove('has-preview');
-                    setHint(defaultHint, false);
-                }
-                hideCropper();
-            });
-        });
-
-        cropperCanvas.addEventListener('mousedown', (event) => {
-            if (!cropperState) return;
-            isDragging = true;
-            dragStart = { x: event.clientX, y: event.clientY };
-        });
-
-        window.addEventListener('mousemove', (event) => {
-            if (!isDragging || !cropperState) return;
-            const deltaX = event.clientX - dragStart.x;
-            const deltaY = event.clientY - dragStart.y;
-            dragStart = { x: event.clientX, y: event.clientY };
-            cropperState.offsetX += deltaX;
-            cropperState.offsetY += deltaY;
-            drawCropper();
-        });
-
-        window.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        cropperCanvas.addEventListener('mouseleave', () => {
-            isDragging = false;
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && modal.classList.contains('is-open')) {
-                input.value = '';
-                syncInputFile(null);
-                if (hasUploadedCover()) {
-                    showAppliedPreview(uploadedImageUrlField.value);
-                    setHint('Cover uploaded.', false);
-                } else {
-                    preview.hidden = true;
-                    drop.hidden = false;
-                    uploader.classList.remove('has-preview');
-                    setHint(defaultHint, false);
-                }
-                hideCropper();
-            }
-        });
-
-        function openFilePicker() {
-            input.value = '';
-            input.click();
-        }
-
-        drop.addEventListener('click', openFilePicker);
-        drop.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openFilePicker();
-            }
-        });
-
-        const dragTargets = [uploader, drop].filter(Boolean);
-
-        ['dragenter', 'dragover'].forEach((evt) => {
-            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
-                e.preventDefault();
-                drop.classList.add('is-dragover');
-            }));
-        });
-
-        ['dragleave', 'drop'].forEach((evt) => {
-            dragTargets.forEach((target) => target.addEventListener(evt, (e) => {
-                e.preventDefault();
-                drop.classList.remove('is-dragover');
-            }));
-        });
-
-        uploader.addEventListener('drop', (e) => {
-            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-            if (!file) return;
-            if (typeof DataTransfer === 'undefined') {
-                setHint('Drag and drop is not supported here. Click to upload instead.', true);
-                return;
-            }
-
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            input.files = dt.files;
-            startCoverFlow(file);
-        });
-
-        form.addEventListener('submit', () => {
-            input.disabled = true;
-            input.value = '';
-            syncInputFile(null);
-        });
-
-        modal.style.display = 'none';
-        modal.hidden = true;
-        input.value = '';
-        syncInputFile(null);
-        if (hasUploadedCover()) {
-            showAppliedPreview(uploadedImageUrlField.value);
-            setHint('Cover uploaded.', false);
-        } else {
-            resetPreview();
-            setHint(defaultHint, false);
-        }
-    })();
-</script>
 
 <script>
     (function () {
@@ -749,13 +224,79 @@
 <script th:inline="javascript">
     (function () {
         const criteriaByType = /*[[${criteriaByType}]]*/ {};
-        const typeSelect = document.getElementById('artType');
-        const grid = document.getElementById('criteria-grid');
-        const emptyState = document.getElementById('criteria-empty');
+        const form = document.getElementById('new-review-form');
+        const editor = document.getElementById('review-editor');
+        const searchInput = document.getElementById('review-search-input');
+        const searchButton = document.getElementById('review-search-button');
+        const results = document.getElementById('review-search-results');
+        const emptyState = document.getElementById('review-search-empty');
+        const feedback = document.getElementById('review-search-feedback');
+        const createArtLink = document.getElementById('review-create-art-link');
+        const selectedCard = document.getElementById('review-selected-art');
+        const selectedCover = document.getElementById('review-selected-cover');
+        const selectedName = document.getElementById('review-selected-name');
+        const selectedAuthor = document.getElementById('review-selected-author');
+        const selectedType = document.getElementById('review-selected-type');
+        const changeArtButton = document.getElementById('review-change-art');
+        const artworkIdField = document.getElementById('artworkId');
+        const artTypeField = document.getElementById('artType');
         const totalField = document.getElementById('value');
         const totalDisplay = document.getElementById('value-display');
+        const grid = document.getElementById('criteria-grid');
+        const emptyCriteria = document.getElementById('criteria-empty');
+        const criteriaHint = document.getElementById('criteria-section-hint');
+        const submitButton = document.getElementById('review-submit-button');
+        const submitFeedback = document.getElementById('review-submit-feedback');
 
-        if (!typeSelect || !grid || !emptyState || !totalField || !totalDisplay) return;
+        if (!form || !editor || !searchInput || !searchButton || !results || !emptyState || !feedback || !createArtLink || !selectedCard || !selectedCover || !selectedName || !selectedAuthor || !selectedType || !changeArtButton || !artworkIdField || !artTypeField || !totalField || !totalDisplay || !grid || !emptyCriteria || !criteriaHint || !submitButton || !submitFeedback) {
+            return;
+        }
+
+        let selectedArt = null;
+        let searchBusy = false;
+        let canPublish = false;
+
+        function setFeedback(message) {
+            if (!message) {
+                feedback.hidden = true;
+                feedback.textContent = '';
+                return;
+            }
+            feedback.hidden = false;
+            feedback.textContent = message;
+        }
+
+        function setSubmitFeedback(message) {
+            if (!message) {
+                submitFeedback.hidden = true;
+                submitFeedback.textContent = '';
+                return;
+            }
+            submitFeedback.hidden = false;
+            submitFeedback.textContent = message;
+        }
+
+        function initialsFor(art) {
+            const source = String(art && art.name ? art.name : 'Art').trim();
+            const parts = source.split(/\s+/).filter(Boolean).slice(0, 2);
+            if (!parts.length) return 'AR';
+            return parts.map((part) => part.charAt(0).toUpperCase()).join('');
+        }
+
+        function normalizeArtType(type) {
+            return type ? String(type).toUpperCase() : '';
+        }
+
+        function displayArtType(type) {
+            return normalizeArtType(type).replace(/_/g, ' ');
+        }
+
+        function createArtUrl(query) {
+            const normalized = String(query || '').trim();
+            return normalized
+                ? '/opuscore/art-requests?title=' + encodeURIComponent(normalized)
+                : '/opuscore/art-requests';
+        }
 
         function buildCriteriaCard(criterion, index) {
             const score = typeof criterion.defaultScore === 'number' ? criterion.defaultScore : 5;
@@ -790,7 +331,7 @@
             const max = Number(slider.max || 10);
             const value = Number(slider.value || 0);
             const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
-            slider.closest('.criteria-slider-wrap')?.style.setProperty('--slider-percent', `${percent}%`);
+            slider.closest('.criteria-slider-wrap')?.style.setProperty('--slider-percent', percent + '%');
         }
 
         function updateTotal() {
@@ -807,20 +348,182 @@
         }
 
         function renderCriteria(type) {
-            const list = criteriaByType && typeSelect.value ? criteriaByType[type] : [];
+            const normalizedType = normalizeArtType(type);
+            const list = normalizedType ? criteriaByType[normalizedType] : [];
             grid.innerHTML = '';
-            if (!list || list.length === 0) {
-                emptyState.hidden = false;
+
+            if (!list || !list.length) {
+                emptyCriteria.hidden = false;
+                emptyCriteria.textContent = normalizedType ? 'Reviews for this type are not available yet.' : 'Choose a work first.';
+                canPublish = false;
+                submitButton.disabled = true;
+                setSubmitFeedback(normalizedType ? 'This work type cannot be reviewed yet because criteria are not configured.' : null);
                 updateTotal();
                 return;
             }
 
-            emptyState.hidden = true;
+            emptyCriteria.hidden = true;
             list.forEach((criterion, index) => {
                 grid.appendChild(buildCriteriaCard(criterion, index));
             });
+            canPublish = true;
+            submitButton.disabled = false;
+            setSubmitFeedback(null);
             updateTotal();
         }
+
+        function updateSelectedState() {
+            if (!selectedArt) {
+                selectedCard.hidden = true;
+                editor.hidden = true;
+                changeArtButton.hidden = true;
+                artworkIdField.value = '';
+                artTypeField.value = '';
+                results.innerHTML = '';
+                canPublish = false;
+                submitButton.disabled = true;
+                setSubmitFeedback(null);
+                renderCriteria('');
+                criteriaHint.textContent = 'Pick a work to load the right criteria. Scores are 0-10.';
+                return;
+            }
+
+            selectedCard.hidden = false;
+            editor.hidden = false;
+            changeArtButton.hidden = false;
+            selectedCover.innerHTML = selectedArt.coverUrl
+                ? '<img src="' + selectedArt.coverUrl + '" alt="">'
+                : '<span>' + initialsFor(selectedArt) + '</span>';
+            selectedName.textContent = selectedArt.name || 'Untitled work';
+            selectedAuthor.textContent = selectedArt.author || 'Unknown creator';
+            selectedType.textContent = displayArtType(selectedArt.type);
+            artworkIdField.value = selectedArt.id != null ? String(selectedArt.id) : '';
+            artTypeField.value = normalizeArtType(selectedArt.type);
+            criteriaHint.textContent = 'Criteria loaded for ' + displayArtType(selectedArt.type) + '. Scores are 0-10.';
+            emptyState.hidden = true;
+            results.innerHTML = '';
+            setFeedback(null);
+            renderCriteria(selectedArt.type);
+        }
+
+        function selectArt(art) {
+            selectedArt = art && art.id != null ? {
+                id: art.id,
+                name: art.name || 'Untitled work',
+                author: art.author || 'Unknown creator',
+                type: normalizeArtType(art.type),
+                coverUrl: art.coverUrl || ''
+            } : null;
+            updateSelectedState();
+        }
+
+        function renderResults(items) {
+            if (!Array.isArray(items) || !items.length) {
+                results.innerHTML = '';
+                emptyState.hidden = false;
+                createArtLink.href = createArtUrl(searchInput.value);
+                return;
+            }
+
+            emptyState.hidden = true;
+            results.innerHTML = items.map((art) => `
+                <button class="review-search-result glass-panel" type="button" data-art-id="${art.id}" data-art-name="${art.name || ''}" data-art-author="${art.author || ''}" data-art-type="${art.type || ''}" data-art-cover="${art.coverUrl || ''}">
+                    <span class="review-search-result__cover">${art.coverUrl ? `<img src="${art.coverUrl}" alt="">` : `<span>${initialsFor(art)}</span>`}</span>
+                    <span class="review-search-result__copy">
+                        <span class="review-search-result__title">${art.name || 'Untitled work'}</span>
+                        <span class="review-search-result__meta">${art.author || 'Unknown creator'}</span>
+                        <span class="review-search-result__meta">${displayArtType(art.type)}</span>
+                    </span>
+                </button>
+            `).join('');
+
+            results.querySelectorAll('[data-art-id]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    selectArt({
+                        id: Number(button.getAttribute('data-art-id')),
+                        name: button.getAttribute('data-art-name'),
+                        author: button.getAttribute('data-art-author'),
+                        type: button.getAttribute('data-art-type'),
+                        coverUrl: button.getAttribute('data-art-cover')
+                    });
+                });
+            });
+        }
+
+        async function searchArtworks() {
+            const query = searchInput.value.trim();
+            createArtLink.href = createArtUrl(query);
+
+            if (!query) {
+                emptyState.hidden = false;
+                results.innerHTML = '';
+                setFeedback('Enter a title or author first.');
+                return;
+            }
+
+            if (searchBusy) {
+                return;
+            }
+
+            searchBusy = true;
+            searchButton.disabled = true;
+            setFeedback('Searching catalog...');
+
+            try {
+                const response = await fetch('/opuscore/api/artworks/search?query=' + encodeURIComponent(query), {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const items = await response.json();
+                renderResults(Array.isArray(items) ? items : []);
+                setFeedback(Array.isArray(items) && items.length ? null : 'No matches found.');
+            } catch (error) {
+                results.innerHTML = '';
+                emptyState.hidden = false;
+                setFeedback('Could not search the catalog right now.');
+            } finally {
+                searchBusy = false;
+                searchButton.disabled = false;
+            }
+        }
+
+        function prefillFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const artId = params.get('artId');
+            const artType = params.get('artType');
+
+            if (!artId || !artType) {
+                return;
+            }
+
+            selectArt({
+                id: Number(artId),
+                name: params.get('artName') || 'Untitled work',
+                author: params.get('artAuthor') || 'Unknown creator',
+                type: artType,
+                coverUrl: params.get('coverUrl') || ''
+            });
+        }
+
+        searchButton.addEventListener('click', searchArtworks);
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchArtworks();
+            }
+        });
+
+        changeArtButton.addEventListener('click', () => {
+            selectedArt = null;
+            updateSelectedState();
+            searchInput.focus();
+        });
 
         grid.addEventListener('input', (event) => {
             const target = event.target;
@@ -830,8 +533,22 @@
             updateTotal();
         });
 
-        typeSelect.addEventListener('change', () => renderCriteria(typeSelect.value));
-        renderCriteria(typeSelect.value);
+        form.addEventListener('submit', (event) => {
+            if (!artworkIdField.value || !artTypeField.value) {
+                event.preventDefault();
+                setFeedback('Pick a work before publishing the review.');
+                searchInput.focus();
+                return;
+            }
+
+            if (!canPublish) {
+                event.preventDefault();
+                setSubmitFeedback('Pick a work type with available review criteria before publishing.');
+            }
+        });
+
+        prefillFromUrl();
+        updateSelectedState();
     })();
 </script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>

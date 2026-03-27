@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+    <title th:text="${artwork != null ? 'OpusCore | ' + artwork.name : (request != null ? 'OpusCore | ' + request.name : 'OpusCore | Artwork')}">OpusCore | Artwork</title>
+    <script>
+        (function () {
+            try {
+                const raw = sessionStorage.getItem('opuscore:transition');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (!state || typeof state.ts !== 'number' || Date.now() - state.ts > 2600) {
+                    sessionStorage.removeItem('opuscore:transition');
+                    return;
+                }
+                document.documentElement.classList.add('oc-entry-pending');
+                if ('scrollRestoration' in history) {
+                    history.scrollRestoration = 'manual';
+                }
+                window.scrollTo(0, 0);
+            } catch (error) {
+                sessionStorage.removeItem('opuscore:transition');
+            }
+        })();
+    </script>
+    <style>
+        html, body {
+            min-height: 100%;
+            background: #05070b;
+        }
+
+        body {
+            margin: 0;
+            background:
+                linear-gradient(180deg, rgba(5, 7, 11, 0.24) 0%, rgba(5, 7, 11, 0.66) 100%),
+                radial-gradient(circle at top, rgba(108, 142, 255, 0.16), transparent 42%),
+                url('/images/private/opuscore-bg.png') center / cover no-repeat fixed,
+                #05070b;
+            color: #eef0f6;
+        }
+
+        html.oc-entry-pending,
+        html.oc-entry-pending body {
+            overflow: hidden;
+        }
+
+        html.oc-entry-pending .topbar,
+        html.oc-entry-pending .page {
+            opacity: 0;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="/css/opuscore/main.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/art-page.css}" href="/css/opuscore/art-page.css" />
+</head>
+<body>
+
+<header th:replace="~{/opuscore/blocks/header :: header}"></header>
+
+<main class="container page art-page-view"
+      th:with="pendingState=${request != null},
+               statusName=${request != null and request.status != null ? request.status.name() : 'ACCEPTED'},
+               displayName=${artwork != null ? artwork.name : (request != null ? request.name : 'Untitled work')},
+               displayAuthor=${artwork != null ? artwork.author : (request != null ? request.author : 'Unknown creator')},
+               displayDescription=${artwork != null ? artwork.description : (request != null ? request.description : null)},
+               displayCover=${artwork != null ? artwork.coverUrl : (request != null ? request.coverUrl : null)},
+               displayType=${artwork != null and artwork.type != null ? artwork.type.name() : (request != null and request.type != null ? request.type.name() : 'ART')}">
+    <section class="page-content">
+        <section class="art-page-shell" th:classappend="${pendingState} ? ' is-pending' : ''">
+            <section class="art-hero glass-panel art-content-block">
+                <div class="art-hero__cover">
+                    <img th:if="${displayCover != null}" th:src="${displayCover}" alt="" />
+                    <div class="art-hero__cover-fallback" th:if="${displayCover == null}">
+                        <span th:text="${displayType}">ART</span>
+                    </div>
+                </div>
+
+                <div class="art-hero__copy">
+                    <a class="art-hero__back"
+                       th:href="${pendingState} ? @{/opuscore/new-review} : @{/opuscore}">
+                        Back
+                    </a>
+
+                    <div class="art-hero__meta">
+                        <span class="art-chip" th:text="${#strings.replace(displayType, '_', ' ')}">ART</span>
+                        <span class="art-chip art-chip--pending" th:if="${pendingState}" th:text="${statusName}">PENDING</span>
+                    </div>
+
+                    <h1 class="art-hero__title" th:text="${displayName}">Untitled work</h1>
+                    <p class="art-hero__author" th:text="${displayAuthor}">Unknown creator</p>
+
+                    <p class="art-hero__description"
+                       th:if="${displayDescription != null and !#strings.isEmpty(displayDescription)}"
+                       th:text="${displayDescription}">
+                        Short description.
+                    </p>
+
+                    <div class="art-hero__notice" th:if="${pendingState}">
+                        <strong>Pending moderation.</strong>
+                        Metadata is visible, but the card stays dimmed until an admin approves the work.
+                    </div>
+                </div>
+            </section>
+
+            <section class="art-page-grid">
+                <article class="glass-panel art-panel art-content-block">
+                    <p class="art-panel__eyebrow">Details</p>
+                    <div class="art-detail-list">
+                        <div class="art-detail-row">
+                            <span class="art-detail-row__label">Name</span>
+                            <span class="art-detail-row__value" th:text="${displayName}">Untitled work</span>
+                        </div>
+                        <div class="art-detail-row">
+                            <span class="art-detail-row__label">Author</span>
+                            <span class="art-detail-row__value" th:text="${displayAuthor}">Unknown creator</span>
+                        </div>
+                        <div class="art-detail-row">
+                            <span class="art-detail-row__label">Type</span>
+                            <span class="art-detail-row__value" th:text="${#strings.replace(displayType, '_', ' ')}">ART</span>
+                        </div>
+                        <div class="art-detail-row" th:if="${pendingState}">
+                            <span class="art-detail-row__label">Status</span>
+                            <span class="art-detail-row__value" th:text="${statusName}">PENDING</span>
+                        </div>
+                        <div class="art-detail-row" th:if="${pendingState and request.requester != null}">
+                            <span class="art-detail-row__label">Requester</span>
+                            <span class="art-detail-row__value" th:text="${request.requester.username}">isc-user</span>
+                        </div>
+                        <div class="art-detail-row" th:if="${pendingState and request.createdAt != null}">
+                            <span class="art-detail-row__label">Created</span>
+                            <span class="art-detail-row__value" th:text="${#temporals.format(request.createdAt, 'dd MMM yyyy HH:mm')}">27 Mar 2026</span>
+                        </div>
+                        <div class="art-detail-row" th:if="${pendingState and request.updatedAt != null}">
+                            <span class="art-detail-row__label">Updated</span>
+                            <span class="art-detail-row__value" th:text="${#temporals.format(request.updatedAt, 'dd MMM yyyy HH:mm')}">27 Mar 2026</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="glass-panel art-panel art-panel--review">
+                    <p class="art-panel__eyebrow">New Review</p>
+                    <h2 class="art-panel__title">Review this work</h2>
+                    <p class="art-panel__text"
+                       th:if="${artwork != null}">
+                        Open the search-first review flow with this work already selected.
+                    </p>
+                    <p class="art-panel__text"
+                       th:if="${pendingState}">
+                        Reviews are unlocked after approval, because the current review flow is now tied to a real artwork.
+                    </p>
+
+                    <a class="btn btn--submit art-panel__cta"
+                       th:if="${artwork != null}"
+                       th:href="@{/opuscore/new-review(artId=${artwork.id},artName=${artwork.name},artAuthor=${artwork.author},artType=${artwork.type},coverUrl=${artwork.coverUrl})}">
+                        New Review
+                    </a>
+                    <button class="btn art-panel__cta" type="button" disabled th:if="${pendingState}">
+                        Available after approval
+                    </button>
+                </article>
+            </section>
+        </section>
+    </section>
+
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('art-page')}"></aside>
+</main>
+<script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
+</body>
+</html>

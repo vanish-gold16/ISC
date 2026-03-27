@@ -123,7 +123,7 @@
                 <div>
                     <p class="new-review__eyebrow">New art request</p>
                     <h1 class="new-review__title">Submit a new work</h1>
-                    <p class="new-review__subtitle">Fill in the work details, attach a cover, and send the request to admins for moderation.</p>
+                    <p class="new-review__subtitle">Fill in the work details, attach a cover, and send the request to admins for moderation. After submission you land on the pending work page until approval.</p>
                 </div>
                 <div class="new-review__chip">OpusCore / Art request</div>
             </header>
@@ -204,7 +204,7 @@
             </form>
         </section>
     </section>
-    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-art')}"></aside>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
 <div class="cover-modal" id="cover-modal" hidden aria-hidden="true">
@@ -716,6 +716,14 @@
             field.addEventListener('change', clearStatus);
         });
 
+        (function prefillTitleFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const title = params.get('title');
+            if (title && !nameField.value.trim()) {
+                nameField.value = title.trim();
+            }
+        })();
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
@@ -752,13 +760,8 @@
                     return;
                 }
 
-                if (response.redirected && response.url.indexOf('/opuscore/art-page/') !== -1) {
-                    form.reset();
-                    imageUrlField.value = '';
-                    if (window.__resetArtRequestCover) {
-                        window.__resetArtRequestCover();
-                    }
-                    showStatus('success', 'Request created. The backend redirected to an art page route that is not wired yet, so the request is saved but there is no destination screen yet.');
+                if (response.ok && response.url && response.url.indexOf('/opuscore/art-requests/') !== -1) {
+                    window.location.href = response.url;
                     return;
                 }
 
@@ -766,7 +769,7 @@
                 if (responseText && responseText.indexOf('Cover image must be 5 MB or smaller.') !== -1) {
                     showStatus('error', 'Cover image must be 5 MB or smaller.');
                 } else {
-                    showStatus('error', 'Could not send the request. Check the backend controller contract and try again.');
+                    showStatus('error', 'Could not open the pending work page after saving the request. Check the controller contract and try again.');
                 }
             } catch (error) {
                 showStatus('error', 'Could not send the request. Check the endpoint and try again.');

@@ -2,6 +2,7 @@ package org.example.isc.opuscore.controller.art;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
@@ -52,13 +53,27 @@ public class ArtRequestController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        if(!(request.getRequester() == me)){
-            return "redirect:/opuscore/new-art";
+        boolean isOwner = request.getRequester() != null
+                && request.getRequester().getId() != null
+                && request.getRequester().getId().equals(me.getId());
+        boolean isAdmin = me.getRole() == RoleEnum.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            return "redirect:/opuscore";
         }
-        model.addAttribute("title" + request.getName());
+
+        if (request.getStatus() == org.example.isc.opuscore.enums.ReviewStatusEnum.REJECTED) {
+            return "redirect:/opuscore";
+        }
+
+        if (request.getApprovedArtworkId() != null) {
+            return "redirect:/opuscore/art-page/" + request.getApprovedArtworkId();
+        }
+
+        model.addAttribute("title", request.getName() != null ? request.getName() : "Pending artwork");
         model.addAttribute("request", request);
 
-        return "/opuscore/art-page-pending/" + id;
+        return "/opuscore/art-page";
     }
 
     @PostMapping
@@ -89,7 +104,7 @@ public class ArtRequestController {
 
         log.info("Art request created");
 
-        return "redirect:/opuscore/art-page-pending/" + requestId;
+        return "redirect:/opuscore/art-requests/" + requestId;
     }
 
 }

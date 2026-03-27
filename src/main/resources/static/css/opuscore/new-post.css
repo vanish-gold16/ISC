@@ -63,6 +63,177 @@
     animation: fadeUp 0.4s ease 0.05s both;
 }
 
+.review-search {
+    display: grid;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04)),
+        rgba(12, 14, 20, 0.36);
+    backdrop-filter: blur(22px) saturate(1.15);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15);
+}
+
+.review-search__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.review-search__eyebrow,
+.review-selected__eyebrow {
+    margin: 0 0 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.review-search__title,
+.review-selected__title {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.1;
+}
+
+.review-search__bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.review-search__input {
+    min-width: 0;
+}
+
+.btn--ghost {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+        rgba(11, 13, 18, 0.32);
+    color: var(--text);
+}
+
+.review-search__results {
+    display: grid;
+    gap: 12px;
+}
+
+.review-search__results:empty {
+    display: none;
+}
+
+.review-search-result,
+.review-selected,
+.review-search__empty {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04)),
+        rgba(12, 14, 20, 0.34);
+    backdrop-filter: blur(20px) saturate(1.12);
+    -webkit-backdrop-filter: blur(20px) saturate(1.12);
+}
+
+.review-search-result {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.review-search-result:hover {
+    transform: translateY(-2px);
+    border-color: rgba(183, 206, 255, 0.28);
+    box-shadow: 0 18px 36px rgba(13, 19, 34, 0.24);
+}
+
+.review-search-result__cover,
+.review-selected__cover {
+    position: relative;
+    overflow: hidden;
+    width: 84px;
+    aspect-ratio: 3 / 4.4;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+        linear-gradient(135deg, rgba(108, 142, 255, 0.26), rgba(192, 132, 252, 0.18));
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    color: #f8fbff;
+}
+
+.review-search-result__cover img,
+.review-selected__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.review-search-result__copy,
+.review-selected__copy {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.review-search-result__title,
+.review-selected__title {
+    color: var(--text);
+    font-weight: 700;
+}
+
+.review-search-result__meta,
+.review-selected__author,
+.review-selected__meta {
+    color: var(--text-2);
+    line-height: 1.5;
+}
+
+.review-selected[hidden] {
+    display: none !important;
+}
+
+.review-search__empty {
+    grid-template-columns: 1fr;
+    justify-items: start;
+}
+
+.review-search__empty[hidden] {
+    display: none !important;
+}
+
+.review-search__empty-title {
+    margin: 0;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.review-search__empty-text {
+    margin: 0;
+    color: var(--text-2);
+    line-height: 1.6;
+}
+
+.review-editor[hidden] {
+    display: none !important;
+}
+
 .request-note {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -715,6 +886,10 @@ body.cover-modal-open {
     font-size: 13px;
 }
 
+#review-submit-feedback {
+    margin: 0;
+}
+
 /* Liquid glass overrides */
 .new-review__header {
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -950,6 +1125,12 @@ body.cover-modal-open {
     .field-grid {
         grid-template-columns: 1fr;
     }
+
+    .review-search__head,
+    .review-search__bar {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
 }
 
 @media (max-width: 640px) {
@@ -963,6 +1144,15 @@ body.cover-modal-open {
 
     .new-review__form {
         padding: 18px;
+    }
+
+    .review-search {
+        padding: 16px;
+    }
+
+    .review-search-result,
+    .review-selected {
+        grid-template-columns: 1fr;
     }
 
     .form-actions {

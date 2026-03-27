@@ -34,7 +34,7 @@ public class ArtApiController {
         requireCurrentUser(authentication);
 
         String normalizedQuery = normalize(query);
-        List<Artwork> arts = normalizedQuery == null
+        List<Artwork> arts = normalizedQuery != null
                 ? artworkRepository.findByResolvedName(normalizedQuery)
                 : List.of();
 

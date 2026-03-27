@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class NewArtRequestDTO {
 
-    @NotNull
     private Long requesterId;
 
     @NotNull
