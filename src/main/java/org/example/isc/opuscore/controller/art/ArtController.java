@@ -1,4 +1,4 @@
-package org.example.isc.opuscore.controller;
+package org.example.isc.opuscore.controller.art;
 
 import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.repositories.ArtworkRepository;

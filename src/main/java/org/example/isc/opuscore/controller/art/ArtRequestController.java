@@ -1,12 +1,12 @@
-package org.example.isc.opuscore.controller;
+package org.example.isc.opuscore.controller.art;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
-import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.NewArtRequest;
+import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ArtService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -15,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Controller
@@ -24,10 +23,12 @@ public class ArtRequestController {
 
     private final UserRepository userRepository;
     private final ArtService artService;
+    private final NewArtRequestRepository newArtRequestRepository;
 
-    public ArtRequestController(UserRepository userRepository, ArtService artService) {
+    public ArtRequestController(UserRepository userRepository, ArtService artService, NewArtRequestRepository newArtRequestRepository) {
         this.userRepository = userRepository;
         this.artService = artService;
+        this.newArtRequestRepository = newArtRequestRepository;
     }
 
     @GetMapping
@@ -37,6 +38,27 @@ public class ArtRequestController {
             @RequestParam(value = "error", required = false) String error
     ){
         return "/opuscore/new-art";
+    }
+
+    @GetMapping("/{id}")
+    public String getPendingArtRequest(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model
+    ){
+        NewArtRequest request = newArtRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Art request not found: " + id));
+
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        if(!(request.getRequester() == me)){
+            return "redirect:/opuscore/new-art";
+        }
+        model.addAttribute("title" + request.getName());
+        model.addAttribute("request", request);
+
+        return "/opuscore/art-page-pending/" + id;
     }
 
     @PostMapping
@@ -67,7 +89,7 @@ public class ArtRequestController {
 
         log.info("Art request created");
 
-        return "redirect:/opuscore/art-page/" + requestId;
+        return "redirect:/opuscore/art-page-pending/" + requestId;
     }
 
 }

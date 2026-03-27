@@ -22,14 +22,9 @@ public class Review {
     @Column(name = "is_review")
     private Boolean isReview;
 
-    @Column(name = "art_name",  nullable = false)
-    private String artName;
-
-    @Column(name = "art_author")
-    private String artAuthor;
-
-    @Column(name = "art_description")
-    private String artDescription;
+    @ManyToOne
+    @JoinColumn(name = "artwork")
+    private Artwork artwork;
 
     @Column(name = "title")
     private String title;
@@ -58,28 +53,24 @@ public class Review {
     }
 
     // non review
-    public Review(ArtTypeEnum type, Boolean isReview, String artName, List<ReviewCriterion> criteriaScores) {
+    public Review(ArtTypeEnum type, Boolean isReview, Artwork artwork, List<ReviewCriterion> criteriaScores) {
         this.type = type;
         this.isReview = isReview;
-        this.artName = artName;
+        this.artwork = artwork;
         this.criteriaScores = criteriaScores;
     }
 
     public Review(
             ArtTypeEnum type,
             Boolean isReview,
-            String artName,
-            String artAuthor,
-            String artDescription,
+            Artwork artwork,
             String title,
             String body,
             List<ReviewCriterion> criteriaScores
     ) {
         this.type = type;
         this.isReview = isReview;
-        this.artName = artName;
-        this.artAuthor = artAuthor;
-        this.artDescription = artDescription;
+        this.artwork = artwork;
         this.title = title;
         this.body = body;
         this.criteriaScores = criteriaScores;
@@ -141,30 +132,6 @@ public class Review {
         isReview = review;
     }
 
-    public String getArtName() {
-        return artName;
-    }
-
-    public void setArtName(String artName) {
-        this.artName = artName;
-    }
-
-    public String getArtDescription() {
-        return artDescription;
-    }
-
-    public void setArtDescription(String artDescription) {
-        this.artDescription = artDescription;
-    }
-
-    public String getArtAuthor() {
-        return artAuthor;
-    }
-
-    public void setArtAuthor(String artAuthor) {
-        this.artAuthor = artAuthor;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -187,5 +154,13 @@ public class Review {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public Artwork getArtwork() {
+        return artwork;
+    }
+
+    public void setArtwork(Artwork artwork) {
+        this.artwork = artwork;
     }
 }

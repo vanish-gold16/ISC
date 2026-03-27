@@ -6,9 +6,11 @@ import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
+import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.models.ReviewCriterion;
+import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -23,17 +25,19 @@ public class ReviewService {
     private final ImageService imageService;
     private final ReviewRepository reviewRepository;
     private final OpusCoreCriteriaCatalog criteriaCatalog;
+    private final ArtworkRepository artworkRepository;
 
     public ReviewService(
             UserRepository userRepository,
             ImageService imageService,
             ReviewRepository reviewRepository,
-            OpusCoreCriteriaCatalog criteriaCatalog
-    ) {
+            OpusCoreCriteriaCatalog criteriaCatalog,
+            ArtworkRepository artworkRepository) {
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.reviewRepository = reviewRepository;
         this.criteriaCatalog = criteriaCatalog;
+        this.artworkRepository = artworkRepository;
     }
 
     @Transactional
@@ -59,12 +63,13 @@ public class ReviewService {
             body = null;
         }
 
+        Artwork artwork = artworkRepository.findById(form.getArtworkId())
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + form.getArtworkId()));
+
         Review review = new Review(
                 form.getArtType(),
                 form.isReview(),
-                form.getName(),
-                blankToNull(form.getAuthor()),
-                form.getDescription(),
+                artwork,
                 title,
                 body,
                 form.getCriteria()

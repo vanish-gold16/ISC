@@ -5,6 +5,9 @@ import jakarta.validation.Valid;
 import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.opuscore.models.Artwork;
+import org.example.isc.opuscore.models.Review;
+import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.service.ReviewService;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
@@ -34,19 +37,21 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final OpusCoreCriteriaCatalog criteriaCatalog;
     private final ReviewRepository reviewRepository;
+    private final ArtworkRepository artworkRepository;
 
     public ReviewController(
             UserRepository userRepository,
             ImageService imageService,
             ReviewService reviewService,
             OpusCoreCriteriaCatalog criteriaCatalog,
-            ReviewRepository reviewRepository
-    ) {
+            ReviewRepository reviewRepository,
+            ArtworkRepository artworkRepository) {
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.reviewService = reviewService;
         this.criteriaCatalog = criteriaCatalog;
         this.reviewRepository = reviewRepository;
+        this.artworkRepository = artworkRepository;
     }
 
     @GetMapping("/new-review")
@@ -87,10 +92,12 @@ public class ReviewController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        var review = reviewRepository.findById(id)
+        Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found: " + id));
 
-        model.addAttribute("title", review.getArtName() != null ? review.getArtName() : "OpusCore | Review");
+        Artwork artwork = review.getArtwork();
+
+        model.addAttribute("title", "OpusCore | Review");
         model.addAttribute("user", me);
         model.addAttribute("review", review);
         model.addAttribute("criteriaScores", review.getCriteriaScores());
@@ -102,6 +109,7 @@ public class ReviewController {
                     : "/images/private/profile/common-profile.png";
             model.addAttribute("reviewAuthorAvatarUrl", authorAvatarUrl);
         }
+        model.addAttribute("artwork", artwork);
 
         return "/opuscore/review";
     }
@@ -110,7 +118,6 @@ public class ReviewController {
     public String postNewReview(
             @Valid @ModelAttribute("form") NewReviewDTO form,
             BindingResult bindingResult,
-            HttpSession session,
             Model model,
             Authentication authentication
     ){
