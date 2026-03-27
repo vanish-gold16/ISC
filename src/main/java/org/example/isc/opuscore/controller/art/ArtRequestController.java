@@ -7,7 +7,7 @@ import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
-import org.example.isc.opuscore.service.ArtService;
+import org.example.isc.opuscore.service.ArtworkService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,12 +22,12 @@ import java.io.IOException;
 public class ArtRequestController {
 
     private final UserRepository userRepository;
-    private final ArtService artService;
+    private final ArtworkService artworkService;
     private final NewArtRequestRepository newArtRequestRepository;
 
-    public ArtRequestController(UserRepository userRepository, ArtService artService, NewArtRequestRepository newArtRequestRepository) {
+    public ArtRequestController(UserRepository userRepository, ArtworkService artworkService, NewArtRequestRepository newArtRequestRepository) {
         this.userRepository = userRepository;
-        this.artService = artService;
+        this.artworkService = artworkService;
         this.newArtRequestRepository = newArtRequestRepository;
     }
 
@@ -80,7 +80,7 @@ public class ArtRequestController {
         }
 
         try{
-            requestId = artService.newArtRequest(authentication, dto);
+            requestId = artworkService.newArtRequest(authentication, dto);
         } catch (IllegalArgumentException | IOException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("form", dto);

@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Service
-public class ArtService {
+public class ArtworkService {
 
     private static final long MAX_ART_IMAGE_BYTES = 5_000_000L;
 
@@ -23,7 +23,7 @@ public class ArtService {
     private final ImageService imageService;
     private final NewArtRequestRepository newArtRequestRepository;
 
-    public ArtService(UserRepository userRepository, ImageService imageService, NewArtRequestRepository newArtRequestRepository) {
+    public ArtworkService(UserRepository userRepository, ImageService imageService, NewArtRequestRepository newArtRequestRepository) {
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.newArtRequestRepository = newArtRequestRepository;
