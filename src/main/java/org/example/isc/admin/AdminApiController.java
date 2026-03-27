@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.example.isc.admin.service.AdminService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.opuscore.dto.AdminArtAnswerDTO;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -36,7 +38,7 @@ public class AdminApiController {
             @RequestParam(value = "query", required = false) String query,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
         String normalizedQuery = normalize(query);
         List<NewArtRequest> requests = normalizedQuery == null
@@ -51,7 +53,7 @@ public class AdminApiController {
             @PathVariable Long id,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
@@ -64,7 +66,7 @@ public class AdminApiController {
             @PathVariable  Long id,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
@@ -76,12 +78,12 @@ public class AdminApiController {
     }
 
     @PostMapping("/art-requests/{id}/approve")
-    public ResponseEntity<NewArtRequestDTO> approveRequest(
+    public ResponseEntity<AdminArtAnswerDTO> approveRequest(
             @PathVariable Long id,
             @Valid @RequestBody NewArtRequestDTO dto,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
@@ -100,16 +102,16 @@ public class AdminApiController {
 
         newArtRequestRepository.save(request);
 
-        return ResponseEntity.ok(toDTO(adminService.approveArtRequest(dto, id, authentication)));
+        return ResponseEntity.ok(toAnswer(adminService.approveArtRequest(dto, id, authentication)));
     }
 
     @PostMapping("/art-requests/{id}/reject")
-    public ResponseEntity<NewArtRequestDTO> rejectRequest(
+    public ResponseEntity<AdminArtAnswerDTO> rejectRequest(
             @Valid @RequestBody String rejectReason,
             @PathVariable Long id,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
@@ -122,22 +124,19 @@ public class AdminApiController {
         }
         newArtRequestRepository.save(request);
 
-        return ResponseEntity.ok(toDTO(adminService.rejectArtRequest(rejectReason, id, authentication)));
+        return ResponseEntity.ok(toAnswer(adminService.rejectArtRequest(rejectReason, id, authentication)));
     }
 
     @PostMapping("/admin/api/art-requests/{id}/request-changes")
-    public ResponseEntity<NewArtRequestDTO> changeRequest(
+    public ResponseEntity<AdminArtAnswerDTO> changeRequest(
             @Valid @RequestBody NewArtRequestDTO dto,
             @Valid @RequestBody String adminNote,
             @PathVariable Long id,
             Authentication authentication
     ){
-        User me = requireCurrentUser(authentication);
+        requireCurrentUser(authentication);
 
-        NewArtRequest request = newArtRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
-
-        return ResponseEntity.ok(toDTO(adminService.changeRequest(dto, adminNote, id, authentication)));
+        return ResponseEntity.ok(toAnswer(adminService.changeRequest(dto, adminNote, id, authentication)));
     }
 
     private NewArtRequestDTO toDTO(NewArtRequest request){
@@ -148,6 +147,19 @@ public class AdminApiController {
                 request.getAuthor(),
                 request.getDescription(),
                 request.getCoverUrl()
+        );
+    }
+
+    private AdminArtAnswerDTO toAnswer(NewArtRequest request){
+        return new AdminArtAnswerDTO(
+                request.getRequester().getId(),
+                request.getType(),
+                request.getName(),
+                request.getAuthor(),
+                request.getDescription(),
+                request.getCoverUrl(),
+                request.getStatus(),
+                LocalDateTime.now()
         );
     }
 
