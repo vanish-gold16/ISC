@@ -8,10 +8,8 @@ import java.time.LocalDateTime;
 
 public class AdminArtAnswerDTO {
 
-    @NotNull
     private Long id;
 
-    @NotNull
     private Long requesterId;
 
     @NotNull
@@ -29,7 +27,6 @@ public class AdminArtAnswerDTO {
     @NotNull
     private String imageUrl;
 
-    @NotNull
     private ReviewStatusEnum status;
 
     private String adminNote;
@@ -38,7 +35,6 @@ public class AdminArtAnswerDTO {
 
     private Long approvedArtworkId;
 
-    @NotNull
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

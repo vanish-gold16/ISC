@@ -46,8 +46,8 @@
                         <h2 class="admin-panel__title">Pending requests</h2>
                     </div>
                     <div class="admin-panel__meta">
-                        <span class="admin-pill">Mock UI</span>
-                        <span class="admin-pill admin-pill--accent">3 pending</span>
+                        <span class="admin-pill">Mock data</span>
+                        <span class="admin-pill admin-pill--accent">3 requests</span>
                     </div>
                 </div>
                 <div class="admin-queue" id="admin-art-queue"></div>
@@ -60,7 +60,7 @@
                         <h2 class="admin-panel__title">Moderation form</h2>
                     </div>
                     <div class="admin-panel__meta">
-                        <span class="admin-pill" id="admin-art-status">Pending</span>
+                        <span class="admin-pill admin-pill--pending" id="admin-art-status">Pending</span>
                     </div>
                 </div>
 
@@ -106,11 +106,11 @@
                     </div>
 
                     <div class="admin-actions">
-                        <button class="btn btn--ghost" type="button" id="admin-request-changes">Request changes</button>
+                        <button class="btn btn--ghost" type="button" id="admin-save-art">Save changes</button>
                         <button class="btn btn--ghost admin-action--danger" type="button" id="admin-reject-art">Reject</button>
                         <button class="btn btn--primary" type="button" id="admin-approve-art">Approve</button>
                     </div>
-                    <p class="admin-feedback" id="admin-art-feedback">Frontend only: connect these controls to your backend endpoints.</p>
+                    <p class="admin-feedback" id="admin-art-feedback">Mock flow: save changes through PATCH, then approve or reject through dedicated endpoints.</p>
                 </form>
             </article>
         </section>
@@ -118,7 +118,7 @@
         <article class="card admin-placeholder" th:if="${adminSection == 'new-reviews'}">
             <p class="admin-placeholder__eyebrow">Next step</p>
             <h2 class="admin-placeholder__title">Review moderation screen</h2>
-            <p class="admin-placeholder__text">The art-request moderation flow is now mocked in frontend. When you get to reviews, reuse the same structure: queue on the left, editor on the right, and explicit approve / reject / request-changes actions.</p>
+            <p class="admin-placeholder__text">When you get to reviews, reuse the same structure: queue on the left, editor on the right, and explicit save / approve / reject actions.</p>
         </article>
     </section>
 
@@ -136,6 +136,7 @@
                 type: 'BOOK',
                 requester: '@nora',
                 status: 'Pending',
+                edited: false,
                 message: 'The user submitted a fantasy novel request, but the short description still needs cleanup.',
                 description: 'A surreal fantasy novel about hidden cities, maps, and memory.',
                 note: 'Normalize title capitalization and verify whether initials should stay in the author field.',
@@ -148,6 +149,7 @@
                 type: 'MUSIC',
                 requester: '@kian',
                 status: 'Pending',
+                edited: false,
                 message: 'Single-release request with a strong visual cover, but metadata still looks inconsistent.',
                 description: 'Synthwave track with deep bass, cinematic pads, and a rainy-night tone.',
                 note: 'Confirm whether this belongs in a single or album flow later.',
@@ -160,6 +162,7 @@
                 type: 'PAINTING',
                 requester: '@sena',
                 status: 'Pending',
+                edited: false,
                 message: 'Illustration request with a solid summary, though the title formatting may need correction.',
                 description: 'Large watercolor composition built around cold blue tones and visible paper texture.',
                 note: 'Ask for a higher-resolution cover if you enforce stricter image validation.',
@@ -180,7 +183,7 @@
         const feedback = document.getElementById('admin-art-feedback');
         const approve = document.getElementById('admin-approve-art');
         const reject = document.getElementById('admin-reject-art');
-        const requestChanges = document.getElementById('admin-request-changes');
+        const save = document.getElementById('admin-save-art');
 
         if (!queue) return;
 
@@ -190,16 +193,41 @@
             return items.find((item) => item.id === selectedId) || items[0];
         }
 
+        function statusModifier(value) {
+            const normalized = (value || '').toLowerCase();
+            if (normalized.indexOf('reject') !== -1) return 'rejected';
+            if (normalized.indexOf('approv') !== -1) return 'approved';
+            if (normalized.indexOf('chang') !== -1) return 'changed';
+            return 'pending';
+        }
+
+        function queueStatusClass(value) {
+            return ' is-' + statusModifier(value);
+        }
+
+        function pillStatusClass(value) {
+            return 'admin-pill admin-pill--' + statusModifier(value);
+        }
+
+        function syncEditorIntoItem(item) {
+            item.name = nameInput.value.trim();
+            item.author = authorInput.value.trim();
+            item.type = typeInput.value.trim();
+            item.requester = requesterInput.value.trim();
+            item.description = descriptionInput.value.trim();
+            item.note = noteInput.value.trim();
+        }
+
         function renderQueue() {
             queue.innerHTML = items.map((item) => `
                 <button class="admin-queue__item${item.id === selectedId ? ' is-active' : ''}" type="button" data-art-request="${item.id}">
                     <span class="admin-queue__cover">${item.cover}</span>
                     <span class="admin-queue__body">
                         <span class="admin-queue__title">${item.name}</span>
-                        <span class="admin-queue__meta">${item.author} • ${item.type}</span>
+                        <span class="admin-queue__meta">${item.author} &bull; ${item.type}</span>
                         <span class="admin-queue__meta">${item.requester}</span>
                     </span>
-                    <span class="admin-queue__status">${item.status}</span>
+                    <span class="admin-queue__status${queueStatusClass(item.status)}">${item.status}</span>
                 </button>
             `).join('');
 
@@ -223,26 +251,42 @@
             cover.textContent = item.cover;
             message.textContent = item.message;
             status.textContent = item.status;
+            status.className = pillStatusClass(item.status);
         }
 
         function setFeedback(nextStatus, text) {
             const item = current();
             item.status = nextStatus;
             status.textContent = nextStatus;
+            status.className = pillStatusClass(nextStatus);
             feedback.textContent = text;
             renderQueue();
         }
 
+        save.addEventListener('click', () => {
+            const item = current();
+            syncEditorIntoItem(item);
+            item.edited = true;
+            setFeedback('Changed', 'Mock flow: PATCH /admin/api/art-requests/{id} should save the edited card and keep the badge in Changed state.');
+            renderEditor();
+        });
+
         approve.addEventListener('click', () => {
-            setFeedback('Approved (mock)', 'Frontend only: call your approve endpoint, persist the edited card, and create the final Artwork record in one transaction.');
+            const item = current();
+            syncEditorIntoItem(item);
+            if (item.edited) {
+                setFeedback('Changed', 'Mock flow: after admin edits, POST /approve can create Artwork while the badge still stays Changed, exactly as in your current backend idea.');
+            } else {
+                setFeedback('Approved', 'Mock flow: direct approve without edits can stay Approved if you want to distinguish untouched approvals.');
+            }
+            renderEditor();
         });
 
         reject.addEventListener('click', () => {
-            setFeedback('Rejected (mock)', 'Frontend only: call your reject endpoint and store the rejection reason for the requester.');
-        });
-
-        requestChanges.addEventListener('click', () => {
-            setFeedback('Changes requested (mock)', 'Frontend only: call your request-changes endpoint and save the admin note as feedback to the user.');
+            const item = current();
+            syncEditorIntoItem(item);
+            setFeedback('Rejected', 'Mock flow: POST /reject should store the rejection reason and move the request out of the pending queue.');
+            renderEditor();
         });
 
         renderQueue();

@@ -6,6 +6,7 @@ import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.NewArtRequest;
@@ -41,7 +42,7 @@ public class AdminService {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        User admin = userRepository.findByEmailIgnoreCase(authentication.getName())
+        User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
         User requester = userRepository.findById(dto.getRequesterId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
@@ -56,12 +57,13 @@ public class AdminService {
                 admin,
                 LocalDateTime.now()
         );
+        artworkRepository.save(artwork);
 
         request.setApprovedArtworkId(artwork.getId());
         request.setDecidedAt(LocalDateTime.now());
 
         notificationService.create(
-                NotificationEnum.REVIEW_STATUS,
+                NotificationEnum.ART_REQUEST_STATUS,
                 requester,
                 admin,
                 "Status of your review has been changed",
@@ -69,27 +71,25 @@ public class AdminService {
                 null
         );
 
-        artworkRepository.save(artwork);
-
         return newArtRequestRepository.save(request);
     }
 
     @Transactional
     public NewArtRequest rejectArtRequest(
-            String rejectReason,
+            RejectDTO rejectReason,
             Long id,
             Authentication authentication
     ) {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        User admin = userRepository.findByEmailIgnoreCase(authentication.getName())
+        User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
         User requester = userRepository.findById(request.getRequester().getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
 
         if(rejectReason != null){
-            request.setRejectionReason(rejectReason);
+            request.setRejectionReason(rejectReason.reason());
         }
         request.setDecidedAt(LocalDateTime.now());
 
@@ -104,43 +104,43 @@ public class AdminService {
         return newArtRequestRepository.save(request);
     }
 
-    @Transactional
-    public NewArtRequest changeRequest(
-            NewArtRequestDTO dto,
-            String adminNote,
-            Long id,
-            Authentication authentication
-    ){
-        NewArtRequest request = newArtRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
-
-        User admin = userRepository.findByEmailIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
-        User requester = userRepository.findById(request.getRequester().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
-
-        request.setStatus(ReviewStatusEnum.CHANGED);
-        request.setType(dto.getType());
-        request.setName(dto.getName());
-        request.setAuthor(dto.getAuthor());
-        request.setDescription(dto.getDescription());
-        request.setDecidedAt(LocalDateTime.now());
-        if(!adminNote.isBlank()){
-            request.setAdminNote(adminNote);
-        }
-        newArtRequestRepository.save(request);
-
-        notificationService.create(
-                NotificationEnum.ART_REQUEST_STATUS,
-                requester,
-                admin,
-                "Status of your art request has been changed",
-                request.getName() + " is now: " + request.getStatus() + "ed",
-                null
-        );
-
-        approveArtRequest(dto, id, authentication);
-
-        return request;
-    }
+//    @Transactional
+//    public NewArtRequest changeRequest(
+//            NewArtRequestDTO dto,
+//            String adminNote,
+//            Long id,
+//            Authentication authentication
+//    ){
+//        NewArtRequest request = newArtRequestRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
+//
+//        User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
+//                .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
+//        User requester = userRepository.findById(request.getRequester().getId())
+//                .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
+//
+//        request.setStatus(ReviewStatusEnum.CHANGED);
+//        request.setType(dto.getType());
+//        request.setName(dto.getName());
+//        request.setAuthor(dto.getAuthor());
+//        request.setDescription(dto.getDescription());
+//        request.setDecidedAt(LocalDateTime.now());
+//        if(!adminNote.isBlank()){
+//            request.setAdminNote(adminNote);
+//        }
+//        newArtRequestRepository.save(request);
+//
+//        notificationService.create(
+//                NotificationEnum.ART_REQUEST_STATUS,
+//                requester,
+//                admin,
+//                "Status of your art request has been changed",
+//                request.getName() + " is now: " + request.getStatus() + "ed",
+//                null
+//        );
+//
+//        approveArtRequest(dto, id, authentication);
+//
+//        return request;
+//    }
 }

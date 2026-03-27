@@ -7,6 +7,7 @@ import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.AdminArtAnswerDTO;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.Artwork;
@@ -42,7 +43,7 @@ public class AdminApiController {
 
         String normalizedQuery = normalize(query);
         List<NewArtRequest> requests = normalizedQuery == null
-                ? List.of()
+                ? newArtRequestRepository.findByStatusOrderByCreatedAtAsc(ReviewStatusEnum.PENDING)
                 : newArtRequestRepository.searchByResolvedName(normalizedQuery);
 
         return ResponseEntity.ok(requests.stream().map(this::toDTO).toList());
@@ -64,6 +65,7 @@ public class AdminApiController {
     @PatchMapping("/art-requests/{id}")
     public ResponseEntity<NewArtRequestDTO> editRequest(
             @PathVariable  Long id,
+            @Valid @RequestBody AdminArtAnswerDTO answer,
             Authentication authentication
     ){
         requireCurrentUser(authentication);
@@ -71,9 +73,18 @@ public class AdminApiController {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        // не знаю
-
+        request.setType(answer.getType());
+        request.setName(answer.getName());
+        request.setAuthor(answer.getAuthor());
+        request.setDescription(answer.getDescription());
+        request.setCoverUrl(answer.getImageUrl());
+        if(answer.getAdminNote() != null){
+            request.setAdminNote(answer.getAdminNote());
+        }
         request.setStatus(ReviewStatusEnum.CHANGED);
+        request.setUpdatedAt(LocalDateTime.now());
+
+        newArtRequestRepository.save(request);
         return ResponseEntity.ok(toDTO(request));
     }
 
@@ -107,7 +118,7 @@ public class AdminApiController {
 
     @PostMapping("/art-requests/{id}/reject")
     public ResponseEntity<AdminArtAnswerDTO> rejectRequest(
-            @Valid @RequestBody String rejectReason,
+            @Valid @RequestBody RejectDTO rejectReason,
             @PathVariable Long id,
             Authentication authentication
     ){
@@ -116,7 +127,7 @@ public class AdminApiController {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        if(!(request.getStatus() == ReviewStatusEnum.REJECTED)){
+        if(request.getStatus() == ReviewStatusEnum.REJECTED){
             return ResponseEntity.badRequest().build();
         }
         else {
@@ -127,18 +138,18 @@ public class AdminApiController {
         return ResponseEntity.ok(toAnswer(adminService.rejectArtRequest(rejectReason, id, authentication)));
     }
 
-    @PostMapping("/admin/api/art-requests/{id}/request-changes")
-    public ResponseEntity<AdminArtAnswerDTO> changeRequest(
-            @Valid @RequestBody NewArtRequestDTO dto,
-            @Valid @RequestBody String adminNote,
-            @PathVariable Long id,
-            Authentication authentication
-    ){
-        requireCurrentUser(authentication);
-
-        return ResponseEntity.ok(toAnswer(adminService.changeRequest(dto, adminNote, id, authentication)));
-    }
-
+//    @PostMapping("/admin/api/art-requests/{id}/request-changes")
+//    public ResponseEntity<AdminArtAnswerDTO> changeRequest(
+//            @Valid @RequestBody NewArtRequestDTO dto,
+//            @Valid @RequestBody String adminNote,
+//            @PathVariable Long id,
+//            Authentication authentication
+//    ){
+//        requireCurrentUser(authentication);
+//
+//        return ResponseEntity.ok(toAnswer(adminService.changeRequest(dto, adminNote, id, authentication)));
+//    }
+//
     private NewArtRequestDTO toDTO(NewArtRequest request){
         return new NewArtRequestDTO(
                 request.getRequester().getId(),
