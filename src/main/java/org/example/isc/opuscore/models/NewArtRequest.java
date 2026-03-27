@@ -34,13 +34,13 @@ public class NewArtRequest {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "cover_url")
+    @Column(name = "cover_url", length = 1000)
     private String coverUrl;
 
-    @Column(name = "admin_note")
+    @Column(name = "admin_note", length = 1000)
     private String adminNote;
 
-    @Column(name = "rejection_reason")
+    @Column(name = "rejection_reason", length = 1000)
     private String rejectionReason;
 
     @Column(name = "approved_artwork")

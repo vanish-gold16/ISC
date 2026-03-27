@@ -26,7 +26,7 @@ public class Artwork {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "cover_url")
+    @Column(name = "cover_url", length = 1000)
     private String coverUrl;
 
     @ManyToOne

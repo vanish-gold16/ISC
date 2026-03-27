@@ -43,7 +43,7 @@ public class Review {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "photo_url")
+    @Column(name = "photo_url", length = 1000)
     private String photoUrl;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
