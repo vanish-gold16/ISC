@@ -35,7 +35,7 @@ public class AdminApiController {
     }
 
     @GetMapping("/art-requests")
-    public ResponseEntity<List<NewArtRequestDTO>> getArtRequests(
+    public ResponseEntity<List<AdminArtAnswerDTO>> getArtRequests(
             @RequestParam(value = "query", required = false) String query,
             Authentication authentication
     ){
@@ -46,11 +46,11 @@ public class AdminApiController {
                 ? newArtRequestRepository.findByStatusOrderByCreatedAtAsc(ReviewStatusEnum.PENDING)
                 : newArtRequestRepository.searchByResolvedName(normalizedQuery);
 
-        return ResponseEntity.ok(requests.stream().map(this::toDTO).toList());
+        return ResponseEntity.ok(requests.stream().map(this::toAnswer).toList());
     }
 
     @GetMapping("/art-requests/{id}")
-    public ResponseEntity<NewArtRequestDTO> getArtRequest(
+    public ResponseEntity<AdminArtAnswerDTO> getArtRequest(
             @PathVariable Long id,
             Authentication authentication
     ){
@@ -59,11 +59,11 @@ public class AdminApiController {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        return ResponseEntity.ok(toDTO(request));
+        return ResponseEntity.ok(toAnswer(request));
     }
 
     @PatchMapping("/art-requests/{id}")
-    public ResponseEntity<NewArtRequestDTO> editRequest(
+    public ResponseEntity<AdminArtAnswerDTO> editRequest(
             @PathVariable  Long id,
             @Valid @RequestBody AdminArtAnswerDTO answer,
             Authentication authentication
@@ -85,7 +85,7 @@ public class AdminApiController {
         request.setUpdatedAt(LocalDateTime.now());
 
         newArtRequestRepository.save(request);
-        return ResponseEntity.ok(toDTO(request));
+        return ResponseEntity.ok(toAnswer(request));
     }
 
     @PostMapping("/art-requests/{id}/approve")
@@ -150,19 +150,9 @@ public class AdminApiController {
 //        return ResponseEntity.ok(toAnswer(adminService.changeRequest(dto, adminNote, id, authentication)));
 //    }
 //
-    private NewArtRequestDTO toDTO(NewArtRequest request){
-        return new NewArtRequestDTO(
-                request.getRequester().getId(),
-                request.getType(),
-                request.getName(),
-                request.getAuthor(),
-                request.getDescription(),
-                request.getCoverUrl()
-        );
-    }
 
     private AdminArtAnswerDTO toAnswer(NewArtRequest request){
-        return new AdminArtAnswerDTO(
+        AdminArtAnswerDTO answer = new AdminArtAnswerDTO(
                 request.getRequester().getId(),
                 request.getType(),
                 request.getName(),
@@ -172,6 +162,23 @@ public class AdminApiController {
                 request.getStatus(),
                 LocalDateTime.now()
         );
+        answer.setId(request.getId());
+        if(request.getAdminNote() != null){
+            answer.setAdminNote(request.getAdminNote());
+        }
+        if(request.getRejectionReason() != null && request.getStatus() == ReviewStatusEnum.REJECTED){
+            answer.setRejectionReason(request.getRejectionReason());
+        }
+        if((request.getStatus() == ReviewStatusEnum.ACCEPTED ||
+           request.getStatus() == ReviewStatusEnum.CHANGED) &&
+           request.getApprovedArtworkId() != null){
+            answer.setApprovedArtworkId(request.getApprovedArtworkId());
+        }
+        answer.setCreatedAt(request.getCreatedAt());
+        if(request.getStatus() == ReviewStatusEnum.CHANGED){
+            answer.setUpdatedAt(request.getUpdatedAt());
+        }
+        return answer;
     }
 
     private String normalize(String value) {
