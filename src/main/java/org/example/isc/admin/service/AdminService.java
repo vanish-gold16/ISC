@@ -44,8 +44,7 @@ public class AdminService {
 
         User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
-        User requester = userRepository.findById(dto.getRequesterId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
+        User requester = request.getRequester();
 
         Artwork artwork = new Artwork(
                 dto.getType(),
@@ -85,8 +84,7 @@ public class AdminService {
 
         User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
-        User requester = userRepository.findById(request.getRequester().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getRequester().getId()));
+        User requester = request.getRequester();
 
         if(rejectReason != null){
             request.setRejectionReason(rejectReason.reason());

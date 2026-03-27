@@ -178,6 +178,7 @@ public class AdminApiController {
         if(request.getStatus() == ReviewStatusEnum.CHANGED){
             answer.setUpdatedAt(request.getUpdatedAt());
         }
+        answer.setRequesterUsername(request.getRequester().getUsername());
         return answer;
     }
 

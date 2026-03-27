@@ -12,6 +12,8 @@ public class AdminArtAnswerDTO {
 
     private Long requesterId;
 
+    private String requesterUsername;
+
     @NotNull
     private ArtTypeEnum type;
 
@@ -155,5 +157,13 @@ public class AdminArtAnswerDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getRequesterUsername() {
+        return requesterUsername;
+    }
+
+    public void setRequesterUsername(String requesterUsername) {
+        this.requesterUsername = requesterUsername;
     }
 }

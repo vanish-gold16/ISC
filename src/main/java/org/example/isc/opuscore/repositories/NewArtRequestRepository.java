@@ -11,7 +11,7 @@ import java.util.List;
 public interface NewArtRequestRepository extends JpaRepository<NewArtRequest, Long> {
     @Query("""
             select n from NewArtRequest n 
-                        where lower(n.status) like lower(concat('%', :normalizedQuery, '%'))
+                        where lower(n.name) like lower(concat('%', :normalizedQuery, '%'))
                         order by n.createdAt asc           
                 """)
     List<NewArtRequest> searchByResolvedName(String normalizedQuery);

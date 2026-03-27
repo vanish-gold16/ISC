@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
-    <title th:text="${title} ?: 'ISC | Admin panel'">ISC | Admin panel</title>
+    <title th:text="${title != null ? title : 'ISC | Admin panel'}">ISC | Admin panel</title>
     <link rel="stylesheet" th:href="@{/css/private/home.css}" href="/css/private/home.css" />
     <link rel="stylesheet" th:href="@{/css/private/admin/management.css}" href="/css/private/admin/management.css" />
 </head>
@@ -14,22 +14,25 @@
 <main class="container page admin-page">
     <section class="admin-main">
         <article class="card admin-hero">
-            <div class="admin-hero__body">
+            <div class="admin-hero__body"
+                 th:with="heroEyebrow=${adminSection == 'new-arts' ? 'Art Moderation' : (adminSection == 'new-reviews' ? 'Review Moderation' : 'Admin Panel')},
+                          heroTitle=${adminSection == 'new-arts' ? 'New Arts Queue' : (adminSection == 'new-reviews' ? 'New Reviews Queue' : (user != null and user.username != null ? 'Hello, ' + user.username : 'Hello, user'))},
+                          heroSubtitle=${adminSection == 'new-arts' ? 'Review incoming work requests, fix metadata, and decide whether the work should enter the catalog.' : (adminSection == 'new-reviews' ? 'This queue comes next. For now only the art-request flow is mocked in frontend.' : 'Welcome to the admin workspace.')}">
                 <p class="admin-hero__eyebrow"
-                   th:text="${adminSection == 'new-arts'} ? 'Art Moderation' : (${adminSection == 'new-reviews'} ? 'Review Moderation' : 'Admin Panel')}">Admin Panel</p>
+                   th:text="${heroEyebrow}">Admin Panel</p>
                 <h1 class="admin-hero__title"
-                    th:text="${adminSection == 'new-arts'} ? 'New Arts Queue' : (${adminSection == 'new-reviews'} ? 'New Reviews Queue' : (user != null && user.username != null ? 'Hello, ' + user.username : 'Hello, user'))}">Hello, user</h1>
+                    th:text="${heroTitle}">Hello, user</h1>
                 <p class="admin-hero__subtitle"
-                   th:text="${adminSection == 'new-arts'} ? 'Review incoming work requests, fix metadata, and decide whether the work should enter the catalog.' : (${adminSection == 'new-reviews'} ? 'This queue comes next. For now only the art-request flow is mocked in frontend.' : 'Welcome to the admin workspace.')">Welcome to the admin workspace.</p>
+                   th:text="${heroSubtitle}">Welcome to the admin workspace.</p>
                 <div class="admin-widget-grid">
                     <a class="admin-widget"
-                       th:classappend="${adminSection == 'new-reviews'} ? ' is-active' : ''"
+                       th:classappend="${adminSection == 'new-reviews' ? ' is-active' : ''}"
                        th:href="@{/admin/new-reviews}">
                         <span class="admin-widget__eyebrow">Admin</span>
                         <span class="admin-widget__title">New Reviews</span>
                     </a>
                     <a class="admin-widget"
-                       th:classappend="${adminSection == 'new-arts'} ? ' is-active' : ''"
+                       th:classappend="${adminSection == 'new-arts' ? ' is-active' : ''}"
                        th:href="@{/admin/new-arts}">
                         <span class="admin-widget__eyebrow">Admin</span>
                         <span class="admin-widget__title">New Arts</span>
@@ -39,6 +42,8 @@
         </article>
 
         <section class="admin-moderation" th:if="${adminSection == 'new-arts'}">
+            <input id="admin-csrf" type="hidden" th:value="${_csrf.token}" />
+
             <article class="card admin-panel admin-panel--queue">
                 <div class="admin-panel__head">
                     <div>
@@ -46,10 +51,20 @@
                         <h2 class="admin-panel__title">Pending requests</h2>
                     </div>
                     <div class="admin-panel__meta">
-                        <span class="admin-pill">Mock data</span>
-                        <span class="admin-pill admin-pill--accent">3 requests</span>
+                        <span class="admin-pill" id="admin-queue-mode">Live queue</span>
+                        <span class="admin-pill admin-pill--accent" id="admin-queue-count">Loading...</span>
                     </div>
                 </div>
+                <form class="admin-queue-search" id="admin-queue-search-form">
+                    <input class="admin-field__input admin-queue-search__input"
+                           id="admin-queue-search"
+                           type="search"
+                           placeholder="Search by work name" />
+                    <div class="admin-queue-search__actions">
+                        <button class="btn btn--ghost" type="submit">Search</button>
+                        <button class="btn btn--ghost" type="button" id="admin-queue-search-reset">Reset</button>
+                    </div>
+                </form>
                 <div class="admin-queue" id="admin-art-queue"></div>
             </article>
 
@@ -65,6 +80,10 @@
                 </div>
 
                 <form class="admin-editor" id="admin-art-editor">
+                    <input id="admin-art-id" type="hidden" />
+                    <input id="admin-art-requester-id" type="hidden" />
+                    <input id="admin-art-image-url" type="hidden" />
+
                     <div class="admin-editor__grid">
                         <label class="admin-field">
                             <span class="admin-field__label">Work name</span>
@@ -79,11 +98,16 @@
                     <div class="admin-editor__grid">
                         <label class="admin-field">
                             <span class="admin-field__label">Type</span>
-                            <input class="admin-field__input" id="admin-art-type" type="text" />
+                            <select class="admin-field__input" id="admin-art-type">
+                                <option value="" disabled>Select a type</option>
+                                <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
+                                        th:value="${t}"
+                                        th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
+                            </select>
                         </label>
                         <label class="admin-field">
                             <span class="admin-field__label">Requested by</span>
-                            <input class="admin-field__input" id="admin-art-requester" type="text" />
+                            <input class="admin-field__input admin-field__input--readonly" id="admin-art-requester" type="text" readonly />
                         </label>
                     </div>
 
@@ -93,24 +117,24 @@
                     </label>
 
                     <label class="admin-field">
-                        <span class="admin-field__label">Admin note</span>
-                        <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-note" rows="4" placeholder="Internal note or feedback for the user"></textarea>
+                        <span class="admin-field__label">Admin note / Reject reason</span>
+                        <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-note" rows="4" placeholder="Internal note, edit note, or rejection reason"></textarea>
                     </label>
 
                     <div class="admin-preview">
                         <div class="admin-preview__cover" id="admin-art-cover">No cover</div>
                         <div class="admin-preview__copy">
-                            <div class="admin-preview__label">User message</div>
+                            <div class="admin-preview__label">Request details</div>
                             <p class="admin-preview__text" id="admin-art-message">No request selected.</p>
                         </div>
                     </div>
 
                     <div class="admin-actions">
-                        <button class="btn btn--ghost" type="button" id="admin-save-art">Save changes</button>
+                        <button class="btn btn--ghost" type="button" id="admin-save-art">Save and approve</button>
                         <button class="btn btn--ghost admin-action--danger" type="button" id="admin-reject-art">Reject</button>
-                        <button class="btn btn--primary" type="button" id="admin-approve-art">Approve</button>
+                        <button class="btn btn--primary" type="button" id="admin-approve-art">Approve as-is</button>
                     </div>
-                    <p class="admin-feedback" id="admin-art-feedback">Mock flow: save changes through PATCH, then approve or reject through dedicated endpoints.</p>
+                    <p class="admin-feedback" id="admin-art-feedback">Loading pending requests...</p>
                 </form>
             </article>
         </section>
@@ -128,49 +152,17 @@
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 <script th:if="${adminSection == 'new-arts'}">
     (function () {
-        const items = [
-            {
-                id: 101,
-                name: 'The Secret Atlas',
-                author: 'Mira Vale',
-                type: 'BOOK',
-                requester: '@nora',
-                status: 'Pending',
-                edited: false,
-                message: 'The user submitted a fantasy novel request, but the short description still needs cleanup.',
-                description: 'A surreal fantasy novel about hidden cities, maps, and memory.',
-                note: 'Normalize title capitalization and verify whether initials should stay in the author field.',
-                cover: 'TSA'
-            },
-            {
-                id: 102,
-                name: 'Neon Rivers',
-                author: 'Arden Gray',
-                type: 'MUSIC',
-                requester: '@kian',
-                status: 'Pending',
-                edited: false,
-                message: 'Single-release request with a strong visual cover, but metadata still looks inconsistent.',
-                description: 'Synthwave track with deep bass, cinematic pads, and a rainy-night tone.',
-                note: 'Confirm whether this belongs in a single or album flow later.',
-                cover: 'NR'
-            },
-            {
-                id: 103,
-                name: 'Paper Moonlight',
-                author: 'Lena Ortiz',
-                type: 'PAINTING',
-                requester: '@sena',
-                status: 'Pending',
-                edited: false,
-                message: 'Illustration request with a solid summary, though the title formatting may need correction.',
-                description: 'Large watercolor composition built around cold blue tones and visible paper texture.',
-                note: 'Ask for a higher-resolution cover if you enforce stricter image validation.',
-                cover: 'PM'
-            }
-        ];
-
         const queue = document.getElementById('admin-art-queue');
+        const queueMode = document.getElementById('admin-queue-mode');
+        const queueCount = document.getElementById('admin-queue-count');
+        const searchForm = document.getElementById('admin-queue-search-form');
+        const searchInput = document.getElementById('admin-queue-search');
+        const searchReset = document.getElementById('admin-queue-search-reset');
+        const csrfToken = document.getElementById('admin-csrf');
+        const form = document.getElementById('admin-art-editor');
+        const idInput = document.getElementById('admin-art-id');
+        const requesterIdInput = document.getElementById('admin-art-requester-id');
+        const imageUrlInput = document.getElementById('admin-art-image-url');
         const nameInput = document.getElementById('admin-art-name');
         const authorInput = document.getElementById('admin-art-author');
         const typeInput = document.getElementById('admin-art-type');
@@ -185,112 +177,462 @@
         const reject = document.getElementById('admin-reject-art');
         const save = document.getElementById('admin-save-art');
 
-        if (!queue) return;
+        if (!queue || !form) return;
 
-        let selectedId = items[0].id;
+        let items = [];
+        let selectedId = null;
+        let busy = false;
 
-        function current() {
-            return items.find((item) => item.id === selectedId) || items[0];
+        function currentSearch() {
+            return searchInput ? searchInput.value.trim() : '';
+        }
+
+        function csrfHeaders() {
+            return csrfToken && csrfToken.value ? { 'X-CSRF-TOKEN': csrfToken.value } : {};
+        }
+
+        function normalizeStatus(value) {
+            const normalized = String(value || 'PENDING').toUpperCase();
+            if (normalized === 'ACCEPTED') return 'Approved';
+            if (normalized === 'CHANGED') return 'Changed';
+            if (normalized === 'REJECTED') return 'Rejected';
+            return 'Pending';
         }
 
         function statusModifier(value) {
-            const normalized = (value || '').toLowerCase();
-            if (normalized.indexOf('reject') !== -1) return 'rejected';
-            if (normalized.indexOf('approv') !== -1) return 'approved';
-            if (normalized.indexOf('chang') !== -1) return 'changed';
+            const normalized = String(value || 'PENDING').toUpperCase();
+            if (normalized === 'ACCEPTED') return 'approved';
+            if (normalized === 'CHANGED') return 'changed';
+            if (normalized === 'REJECTED') return 'rejected';
             return 'pending';
-        }
-
-        function queueStatusClass(value) {
-            return ' is-' + statusModifier(value);
         }
 
         function pillStatusClass(value) {
             return 'admin-pill admin-pill--' + statusModifier(value);
         }
 
-        function syncEditorIntoItem(item) {
-            item.name = nameInput.value.trim();
-            item.author = authorInput.value.trim();
-            item.type = typeInput.value.trim();
-            item.requester = requesterInput.value.trim();
-            item.description = descriptionInput.value.trim();
-            item.note = noteInput.value.trim();
+        function queueStatusClass(value) {
+            return ' is-' + statusModifier(value);
+        }
+
+        function initialsFor(item) {
+            const source = (item && item.name ? item.name : 'Art').trim();
+            const parts = source.split(/\s+/).filter(Boolean).slice(0, 2);
+            if (!parts.length) return 'AR';
+            return parts.map((part) => part.charAt(0).toUpperCase()).join('');
+        }
+
+        function requesterLabel(item) {
+            if (item && item.requesterUsername) {
+                const username = String(item.requesterUsername).trim();
+                if (username) {
+                    return username.charAt(0) === '@' ? username : '@' + username;
+                }
+            }
+            if (item && item.requesterLabel) return item.requesterLabel;
+            if (item && item.requesterId != null) return 'User #' + item.requesterId;
+            return 'Unknown requester';
+        }
+
+        function safeText(value, fallback) {
+            if (value == null) return fallback;
+            const normalized = String(value).trim();
+            return normalized ? normalized : fallback;
+        }
+
+        function normalizeItem(item) {
+            return {
+                id: item && item.id != null ? item.id : null,
+                requesterId: item && item.requesterId != null ? item.requesterId : null,
+                requesterUsername: safeText(item && item.requesterUsername, ''),
+                requesterLabel: requesterLabel(item),
+                type: safeText(item && item.type, ''),
+                name: safeText(item && item.name, 'Untitled work'),
+                author: safeText(item && item.author, 'Unknown creator'),
+                description: safeText(item && item.description, ''),
+                imageUrl: safeText(item && item.imageUrl, ''),
+                status: safeText(item && item.status, 'PENDING'),
+                adminNote: safeText(item && item.adminNote, ''),
+                rejectionReason: safeText(item && item.rejectionReason, ''),
+                approvedArtworkId: item && item.approvedArtworkId != null ? item.approvedArtworkId : null,
+                createdAt: item && item.createdAt ? item.createdAt : null,
+                updatedAt: item && item.updatedAt ? item.updatedAt : null
+            };
+        }
+
+        function current() {
+            return items.find((item) => item.id === selectedId) || null;
+        }
+
+        function setBusy(nextBusy) {
+            busy = nextBusy;
+            [nameInput, authorInput, typeInput, descriptionInput, noteInput].forEach((field) => {
+                field.disabled = nextBusy || !selectedId;
+            });
+            requesterInput.disabled = true;
+            approve.disabled = nextBusy || !selectedId;
+            reject.disabled = nextBusy || !selectedId;
+            save.disabled = nextBusy || !selectedId;
+        }
+
+        function setFeedback(kind, text) {
+            feedback.textContent = text;
+            feedback.classList.remove('is-loading', 'is-success', 'is-error');
+            if (kind) {
+                feedback.classList.add('is-' + kind);
+            }
+        }
+
+        function formatDate(value) {
+            if (!value) return null;
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return null;
+            return parsed.toLocaleString();
+        }
+
+        function coverMarkup(item) {
+            if (item.imageUrl) {
+                return '<img src="' + item.imageUrl + '" alt="">';
+            }
+            return '<span>' + initialsFor(item) + '</span>';
+        }
+
+        function updateQueueMeta() {
+            const query = currentSearch();
+            queueMode.textContent = busy
+                ? 'Syncing'
+                : (query ? 'Search results' : 'Live queue');
+            queueCount.textContent = items.length + (query ? ' result' + (items.length === 1 ? '' : 's') : ' pending');
         }
 
         function renderQueue() {
+            const query = currentSearch();
+            updateQueueMeta();
+
+            if (!items.length) {
+                queue.innerHTML = query
+                    ? '<div class="admin-queue__empty">No requests matched this search.</div>'
+                    : '<div class="admin-queue__empty">No pending art requests right now.</div>';
+                return;
+            }
+
             queue.innerHTML = items.map((item) => `
                 <button class="admin-queue__item${item.id === selectedId ? ' is-active' : ''}" type="button" data-art-request="${item.id}">
-                    <span class="admin-queue__cover">${item.cover}</span>
+                    <span class="admin-queue__cover">${initialsFor(item)}</span>
                     <span class="admin-queue__body">
                         <span class="admin-queue__title">${item.name}</span>
-                        <span class="admin-queue__meta">${item.author} &bull; ${item.type}</span>
-                        <span class="admin-queue__meta">${item.requester}</span>
+                        <span class="admin-queue__meta">${item.author} &bull; ${item.type || 'Unknown type'}</span>
+                        <span class="admin-queue__meta">${requesterLabel(item)}</span>
                     </span>
-                    <span class="admin-queue__status${queueStatusClass(item.status)}">${item.status}</span>
+                    <span class="admin-queue__status${queueStatusClass(item.status)}">${normalizeStatus(item.status)}</span>
                 </button>
             `).join('');
 
             queue.querySelectorAll('[data-art-request]').forEach((button) => {
                 button.addEventListener('click', () => {
-                    selectedId = Number(button.getAttribute('data-art-request'));
-                    renderQueue();
-                    renderEditor();
+                    const nextId = Number(button.getAttribute('data-art-request'));
+                    if (!nextId || nextId === selectedId || busy) {
+                        return;
+                    }
+                    loadRequest(nextId);
                 });
             });
         }
 
         function renderEditor() {
             const item = current();
-            nameInput.value = item.name;
-            authorInput.value = item.author;
-            typeInput.value = item.type;
-            requesterInput.value = item.requester;
-            descriptionInput.value = item.description;
-            noteInput.value = item.note;
-            cover.textContent = item.cover;
-            message.textContent = item.message;
-            status.textContent = item.status;
-            status.className = pillStatusClass(item.status);
-        }
 
-        function setFeedback(nextStatus, text) {
-            const item = current();
-            item.status = nextStatus;
-            status.textContent = nextStatus;
-            status.className = pillStatusClass(nextStatus);
-            feedback.textContent = text;
-            renderQueue();
-        }
-
-        save.addEventListener('click', () => {
-            const item = current();
-            syncEditorIntoItem(item);
-            item.edited = true;
-            setFeedback('Changed', 'Mock flow: PATCH /admin/api/art-requests/{id} should save the edited card and keep the badge in Changed state.');
-            renderEditor();
-        });
-
-        approve.addEventListener('click', () => {
-            const item = current();
-            syncEditorIntoItem(item);
-            if (item.edited) {
-                setFeedback('Changed', 'Mock flow: after admin edits, POST /approve can create Artwork while the badge still stays Changed, exactly as in your current backend idea.');
-            } else {
-                setFeedback('Approved', 'Mock flow: direct approve without edits can stay Approved if you want to distinguish untouched approvals.');
+            if (!item) {
+                idInput.value = '';
+                requesterIdInput.value = '';
+                imageUrlInput.value = '';
+                nameInput.value = '';
+                authorInput.value = '';
+                typeInput.value = '';
+                requesterInput.value = '';
+                descriptionInput.value = '';
+                noteInput.value = '';
+                cover.innerHTML = 'No cover';
+                cover.classList.remove('has-image');
+                message.textContent = 'No request selected.';
+                status.textContent = 'No request';
+                status.className = 'admin-pill';
+                setBusy(false);
+                return;
             }
-            renderEditor();
-        });
 
-        reject.addEventListener('click', () => {
+            idInput.value = item.id != null ? String(item.id) : '';
+            requesterIdInput.value = item.requesterId != null ? String(item.requesterId) : '';
+            imageUrlInput.value = item.imageUrl || '';
+            nameInput.value = item.name || '';
+            authorInput.value = item.author || '';
+            typeInput.value = item.type || '';
+            requesterInput.value = requesterLabel(item);
+            descriptionInput.value = item.description || '';
+            noteInput.value = item.adminNote || item.rejectionReason || '';
+            cover.innerHTML = coverMarkup(item);
+            cover.classList.toggle('has-image', Boolean(item.imageUrl));
+            message.textContent = [
+                'Request #' + item.id,
+                item.createdAt ? 'Created: ' + formatDate(item.createdAt) : null,
+                item.updatedAt ? 'Updated: ' + formatDate(item.updatedAt) : null,
+                item.approvedArtworkId ? 'Artwork #' + item.approvedArtworkId : null
+            ].filter(Boolean).join(' | ');
+            status.textContent = normalizeStatus(item.status);
+            status.className = pillStatusClass(item.status);
+            setBusy(false);
+        }
+
+        async function parseJsonResponse(response) {
+            const text = await response.text();
+            if (!text) return null;
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                throw new Error(text);
+            }
+        }
+
+        async function sendJson(url, options) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Accept': 'application/json',
+                    ...csrfHeaders(),
+                    ...(options && options.body ? { 'Content-Type': 'application/json' } : {}),
+                    ...(options && options.headers ? options.headers : {})
+                }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || ('Request failed with status ' + response.status));
+            }
+
+            return parseJsonResponse(response);
+        }
+
+        function buildEditPayload() {
             const item = current();
-            syncEditorIntoItem(item);
-            setFeedback('Rejected', 'Mock flow: POST /reject should store the rejection reason and move the request out of the pending queue.');
+            return {
+                requesterId: item ? item.requesterId : null,
+                type: typeInput.value || null,
+                name: nameInput.value.trim(),
+                author: authorInput.value.trim(),
+                description: descriptionInput.value.trim(),
+                imageUrl: imageUrlInput.value.trim(),
+                adminNote: noteInput.value.trim()
+            };
+        }
+
+        function buildApprovePayload() {
+            const item = current();
+            return {
+                requesterId: item ? item.requesterId : null,
+                type: typeInput.value || null,
+                name: nameInput.value.trim(),
+                author: authorInput.value.trim(),
+                description: descriptionInput.value.trim(),
+                imageUrl: imageUrlInput.value.trim()
+            };
+        }
+
+        function validateEditor(requireReason) {
+            if (!selectedId) {
+                setFeedback('error', 'Select a request first.');
+                return false;
+            }
+            if (!typeInput.value) {
+                setFeedback('error', 'Type is required.');
+                typeInput.focus();
+                return false;
+            }
+            if (!nameInput.value.trim()) {
+                setFeedback('error', 'Work name is required.');
+                nameInput.focus();
+                return false;
+            }
+            if (!authorInput.value.trim()) {
+                setFeedback('error', 'Author is required.');
+                authorInput.focus();
+                return false;
+            }
+            if (requireReason && !noteInput.value.trim()) {
+                setFeedback('error', 'Add a reject reason in the note field before rejecting.');
+                noteInput.focus();
+                return false;
+            }
+            return true;
+        }
+
+        async function refreshQueue(nextSelectedId) {
+            const query = currentSearch();
+            setBusy(true);
+            setFeedback('loading', query ? 'Searching requests...' : 'Loading pending requests...');
+
+            try {
+                const url = query
+                    ? '/admin/api/art-requests?query=' + encodeURIComponent(query)
+                    : '/admin/api/art-requests';
+                const data = await sendJson(url, { method: 'GET' });
+                items = Array.isArray(data) ? data.map(normalizeItem) : [];
+                selectedId = nextSelectedId && items.some((item) => item.id === nextSelectedId)
+                    ? nextSelectedId
+                    : (items[0] ? items[0].id : null);
+                renderQueue();
+                if (selectedId) {
+                    await loadRequest(selectedId, true);
+                    setFeedback(null, query
+                        ? 'Search opened request #' + selectedId + '.'
+                        : 'Ready to moderate request #' + selectedId + '.');
+                } else {
+                    renderEditor();
+                    setFeedback('success', query ? 'No requests matched this search.' : 'No pending requests right now.');
+                    setBusy(false);
+                }
+            } catch (error) {
+                items = [];
+                selectedId = null;
+                renderQueue();
+                renderEditor();
+                setFeedback('error', query ? 'Failed to search requests.' : 'Failed to load the admin queue.');
+                setBusy(false);
+            }
+        }
+
+        async function loadRequest(id, keepFeedback) {
+            selectedId = id;
+            renderQueue();
+            setBusy(true);
+            if (!keepFeedback) {
+                setFeedback('loading', 'Loading request #' + id + '...');
+            }
+
+            try {
+                const data = await sendJson('/admin/api/art-requests/' + id, { method: 'GET' });
+                const nextItem = normalizeItem(data);
+                const index = items.findIndex((item) => item.id === id);
+                if (index >= 0) {
+                    items[index] = { ...items[index], ...nextItem };
+                } else {
+                    items.unshift(nextItem);
+                }
+                selectedId = id;
+                renderQueue();
+                renderEditor();
+                if (!keepFeedback) {
+                    setFeedback(null, 'Ready to moderate request #' + id + '.');
+                }
+            } catch (error) {
+                setFeedback('error', 'Failed to load request #' + id + '.');
+                setBusy(false);
+            }
+        }
+
+        function removeCurrentFromQueue(successMessage) {
+            items = items.filter((item) => item.id !== selectedId);
+            const nextSelectedId = items[0] ? items[0].id : null;
+            selectedId = nextSelectedId;
+            renderQueue();
             renderEditor();
+            setFeedback('success', successMessage);
+        }
+
+        save.addEventListener('click', async () => {
+            if (busy || !validateEditor(false)) {
+                return;
+            }
+
+            setBusy(true);
+            setFeedback('loading', 'Saving edits and approving as Changed...');
+
+            try {
+                await sendJson('/admin/api/art-requests/' + selectedId, {
+                    method: 'PATCH',
+                    body: JSON.stringify(buildEditPayload())
+                });
+
+                await sendJson('/admin/api/art-requests/' + selectedId + '/approve', {
+                    method: 'POST',
+                    body: JSON.stringify(buildApprovePayload())
+                });
+
+                removeCurrentFromQueue('Request #' + selectedId + ' was saved and approved as Changed.');
+            } catch (error) {
+                setBusy(false);
+                setFeedback('error', 'Failed to save and approve the request.');
+            }
         });
 
-        renderQueue();
-        renderEditor();
+        approve.addEventListener('click', async () => {
+            if (busy || !validateEditor(false)) {
+                return;
+            }
+
+            setBusy(true);
+            setFeedback('loading', 'Approving request as-is...');
+
+            try {
+                await sendJson('/admin/api/art-requests/' + selectedId + '/approve', {
+                    method: 'POST',
+                    body: JSON.stringify(buildApprovePayload())
+                });
+
+                removeCurrentFromQueue('Request #' + selectedId + ' was approved without edits.');
+            } catch (error) {
+                setBusy(false);
+                setFeedback('error', 'Failed to approve the request.');
+            }
+        });
+
+        reject.addEventListener('click', async () => {
+            if (busy || !validateEditor(true)) {
+                return;
+            }
+
+            setBusy(true);
+            setFeedback('loading', 'Rejecting request...');
+
+            try {
+                await sendJson('/admin/api/art-requests/' + selectedId + '/reject', {
+                    method: 'POST',
+                    body: JSON.stringify({ reason: noteInput.value.trim() })
+                });
+
+                removeCurrentFromQueue('Request #' + selectedId + ' was rejected.');
+            } catch (error) {
+                setBusy(false);
+                setFeedback('error', 'Failed to reject the request.');
+            }
+        });
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+        });
+
+        if (searchForm) {
+            searchForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (busy) {
+                    return;
+                }
+                refreshQueue(null);
+            });
+        }
+
+        if (searchReset) {
+            searchReset.addEventListener('click', () => {
+                if (busy) {
+                    return;
+                }
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                refreshQueue(null);
+            });
+        }
+
+        refreshQueue(null);
     })();
 </script>
 </body>
