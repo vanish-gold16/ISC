@@ -65,8 +65,8 @@ public class AdminService {
                 NotificationEnum.ART_REQUEST_STATUS,
                 requester,
                 admin,
-                "Status of your review has been changed",
-                request.getName() + " is now: " + request.getStatus() + "ed",
+                "Status of your art request has changed",
+                buildArtRequestStatusBody(request),
                 null
         );
 
@@ -95,11 +95,24 @@ public class AdminService {
                 NotificationEnum.ART_REQUEST_STATUS,
                 requester,
                 admin,
-                "Status of your art request has been changed",
-                request.getName() + " is now: " + request.getStatus() + "ed",
+                "Status of your art request has changed",
+                buildArtRequestStatusBody(request),
                 null
         );
         return newArtRequestRepository.save(request);
+    }
+
+    private String buildArtRequestStatusBody(NewArtRequest request) {
+        String workName = request.getName() != null && !request.getName().isBlank()
+                ? request.getName()
+                : "Your work";
+
+        return switch (request.getStatus()) {
+            case CHANGED -> workName + " was approved with admin edits.";
+            case ACCEPTED -> workName + " was approved.";
+            case REJECTED -> workName + " was rejected.";
+            case PENDING -> workName + " is pending moderation.";
+        };
     }
 
 //    @Transactional

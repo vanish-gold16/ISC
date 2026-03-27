@@ -28,6 +28,40 @@ public class OpusCoreSchemaMigrationRunner implements ApplicationRunner {
         apply("ALTER TABLE IF EXISTS artworks ALTER COLUMN cover_url TYPE VARCHAR(1000)");
 
         apply("ALTER TABLE IF EXISTS reviews ALTER COLUMN photo_url TYPE VARCHAR(1000)");
+        apply("""
+                DO $$
+                BEGIN
+                    IF to_regclass('public.notifications') IS NULL THEN
+                        RETURN;
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1
+                        FROM pg_constraint
+                        WHERE conname = 'notifications_type_check'
+                          AND conrelid = 'notifications'::regclass
+                    ) THEN
+                        ALTER TABLE notifications DROP CONSTRAINT notifications_type_check;
+                    END IF;
+
+                    ALTER TABLE notifications
+                        ADD CONSTRAINT notifications_type_check
+                            CHECK (
+                                type IN (
+                                    'LIKE',
+                                    'FOLLOW',
+                                    'FRIEND_REQUEST',
+                                    'FRIEND_REQUEST_ACCEPT',
+                                    'COMMENT',
+                                    'MESSAGE',
+                                    'SYSTEM',
+                                    'REVIEW_STATUS',
+                                    'ART_REQUEST_STATUS'
+                                )
+                            );
+                END;
+                $$;
+                """);
     }
 
     private void apply(String sql) {
