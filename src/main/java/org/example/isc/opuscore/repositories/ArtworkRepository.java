@@ -11,7 +11,8 @@ public interface ArtworkRepository extends JpaRepository<Artwork, Long> {
     @Query("""
         select a from Artwork a 
         where lower(a.name) like lower(concat('%', :normalizedQuery, '%'))
-           or lower(a.author) like lower(concat('%', :normalizedQuery, '%'))   
+           or lower(a.author) like lower(concat('%', :normalizedQuery, '%'))           
+        order by a.name asc  
                 """)
     List<Artwork> findByResolvedName(String normalizedQuery);
 }

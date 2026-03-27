@@ -1,4 +1,4 @@
-package org.example.isc.opuscore.controller;
+package org.example.isc.opuscore.controller.user;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;

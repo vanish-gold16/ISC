@@ -1,6 +1,5 @@
 package org.example.isc.admin;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import org.example.isc.admin.service.AdminService;
 import org.example.isc.main.secured.models.users.User;
@@ -8,9 +7,7 @@ import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.AdminArtAnswerDTO;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
 import org.example.isc.opuscore.dto.RejectDTO;
-import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
-import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +19,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/api")
-public class AdminApiController {
+public class AdminArtApiController {
 
     private final UserRepository userRepository;
     private final NewArtRequestRepository newArtRequestRepository;
     private final AdminService adminService;
 
-    public AdminApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService) {
+    public AdminArtApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService) {
         this.userRepository = userRepository;
         this.newArtRequestRepository = newArtRequestRepository;
         this.adminService = adminService;
