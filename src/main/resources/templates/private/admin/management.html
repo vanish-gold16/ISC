@@ -13,11 +13,11 @@
 
 <main class="container page admin-page">
     <section class="admin-main">
-        <article class="card admin-hero">
+        <article class="card admin-hero" th:if="${adminSection == 'dashboard'}">
             <div class="admin-hero__body"
-                 th:with="heroEyebrow=${adminSection == 'new-arts' ? 'Art Moderation' : (adminSection == 'new-reviews' ? 'Review Moderation' : 'Admin Panel')},
-                          heroTitle=${adminSection == 'new-arts' ? 'New Arts Queue' : (adminSection == 'new-reviews' ? 'New Reviews Queue' : (user != null and user.username != null ? 'Hello, ' + user.username : 'Hello, user'))},
-                          heroSubtitle=${adminSection == 'new-arts' ? 'Review incoming work requests, fix metadata, and decide whether the work should enter the catalog.' : (adminSection == 'new-reviews' ? 'This queue comes next. For now only the art-request flow is mocked in frontend.' : 'Welcome to the admin workspace.')}">
+                 th:with="heroEyebrow=${'Admin Panel'},
+                          heroTitle=${user != null and user.username != null ? 'Hello, ' + user.username : 'Hello, user'},
+                          heroSubtitle=${'Welcome to the admin workspace.'}">
                 <p class="admin-hero__eyebrow"
                    th:text="${heroEyebrow}">Admin Panel</p>
                 <h1 class="admin-hero__title"
@@ -39,6 +39,20 @@
                     </a>
                 </div>
             </div>
+        </article>
+
+        <article class="card admin-screen-head" th:if="${adminSection == 'new-arts'}">
+            <a class="admin-screen-head__back" th:href="@{/admin}">Back to dashboard</a>
+            <p class="admin-screen-head__eyebrow">Art Moderation</p>
+            <h1 class="admin-screen-head__title">New Arts Queue</h1>
+            <p class="admin-screen-head__text">Review incoming work requests, fix metadata, and decide whether the work should enter the catalog.</p>
+        </article>
+
+        <article class="card admin-screen-head" th:if="${adminSection == 'new-reviews'}">
+            <a class="admin-screen-head__back" th:href="@{/admin}">Back to dashboard</a>
+            <p class="admin-screen-head__eyebrow">Review Moderation</p>
+            <h1 class="admin-screen-head__title">New Reviews Queue</h1>
+            <p class="admin-screen-head__text">This screen can mirror the art moderation layout later, but it should be its own page too.</p>
         </article>
 
         <section class="admin-moderation" th:if="${adminSection == 'new-arts'}">
