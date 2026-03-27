@@ -20,7 +20,7 @@ public class NewArtRequestDTO {
     @Size(max = 50)
     private String author;
 
-    @Size(max = 500)
+    @Size(max = 1000)
     private String description;
 
     private MultipartFile image;

@@ -31,7 +31,7 @@ public class NewArtRequest {
     @Column(name = "author")
     private String author;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 1000)
     private String description;
 
     @Column(name = "cover_url")

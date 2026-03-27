@@ -1,6 +1,7 @@
 package org.example.isc.opuscore.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 
@@ -24,6 +25,7 @@ public class AdminArtAnswerDTO {
     private String author;
 
     @NotNull
+    @Size(max = 1000)
     private String description;
 
     @NotNull

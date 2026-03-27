@@ -423,6 +423,19 @@ END;
 $$;
 @@
 
+DO $$
+BEGIN
+    IF to_regclass('public.art_requests') IS NOT NULL THEN
+        ALTER TABLE art_requests ALTER COLUMN description TYPE VARCHAR(1000);
+    END IF;
+
+    IF to_regclass('public.artworks') IS NOT NULL THEN
+        ALTER TABLE artworks ALTER COLUMN description TYPE VARCHAR(1000);
+    END IF;
+END;
+$$;
+@@
+
   CREATE TABLE IF NOT EXISTS user_settings (
       id BIGSERIAL PRIMARY KEY,
       user_id BIGINT NOT NULL UNIQUE,

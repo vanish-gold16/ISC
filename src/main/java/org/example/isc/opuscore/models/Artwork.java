@@ -23,7 +23,7 @@ public class Artwork {
     @Column(name = "author", nullable = false)
     private String author;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 1000)
     private String description;
 
     @Column(name = "cover_url")
