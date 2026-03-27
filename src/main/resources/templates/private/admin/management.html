@@ -84,55 +84,62 @@
                     <input id="admin-art-requester-id" type="hidden" />
                     <input id="admin-art-image-url" type="hidden" />
 
-                    <div class="admin-editor__grid">
-                        <label class="admin-field">
-                            <span class="admin-field__label">Work name</span>
-                            <input class="admin-field__input" id="admin-art-name" type="text" />
-                        </label>
-                        <label class="admin-field">
-                            <span class="admin-field__label">Author</span>
-                            <input class="admin-field__input" id="admin-art-author" type="text" />
-                        </label>
+                    <div class="admin-editor__empty" id="admin-art-empty">
+                        <p class="admin-editor__empty-title" id="admin-art-empty-title">Choose a request</p>
+                        <p class="admin-editor__empty-text" id="admin-art-empty-text">Select an item from the queue to open the moderation form.</p>
                     </div>
 
-                    <div class="admin-editor__grid">
-                        <label class="admin-field">
-                            <span class="admin-field__label">Type</span>
-                            <select class="admin-field__input" id="admin-art-type">
-                                <option value="" disabled>Select a type</option>
-                                <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
-                                        th:value="${t}"
-                                        th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
-                            </select>
-                        </label>
-                        <label class="admin-field">
-                            <span class="admin-field__label">Requested by</span>
-                            <input class="admin-field__input admin-field__input--readonly" id="admin-art-requester" type="text" readonly />
-                        </label>
-                    </div>
-
-                    <label class="admin-field">
-                        <span class="admin-field__label">Description</span>
-                        <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-description" rows="4"></textarea>
-                    </label>
-
-                    <label class="admin-field">
-                        <span class="admin-field__label">Admin note / Reject reason</span>
-                        <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-note" rows="4" placeholder="Internal note, edit note, or rejection reason"></textarea>
-                    </label>
-
-                    <div class="admin-preview">
-                        <div class="admin-preview__cover" id="admin-art-cover">No cover</div>
-                        <div class="admin-preview__copy">
-                            <div class="admin-preview__label">Request details</div>
-                            <p class="admin-preview__text" id="admin-art-message">No request selected.</p>
+                    <div class="admin-editor__content" id="admin-art-content" hidden>
+                        <div class="admin-editor__grid">
+                            <label class="admin-field">
+                                <span class="admin-field__label">Work name</span>
+                                <input class="admin-field__input" id="admin-art-name" type="text" />
+                            </label>
+                            <label class="admin-field">
+                                <span class="admin-field__label">Author</span>
+                                <input class="admin-field__input" id="admin-art-author" type="text" />
+                            </label>
                         </div>
-                    </div>
 
-                    <div class="admin-actions">
-                        <button class="btn btn--ghost" type="button" id="admin-save-art">Save and approve</button>
-                        <button class="btn btn--ghost admin-action--danger" type="button" id="admin-reject-art">Reject</button>
-                        <button class="btn btn--primary" type="button" id="admin-approve-art">Approve as-is</button>
+                        <div class="admin-editor__grid">
+                            <label class="admin-field">
+                                <span class="admin-field__label">Type</span>
+                                <select class="admin-field__input" id="admin-art-type">
+                                    <option value="" disabled>Select a type</option>
+                                    <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
+                                            th:value="${t}"
+                                            th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
+                                </select>
+                            </label>
+                            <label class="admin-field">
+                                <span class="admin-field__label">Requested by</span>
+                                <input class="admin-field__input admin-field__input--readonly" id="admin-art-requester" type="text" readonly />
+                            </label>
+                        </div>
+
+                        <label class="admin-field">
+                            <span class="admin-field__label">Description</span>
+                            <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-description" rows="4"></textarea>
+                        </label>
+
+                        <label class="admin-field">
+                            <span class="admin-field__label">Admin note / Reject reason</span>
+                            <textarea class="admin-field__input admin-field__input--textarea" id="admin-art-note" rows="4" placeholder="Internal note, edit note, or rejection reason"></textarea>
+                        </label>
+
+                        <div class="admin-preview">
+                            <div class="admin-preview__cover" id="admin-art-cover">No cover</div>
+                            <div class="admin-preview__copy">
+                                <div class="admin-preview__label">Request details</div>
+                                <p class="admin-preview__text" id="admin-art-message">No request selected.</p>
+                            </div>
+                        </div>
+
+                        <div class="admin-actions">
+                            <button class="btn btn--ghost" type="button" id="admin-save-art">Save and approve</button>
+                            <button class="btn btn--ghost admin-action--danger" type="button" id="admin-reject-art">Reject</button>
+                            <button class="btn btn--primary" type="button" id="admin-approve-art">Approve as-is</button>
+                        </div>
                     </div>
                     <p class="admin-feedback" id="admin-art-feedback">Loading pending requests...</p>
                 </form>
@@ -160,6 +167,10 @@
         const searchReset = document.getElementById('admin-queue-search-reset');
         const csrfToken = document.getElementById('admin-csrf');
         const form = document.getElementById('admin-art-editor');
+        const emptyState = document.getElementById('admin-art-empty');
+        const emptyStateTitle = document.getElementById('admin-art-empty-title');
+        const emptyStateText = document.getElementById('admin-art-empty-text');
+        const content = document.getElementById('admin-art-content');
         const idInput = document.getElementById('admin-art-id');
         const requesterIdInput = document.getElementById('admin-art-requester-id');
         const imageUrlInput = document.getElementById('admin-art-image-url');
@@ -264,6 +275,15 @@
             return items.find((item) => item.id === selectedId) || null;
         }
 
+        function setEmptyState(title, text) {
+            if (emptyStateTitle) {
+                emptyStateTitle.textContent = title;
+            }
+            if (emptyStateText) {
+                emptyStateText.textContent = text;
+            }
+        }
+
         function setBusy(nextBusy) {
             busy = nextBusy;
             [nameInput, authorInput, typeInput, descriptionInput, noteInput].forEach((field) => {
@@ -343,6 +363,12 @@
             const item = current();
 
             if (!item) {
+                if (emptyState) {
+                    emptyState.hidden = false;
+                }
+                if (content) {
+                    content.hidden = true;
+                }
                 idInput.value = '';
                 requesterIdInput.value = '';
                 imageUrlInput.value = '';
@@ -355,12 +381,18 @@
                 cover.innerHTML = 'No cover';
                 cover.classList.remove('has-image');
                 message.textContent = 'No request selected.';
-                status.textContent = 'No request';
+                status.textContent = 'Choose request';
                 status.className = 'admin-pill';
                 setBusy(false);
                 return;
             }
 
+            if (emptyState) {
+                emptyState.hidden = true;
+            }
+            if (content) {
+                content.hidden = false;
+            }
             idInput.value = item.id != null ? String(item.id) : '';
             requesterIdInput.value = item.requesterId != null ? String(item.requesterId) : '';
             imageUrlInput.value = item.imageUrl || '';
@@ -478,7 +510,7 @@
                 items = Array.isArray(data) ? data.map(normalizeItem) : [];
                 selectedId = nextSelectedId && items.some((item) => item.id === nextSelectedId)
                     ? nextSelectedId
-                    : (items[0] ? items[0].id : null);
+                    : null;
                 renderQueue();
                 if (selectedId) {
                     await loadRequest(selectedId, true);
@@ -486,14 +518,28 @@
                         ? 'Search opened request #' + selectedId + '.'
                         : 'Ready to moderate request #' + selectedId + '.');
                 } else {
+                    setEmptyState(
+                        items.length
+                            ? 'Choose a request'
+                            : (query ? 'Nothing found' : 'Queue is empty'),
+                        items.length
+                            ? 'Select an item from the queue to open the moderation form.'
+                            : (query ? 'No requests matched this search.' : 'No pending art requests right now.')
+                    );
                     renderEditor();
-                    setFeedback('success', query ? 'No requests matched this search.' : 'No pending requests right now.');
+                    setFeedback(
+                        items.length ? null : 'success',
+                        items.length
+                            ? (query ? 'Search loaded. Choose a request to open it.' : 'Choose a request from the queue to start moderation.')
+                            : (query ? 'No requests matched this search.' : 'No pending requests right now.')
+                    );
                     setBusy(false);
                 }
             } catch (error) {
                 items = [];
                 selectedId = null;
                 renderQueue();
+                setEmptyState('Queue unavailable', 'The moderation form will appear here after the queue loads successfully.');
                 renderEditor();
                 setFeedback('error', query ? 'Failed to search requests.' : 'Failed to load the admin queue.');
                 setBusy(false);
@@ -531,9 +577,14 @@
 
         function removeCurrentFromQueue(successMessage) {
             items = items.filter((item) => item.id !== selectedId);
-            const nextSelectedId = items[0] ? items[0].id : null;
-            selectedId = nextSelectedId;
+            selectedId = null;
             renderQueue();
+            setEmptyState(
+                items.length ? 'Choose the next request' : 'Queue is empty',
+                items.length
+                    ? 'The previous request is done. Select another item from the queue.'
+                    : 'No pending art requests right now.'
+            );
             renderEditor();
             setFeedback('success', successMessage);
         }

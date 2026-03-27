@@ -1,8 +1,8 @@
 (function () {
-    const profileMenu = document.querySelector(".profile-menu");
+    const profileMenu = document.querySelector(".profile-menu") || document.querySelector("[data-profile-menu]");
     const openSettingsButton = document.querySelector("[data-open-header-settings-modal]");
     const settingsModal = document.getElementById("header-settings-modal");
-    if (!profileMenu || !openSettingsButton || !settingsModal || settingsModal.dataset.bound === "true") return;
+    if (!openSettingsButton || !settingsModal || settingsModal.dataset.bound === "true") return;
     settingsModal.dataset.bound = "true";
 
     const LOCAL_SETTINGS_KEY = "isc.userSettingsCache";
@@ -302,8 +302,51 @@
         setStatus("Reverted unsaved changes.", null);
     }
 
+    function isDetailsMenu(menu) {
+        return Boolean(menu && menu.matches && menu.matches(".profile-menu"));
+    }
+
+    function closeProfileMenu() {
+        if (!profileMenu) return;
+
+        if (isDetailsMenu(profileMenu)) {
+            profileMenu.removeAttribute("open");
+            return;
+        }
+
+        profileMenu.classList.remove("is-open");
+
+        const trigger = profileMenu.querySelector("[data-profile-trigger]");
+        const panel = profileMenu.querySelector("[data-profile-panel]");
+
+        if (trigger) {
+            trigger.setAttribute("aria-expanded", "false");
+        }
+
+        if (panel) {
+            panel.style.opacity = "0";
+            panel.style.visibility = "hidden";
+            panel.style.pointerEvents = "none";
+            panel.style.transform = "translate3d(0, -14px, 0) scale(0.72)";
+            window.setTimeout(() => {
+                if (profileMenu.classList.contains("is-open")) {
+                    return;
+                }
+                panel.style.display = "none";
+                panel.hidden = true;
+            }, 220);
+        }
+    }
+
+    function isProfileMenuOpen() {
+        if (!profileMenu) return false;
+        return isDetailsMenu(profileMenu)
+            ? profileMenu.hasAttribute("open")
+            : profileMenu.classList.contains("is-open");
+    }
+
     function openModal() {
-        profileMenu.removeAttribute("open");
+        closeProfileMenu();
         settingsModal.hidden = false;
         settingsModal.setAttribute("aria-hidden", "false");
         requestAnimationFrame(() => {
@@ -359,9 +402,9 @@
     });
 
     document.addEventListener("click", (event) => {
-        if (!profileMenu.hasAttribute("open")) return;
+        if (!profileMenu || !isProfileMenuOpen()) return;
         if (profileMenu.contains(event.target)) return;
-        profileMenu.removeAttribute("open");
+        closeProfileMenu();
     });
 
     document.addEventListener("keydown", (event) => {
@@ -370,7 +413,7 @@
                 closeModal();
                 return;
             }
-            profileMenu.removeAttribute("open");
+            closeProfileMenu();
         }
     });
 
