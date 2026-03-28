@@ -163,4 +163,16 @@ public class Review {
     public void setArtwork(Artwork artwork) {
         this.artwork = artwork;
     }
+
+    public String getArtName() {
+        return artwork != null ? artwork.getName() : null;
+    }
+
+    public String getArtAuthor() {
+        return artwork != null ? artwork.getAuthor() : null;
+    }
+
+    public String getArtDescription() {
+        return artwork != null ? artwork.getDescription() : null;
+    }
 }
