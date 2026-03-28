@@ -155,7 +155,7 @@
 
                     <a class="btn btn--submit art-panel__cta"
                        th:if="${artwork != null}"
-                       th:href="@{/opuscore/new-review(artId=${artwork.id},artName=${artwork.name},artAuthor=${artwork.author},artType=${artwork.type},coverUrl=${artwork.coverUrl})}">
+                       th:href="@{/opuscore/new-review(artId=${artwork.id},artName=${artwork.name},artAuthor=${artwork.author},artDescription=${artwork.description},artType=${artwork.type},coverUrl=${artwork.coverUrl})}">
                         New Review
                     </a>
                     <button class="btn art-panel__cta" type="button" disabled th:if="${pendingState}">

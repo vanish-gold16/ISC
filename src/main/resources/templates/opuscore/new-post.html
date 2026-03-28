@@ -67,8 +67,8 @@
             <header class="new-review__header glass-panel">
                 <div>
                     <p class="new-review__eyebrow">New review</p>
-                    <h1 class="new-review__title">Pick a work first</h1>
-                    <p class="new-review__subtitle">Search the catalog, pick an existing work, then write the review. If nothing matches, create a new work request from here and continue from its pending page.</p>
+                    <h1 class="new-review__title">New Review</h1>
+                    <p class="new-review__subtitle">Find a work in the catalog, then write either a quick rating or a full review with text.</p>
                 </div>
                 <div class="new-review__chip">OpusCore / Review</div>
             </header>
@@ -79,14 +79,17 @@
                 <input id="artType" type="hidden" th:field="*{artType}" />
                 <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
                 <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
+                <input id="selectedArtName" type="hidden" name="selectedArtName" th:value="${param.selectedArtName}" />
+                <input id="selectedArtAuthor" type="hidden" name="selectedArtAuthor" th:value="${param.selectedArtAuthor}" />
+                <input id="selectedArtDescription" type="hidden" name="selectedArtDescription" th:value="${param.selectedArtDescription}" />
+                <input id="selectedArtCoverUrl" type="hidden" name="selectedArtCoverUrl" th:value="${param.selectedArtCoverUrl}" />
 
-                <section class="review-search glass-panel">
+                <section class="review-search glass-panel" id="review-search-panel">
                     <div class="review-search__head">
                         <div>
-                            <p class="review-search__eyebrow">Step 1</p>
-                            <h2 class="review-search__title">Search by title or author</h2>
+                            <p class="review-search__eyebrow">Catalog</p>
+                            <h2 class="review-search__title">Find the work you want to review</h2>
                         </div>
-                        <button class="btn btn--ghost" type="button" id="review-change-art" hidden>Change work</button>
                     </div>
 
                     <div class="review-search__bar">
@@ -95,16 +98,7 @@
                                type="search"
                                placeholder="Search for a book, album, film, game..." />
                         <button class="btn btn--submit" type="button" id="review-search-button">Search</button>
-                    </div>
-
-                    <div class="review-selected glass-panel" id="review-selected-art" hidden>
-                        <div class="review-selected__cover" id="review-selected-cover">ART</div>
-                        <div class="review-selected__copy">
-                            <p class="review-selected__eyebrow">Selected work</p>
-                            <h3 class="review-selected__title" id="review-selected-name">Untitled work</h3>
-                            <p class="review-selected__author" id="review-selected-author">Unknown creator</p>
-                            <p class="review-selected__meta" id="review-selected-type">ART</p>
-                        </div>
+                        <button class="btn btn--ghost" type="button" id="review-change-art" hidden>Change work</button>
                     </div>
 
                     <div class="review-search__results" id="review-search-results"></div>
@@ -119,6 +113,26 @@
                 </section>
 
                 <section class="review-editor" id="review-editor" hidden>
+                    <section class="review-preview glass-panel">
+                        <div class="review-preview__cover" id="review-preview-cover">ART</div>
+                        <div class="review-preview__copy">
+                            <div class="review-preview__topline">
+                                <span class="review-preview__type" id="review-preview-type">ART</span>
+                                <div class="review-preview__average">
+                                    <span class="review-preview__average-label">Average rating</span>
+                                    <div class="review-preview__average-value">
+                                        <span>--</span>
+                                        <span class="review-preview__average-max">/100</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h2 class="review-preview__title" id="review-preview-name">Untitled work</h2>
+                            <p class="review-preview__author" id="review-preview-author">Unknown creator</p>
+                            <p class="review-preview__description" id="review-preview-description">Description has not been added yet.</p>
+                        </div>
+                    </section>
+
                     <div class="field field--switch">
                         <label for="review">Is it a full review?</label>
                         <label class="switch">
@@ -143,9 +157,9 @@
 
                     <div class="criteria-section glass-panel">
                         <div class="criteria-section__title">Criteria</div>
-                        <p class="criteria-section__hint" id="criteria-section-hint">Pick a work to load the right criteria. Scores are 0-10.</p>
+                        <p class="criteria-section__hint" id="criteria-section-hint">Select a work to load the right criteria. Scores are 0-10.</p>
                         <div class="criteria-grid" id="criteria-grid"></div>
-                        <div class="criteria-empty" id="criteria-empty">Choose a work first.</div>
+                        <div class="criteria-empty" id="criteria-empty">Select a work to load criteria.</div>
                         <p class="field__error" th:if="${#fields.hasErrors('criteria')}" th:errors="*{criteria}">Criteria error</p>
                     </div>
 
@@ -225,6 +239,7 @@
     (function () {
         const criteriaByType = /*[[${criteriaByType}]]*/ {};
         const form = document.getElementById('new-review-form');
+        const searchPanel = document.getElementById('review-search-panel');
         const editor = document.getElementById('review-editor');
         const searchInput = document.getElementById('review-search-input');
         const searchButton = document.getElementById('review-search-button');
@@ -232,23 +247,27 @@
         const emptyState = document.getElementById('review-search-empty');
         const feedback = document.getElementById('review-search-feedback');
         const createArtLink = document.getElementById('review-create-art-link');
-        const selectedCard = document.getElementById('review-selected-art');
-        const selectedCover = document.getElementById('review-selected-cover');
-        const selectedName = document.getElementById('review-selected-name');
-        const selectedAuthor = document.getElementById('review-selected-author');
-        const selectedType = document.getElementById('review-selected-type');
+        const previewCover = document.getElementById('review-preview-cover');
+        const previewName = document.getElementById('review-preview-name');
+        const previewAuthor = document.getElementById('review-preview-author');
+        const previewDescription = document.getElementById('review-preview-description');
+        const previewType = document.getElementById('review-preview-type');
         const changeArtButton = document.getElementById('review-change-art');
         const artworkIdField = document.getElementById('artworkId');
         const artTypeField = document.getElementById('artType');
         const totalField = document.getElementById('value');
         const totalDisplay = document.getElementById('value-display');
+        const selectedArtNameField = document.getElementById('selectedArtName');
+        const selectedArtAuthorField = document.getElementById('selectedArtAuthor');
+        const selectedArtDescriptionField = document.getElementById('selectedArtDescription');
+        const selectedArtCoverUrlField = document.getElementById('selectedArtCoverUrl');
         const grid = document.getElementById('criteria-grid');
         const emptyCriteria = document.getElementById('criteria-empty');
         const criteriaHint = document.getElementById('criteria-section-hint');
         const submitButton = document.getElementById('review-submit-button');
         const submitFeedback = document.getElementById('review-submit-feedback');
 
-        if (!form || !editor || !searchInput || !searchButton || !results || !emptyState || !feedback || !createArtLink || !selectedCard || !selectedCover || !selectedName || !selectedAuthor || !selectedType || !changeArtButton || !artworkIdField || !artTypeField || !totalField || !totalDisplay || !grid || !emptyCriteria || !criteriaHint || !submitButton || !submitFeedback) {
+        if (!form || !searchPanel || !editor || !searchInput || !searchButton || !results || !emptyState || !feedback || !createArtLink || !previewCover || !previewName || !previewAuthor || !previewDescription || !previewType || !changeArtButton || !artworkIdField || !artTypeField || !totalField || !totalDisplay || !selectedArtNameField || !selectedArtAuthorField || !selectedArtDescriptionField || !selectedArtCoverUrlField || !grid || !emptyCriteria || !criteriaHint || !submitButton || !submitFeedback) {
             return;
         }
 
@@ -291,11 +310,35 @@
             return normalizeArtType(type).replace(/_/g, ' ');
         }
 
+        function normalizeText(value, fallback) {
+            const normalized = typeof value === 'string' ? value.trim() : '';
+            return normalized || fallback;
+        }
+
+        function normalizeDescription(value) {
+            return typeof value === 'string' ? value.trim() : '';
+        }
+
         function createArtUrl(query) {
             const normalized = String(query || '').trim();
             return normalized
                 ? '/opuscore/art-requests?title=' + encodeURIComponent(normalized)
                 : '/opuscore/art-requests';
+        }
+
+        function normalizeArt(art) {
+            if (!art || art.id == null) {
+                return null;
+            }
+
+            return {
+                id: Number(art.id),
+                name: normalizeText(art.name, 'Untitled work'),
+                author: normalizeText(art.author, 'Unknown creator'),
+                description: normalizeDescription(art.description),
+                type: normalizeArtType(art.type),
+                coverUrl: normalizeDescription(art.coverUrl)
+            };
         }
 
         function buildCriteriaCard(criterion, index) {
@@ -354,7 +397,7 @@
 
             if (!list || !list.length) {
                 emptyCriteria.hidden = false;
-                emptyCriteria.textContent = normalizedType ? 'Reviews for this type are not available yet.' : 'Choose a work first.';
+                emptyCriteria.textContent = normalizedType ? 'Reviews for this type are not available yet.' : 'Select a work to load criteria.';
                 canPublish = false;
                 submitButton.disabled = true;
                 setSubmitFeedback(normalizedType ? 'This work type cannot be reviewed yet because criteria are not configured.' : null);
@@ -372,34 +415,56 @@
             updateTotal();
         }
 
+        function renderPreview(art) {
+            previewCover.innerHTML = art.coverUrl
+                ? '<img src="' + art.coverUrl + '" alt="">'
+                : '<span>' + initialsFor(art) + '</span>';
+            previewName.textContent = art.name;
+            previewAuthor.textContent = art.author;
+            previewType.textContent = displayArtType(art.type) || 'ART';
+            previewDescription.textContent = art.description || 'Description has not been added yet.';
+            previewDescription.classList.toggle('is-placeholder', !art.description);
+        }
+
+        function syncSelectedArtFields(art) {
+            selectedArtNameField.value = art ? art.name : '';
+            selectedArtAuthorField.value = art ? art.author : '';
+            selectedArtDescriptionField.value = art ? art.description : '';
+            selectedArtCoverUrlField.value = art ? art.coverUrl : '';
+        }
+
+        function clearSelectedArt() {
+            selectedArt = null;
+            searchPanel.classList.remove('is-compact');
+            editor.hidden = true;
+            changeArtButton.hidden = true;
+            artworkIdField.value = '';
+            artTypeField.value = '';
+            syncSelectedArtFields(null);
+            results.innerHTML = '';
+            emptyState.hidden = true;
+            canPublish = false;
+            submitButton.disabled = true;
+            setFeedback(null);
+            setSubmitFeedback(null);
+            renderCriteria('');
+            criteriaHint.textContent = 'Select a work to load the right criteria. Scores are 0-10.';
+        }
+
         function updateSelectedState() {
             if (!selectedArt) {
-                selectedCard.hidden = true;
-                editor.hidden = true;
-                changeArtButton.hidden = true;
-                artworkIdField.value = '';
-                artTypeField.value = '';
-                results.innerHTML = '';
-                canPublish = false;
-                submitButton.disabled = true;
-                setSubmitFeedback(null);
-                renderCriteria('');
-                criteriaHint.textContent = 'Pick a work to load the right criteria. Scores are 0-10.';
+                clearSelectedArt();
                 return;
             }
 
-            selectedCard.hidden = false;
+            searchPanel.classList.add('is-compact');
             editor.hidden = false;
             changeArtButton.hidden = false;
-            selectedCover.innerHTML = selectedArt.coverUrl
-                ? '<img src="' + selectedArt.coverUrl + '" alt="">'
-                : '<span>' + initialsFor(selectedArt) + '</span>';
-            selectedName.textContent = selectedArt.name || 'Untitled work';
-            selectedAuthor.textContent = selectedArt.author || 'Unknown creator';
-            selectedType.textContent = displayArtType(selectedArt.type);
-            artworkIdField.value = selectedArt.id != null ? String(selectedArt.id) : '';
+            renderPreview(selectedArt);
+            artworkIdField.value = String(selectedArt.id);
             artTypeField.value = normalizeArtType(selectedArt.type);
-            criteriaHint.textContent = 'Criteria loaded for ' + displayArtType(selectedArt.type) + '. Scores are 0-10.';
+            syncSelectedArtFields(selectedArt);
+            criteriaHint.textContent = 'Criteria loaded for ' + (displayArtType(selectedArt.type) || 'ART') + '. Scores are 0-10.';
             emptyState.hidden = true;
             results.innerHTML = '';
             setFeedback(null);
@@ -407,14 +472,46 @@
         }
 
         function selectArt(art) {
-            selectedArt = art && art.id != null ? {
-                id: art.id,
-                name: art.name || 'Untitled work',
-                author: art.author || 'Unknown creator',
-                type: normalizeArtType(art.type),
-                coverUrl: art.coverUrl || ''
-            } : null;
+            selectedArt = normalizeArt(art);
             updateSelectedState();
+        }
+
+        function buildResultButton(art) {
+            const normalizedArt = normalizeArt(art);
+            if (!normalizedArt) {
+                return null;
+            }
+
+            const button = document.createElement('button');
+            button.className = 'review-search-result glass-panel';
+            button.type = 'button';
+
+            const cover = document.createElement('span');
+            cover.className = 'review-search-result__cover';
+            cover.innerHTML = normalizedArt.coverUrl
+                ? '<img src="' + normalizedArt.coverUrl + '" alt="">'
+                : '<span>' + initialsFor(normalizedArt) + '</span>';
+
+            const copy = document.createElement('span');
+            copy.className = 'review-search-result__copy';
+
+            const title = document.createElement('span');
+            title.className = 'review-search-result__title';
+            title.textContent = normalizedArt.name;
+
+            const author = document.createElement('span');
+            author.className = 'review-search-result__meta';
+            author.textContent = normalizedArt.author;
+
+            const type = document.createElement('span');
+            type.className = 'review-search-result__meta';
+            type.textContent = displayArtType(normalizedArt.type) || 'ART';
+
+            copy.append(title, author, type);
+            button.append(cover, copy);
+            button.addEventListener('click', () => selectArt(normalizedArt));
+
+            return button;
         }
 
         function renderResults(items) {
@@ -426,27 +523,12 @@
             }
 
             emptyState.hidden = true;
-            results.innerHTML = items.map((art) => `
-                <button class="review-search-result glass-panel" type="button" data-art-id="${art.id}" data-art-name="${art.name || ''}" data-art-author="${art.author || ''}" data-art-type="${art.type || ''}" data-art-cover="${art.coverUrl || ''}">
-                    <span class="review-search-result__cover">${art.coverUrl ? `<img src="${art.coverUrl}" alt="">` : `<span>${initialsFor(art)}</span>`}</span>
-                    <span class="review-search-result__copy">
-                        <span class="review-search-result__title">${art.name || 'Untitled work'}</span>
-                        <span class="review-search-result__meta">${art.author || 'Unknown creator'}</span>
-                        <span class="review-search-result__meta">${displayArtType(art.type)}</span>
-                    </span>
-                </button>
-            `).join('');
-
-            results.querySelectorAll('[data-art-id]').forEach((button) => {
-                button.addEventListener('click', () => {
-                    selectArt({
-                        id: Number(button.getAttribute('data-art-id')),
-                        name: button.getAttribute('data-art-name'),
-                        author: button.getAttribute('data-art-author'),
-                        type: button.getAttribute('data-art-type'),
-                        coverUrl: button.getAttribute('data-art-cover')
-                    });
-                });
+            results.innerHTML = '';
+            items.forEach((art) => {
+                const button = buildResultButton(art);
+                if (button) {
+                    results.appendChild(button);
+                }
             });
         }
 
@@ -463,6 +545,10 @@
 
             if (searchBusy) {
                 return;
+            }
+
+            if (selectedArt) {
+                clearSelectedArt();
             }
 
             searchBusy = true;
@@ -495,8 +581,8 @@
 
         function prefillFromUrl() {
             const params = new URLSearchParams(window.location.search);
-            const artId = params.get('artId');
-            const artType = params.get('artType');
+            const artId = params.get('artId') || artworkIdField.value;
+            const artType = params.get('artType') || artTypeField.value;
 
             if (!artId || !artType) {
                 return;
@@ -504,10 +590,11 @@
 
             selectArt({
                 id: Number(artId),
-                name: params.get('artName') || 'Untitled work',
-                author: params.get('artAuthor') || 'Unknown creator',
+                name: params.get('artName') || selectedArtNameField.value || 'Untitled work',
+                author: params.get('artAuthor') || selectedArtAuthorField.value || 'Unknown creator',
+                description: params.get('artDescription') || selectedArtDescriptionField.value || '',
                 type: artType,
-                coverUrl: params.get('coverUrl') || ''
+                coverUrl: params.get('coverUrl') || selectedArtCoverUrlField.value || ''
             });
         }
 
@@ -520,8 +607,7 @@
         });
 
         changeArtButton.addEventListener('click', () => {
-            selectedArt = null;
-            updateSelectedState();
+            clearSelectedArt();
             searchInput.focus();
         });
 
@@ -536,7 +622,7 @@
         form.addEventListener('submit', (event) => {
             if (!artworkIdField.value || !artTypeField.value) {
                 event.preventDefault();
-                setFeedback('Pick a work before publishing the review.');
+                setFeedback('Select a work before publishing the review.');
                 searchInput.focus();
                 return;
             }

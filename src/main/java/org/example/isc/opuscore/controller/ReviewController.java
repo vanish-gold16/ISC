@@ -63,7 +63,7 @@ public class ReviewController {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        model.addAttribute("title", "New post");
+        model.addAttribute("title", "New review");
         model.addAttribute("user", me);
         NewReviewDTO form = (NewReviewDTO) model.asMap().get("form");
         if (form == null) {

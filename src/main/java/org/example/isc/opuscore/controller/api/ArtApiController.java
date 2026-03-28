@@ -46,6 +46,7 @@ public class ArtApiController {
                 artwork.getId(),
                 artwork.getName(),
                 artwork.getAuthor(),
+                artwork.getDescription(),
                 artwork.getType(),
                 artwork.getCoverUrl()
         );
