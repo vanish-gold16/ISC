@@ -78,12 +78,22 @@
     </div>
 </header>
 
-<main class="container page review-page">
+<main class="container page review-page"
+      th:with="displayCover=${review != null && review.photoUrl != null ? review.photoUrl : (artwork != null ? artwork.coverUrl : null)},
+               displayName=${review != null && review.artName != null ? review.artName : 'Untitled Work'},
+               displayAuthor=${review != null && review.artAuthor != null ? review.artAuthor : 'Unknown creator'},
+               displayDescription=${review != null ? review.artDescription : null}">
     <section class="page-content">
     <section class="review-hero">
-        <div class="review-cover">
-            <img th:if="${review != null && review.photoUrl != null}" th:src="${review.photoUrl}" alt="Cover" />
-            <div th:if="${review == null || review.photoUrl == null}" class="review-cover__placeholder">
+        <button th:if="${displayCover != null}"
+                class="review-cover review-cover--trigger"
+                id="review-cover-open"
+                type="button"
+                aria-label="Open cover full size">
+            <img th:src="${displayCover}" th:alt="${displayName}" alt="Cover" />
+        </button>
+        <div th:if="${displayCover == null}" class="review-cover">
+            <div class="review-cover__placeholder">
                 <span>NO COVER</span>
             </div>
         </div>
@@ -95,13 +105,19 @@
                         <span class="dot"></span>
                         <span th:text="${review != null && review.type != null} ? ${review.type} : 'ART'">ART</span>
                     </div>
-                    <h1 class="review-title" th:text="${review != null && review.artName != null} ? ${review.artName} : 'Untitled Work'">Untitled Work</h1>
-                    <p class="review-work-author"
-                       th:text="${review != null ? (review.artAuthor != null ? review.artAuthor : (review.artDescription != null ? review.artDescription : 'Unknown creator')) : 'Unknown creator'}">
+                    <h1 class="review-title">
+                        <a th:if="${artwork != null}"
+                           class="review-title__link"
+                           th:href="@{/opuscore/art-page/{id}(id=${artwork.id})}"
+                           th:text="${displayName}"
+                           href="/opuscore/art-page/1">Untitled Work</a>
+                        <span th:if="${artwork == null}" th:text="${displayName}">Untitled Work</span>
+                    </h1>
+                    <p class="review-work-author" th:text="${displayAuthor}">
                         Unknown creator
                     </p>
 
-                    <th:block th:with="heroDescription=${review != null && review.artAuthor != null ? review.artDescription : null}">
+                    <th:block th:with="heroDescription=${displayDescription}">
                         <div class="review-desc-wrap" th:if="${heroDescription != null && !#strings.isEmpty(heroDescription)}">
                             <p class="review-desc review-desc--clamped" id="review-desc" th:text="${heroDescription}">
                                 Short description about the work.
@@ -164,6 +180,15 @@
     </section>
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('review')}"></aside>
 </main>
+
+<div class="review-cover-modal" id="review-cover-modal" hidden>
+    <button class="review-cover-modal__backdrop" id="review-cover-close-backdrop" type="button" aria-label="Close cover"></button>
+    <figure class="review-cover-modal__dialog glass-panel">
+        <img th:if="${displayCover != null}" th:src="${displayCover}" th:alt="${displayName}" alt="Cover" />
+        <button class="review-cover-modal__close" id="review-cover-close" type="button" aria-label="Close cover">&times;</button>
+    </figure>
+</div>
+
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 <script>
     (function () {
@@ -199,6 +224,39 @@
 
         window.addEventListener('resize', syncToggle);
         syncToggle();
+    })();
+</script>
+<script>
+    (function () {
+        const openButton = document.getElementById('review-cover-open');
+        const modal = document.getElementById('review-cover-modal');
+        const closeButton = document.getElementById('review-cover-close');
+        const closeBackdrop = document.getElementById('review-cover-close-backdrop');
+
+        if (!openButton || !modal || !closeButton || !closeBackdrop) {
+            return;
+        }
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.documentElement.classList.remove('review-cover-modal-open');
+            document.body.classList.remove('review-cover-modal-open');
+        };
+
+        openButton.addEventListener('click', () => {
+            modal.hidden = false;
+            document.documentElement.classList.add('review-cover-modal-open');
+            document.body.classList.add('review-cover-modal-open');
+        });
+
+        closeButton.addEventListener('click', closeModal);
+        closeBackdrop.addEventListener('click', closeModal);
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
     })();
 </script>
 </body>

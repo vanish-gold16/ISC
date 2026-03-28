@@ -14,11 +14,26 @@
 .review-cover {
     width: 220px;
     height: 320px;
+    padding: 0;
     border-radius: var(--r);
     border: 1px solid var(--border);
     overflow: hidden;
     background: var(--panel);
     box-shadow: var(--shadow);
+}
+
+.review-cover--trigger {
+    display: block;
+    cursor: zoom-in;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.review-cover--trigger:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+        0 20px 38px rgba(8, 12, 22, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .review-cover img {
@@ -62,6 +77,9 @@
 
 .review-tag {
     display: inline-flex;
+    justify-self: start;
+    width: fit-content;
+    max-width: 100%;
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
@@ -87,6 +105,17 @@
     font-size: 40px;
     line-height: 1.1;
     margin: 12px 0 0;
+}
+
+.review-title__link {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 160ms ease, text-shadow 160ms ease;
+}
+
+.review-title__link:hover {
+    opacity: 0.92;
+    text-shadow: 0 0 24px rgba(167, 188, 255, 0.18);
 }
 
 .review-work-author {
@@ -295,6 +324,75 @@
 
 .criteria-empty {
     color: var(--muted);
+}
+
+.review-cover-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(4, 6, 10, 0.86);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.review-cover-modal[hidden] {
+    display: none !important;
+}
+
+.review-cover-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-out;
+}
+
+.review-cover-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: 0;
+    padding: 16px;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
+        rgba(10, 12, 17, 0.74);
+    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.34);
+}
+
+.review-cover-modal__dialog img {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - 64px);
+    object-fit: contain;
+    border-radius: 20px;
+}
+
+.review-cover-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+        rgba(10, 12, 17, 0.68);
+    color: var(--text);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+html.review-cover-modal-open,
+body.review-cover-modal-open {
+    overflow: hidden;
 }
 
 @media (max-width: 860px) {

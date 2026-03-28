@@ -150,7 +150,7 @@
                     </p>
                     <p class="art-panel__text"
                        th:if="${pendingState}">
-                        Reviews are unlocked after approval, because the current review flow is now tied to a real artwork.
+                        Start the review now with this request already selected instead of waiting for approval.
                     </p>
 
                     <a class="btn btn--submit art-panel__cta"
@@ -158,9 +158,11 @@
                        th:href="@{/opuscore/new-review(artId=${artwork.id},artName=${artwork.name},artAuthor=${artwork.author},artDescription=${artwork.description},artType=${artwork.type},coverUrl=${artwork.coverUrl})}">
                         New Review
                     </a>
-                    <button class="btn art-panel__cta" type="button" disabled th:if="${pendingState}">
-                        Available after approval
-                    </button>
+                    <a class="btn btn--submit art-panel__cta"
+                       th:if="${pendingState}"
+                       th:href="@{/opuscore/new-review(artRequestId=${request.id},artName=${request.name},artAuthor=${request.author},artDescription=${request.description},artType=${request.type},coverUrl=${request.coverUrl})}">
+                        Start Review Now
+                    </a>
                 </article>
             </section>
         </section>

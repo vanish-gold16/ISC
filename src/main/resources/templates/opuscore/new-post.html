@@ -68,13 +68,14 @@
                 <div>
                     <p class="new-review__eyebrow">New review</p>
                     <h1 class="new-review__title">New Review</h1>
-                    <p class="new-review__subtitle">Find a work in the catalog, then write either a quick rating or a full review with text.</p>
+                    <p class="new-review__subtitle">Find a work in the catalog, or continue from a pending art request, then write either a quick rating or a full review with text.</p>
                 </div>
             </header>
 
             <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" id="new-review-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <input id="artworkId" type="hidden" th:field="*{artworkId}" />
+                <input id="artRequestId" type="hidden" name="artRequestId" th:value="${param.artRequestId}" />
                 <input id="artType" type="hidden" th:field="*{artType}" />
                 <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
                 <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
@@ -253,6 +254,7 @@
         const previewType = document.getElementById('review-preview-type');
         const changeArtButton = document.getElementById('review-change-art');
         const artworkIdField = document.getElementById('artworkId');
+        const artRequestIdField = document.getElementById('artRequestId');
         const artTypeField = document.getElementById('artType');
         const totalField = document.getElementById('value');
         const totalDisplay = document.getElementById('value-display');
@@ -266,13 +268,16 @@
         const submitButton = document.getElementById('review-submit-button');
         const submitFeedback = document.getElementById('review-submit-feedback');
 
-        if (!form || !searchPanel || !editor || !searchInput || !searchButton || !results || !emptyState || !feedback || !createArtLink || !previewCover || !previewName || !previewAuthor || !previewDescription || !previewType || !changeArtButton || !artworkIdField || !artTypeField || !totalField || !totalDisplay || !selectedArtNameField || !selectedArtAuthorField || !selectedArtDescriptionField || !selectedArtCoverUrlField || !grid || !emptyCriteria || !criteriaHint || !submitButton || !submitFeedback) {
+        if (!form || !searchPanel || !editor || !searchInput || !searchButton || !results || !emptyState || !feedback || !createArtLink || !previewCover || !previewName || !previewAuthor || !previewDescription || !previewType || !changeArtButton || !artworkIdField || !artRequestIdField || !artTypeField || !totalField || !totalDisplay || !selectedArtNameField || !selectedArtAuthorField || !selectedArtDescriptionField || !selectedArtCoverUrlField || !grid || !emptyCriteria || !criteriaHint || !submitButton || !submitFeedback) {
             return;
         }
 
         let selectedArt = null;
-        let searchBusy = false;
         let canPublish = false;
+        let searchController = null;
+        let searchTimer = 0;
+        let searchRequestId = 0;
+        const SEARCH_DEBOUNCE_MS = 220;
 
         function setFeedback(message) {
             if (!message) {
@@ -326,18 +331,31 @@
         }
 
         function normalizeArt(art) {
-            if (!art || art.id == null) {
+            if (!art) {
+                return null;
+            }
+
+            const artworkId = art.id != null ? Number(art.id) : (art.artworkId != null ? Number(art.artworkId) : null);
+            const requestId = art.requestId != null ? Number(art.requestId) : null;
+
+            if (artworkId == null && requestId == null) {
                 return null;
             }
 
             return {
-                id: Number(art.id),
+                id: artworkId != null ? artworkId : requestId,
+                artworkId,
+                requestId,
                 name: normalizeText(art.name, 'Untitled work'),
                 author: normalizeText(art.author, 'Unknown creator'),
                 description: normalizeDescription(art.description),
                 type: normalizeArtType(art.type),
                 coverUrl: normalizeDescription(art.coverUrl)
             };
+        }
+
+        function isPendingRequestSelection(art) {
+            return !!(art && art.requestId != null && art.artworkId == null);
         }
 
         function buildCriteriaCard(criterion, index) {
@@ -438,6 +456,7 @@
             editor.hidden = true;
             changeArtButton.hidden = true;
             artworkIdField.value = '';
+            artRequestIdField.value = '';
             artTypeField.value = '';
             syncSelectedArtFields(null);
             results.innerHTML = '';
@@ -459,11 +478,15 @@
             searchPanel.classList.add('is-compact');
             editor.hidden = false;
             changeArtButton.hidden = false;
+            searchInput.value = selectedArt.name;
             renderPreview(selectedArt);
-            artworkIdField.value = String(selectedArt.id);
+            artworkIdField.value = selectedArt.artworkId != null ? String(selectedArt.artworkId) : '';
+            artRequestIdField.value = selectedArt.requestId != null ? String(selectedArt.requestId) : '';
             artTypeField.value = normalizeArtType(selectedArt.type);
             syncSelectedArtFields(selectedArt);
-            criteriaHint.textContent = 'Criteria loaded for ' + (displayArtType(selectedArt.type) || 'ART') + '. Scores are 0-10.';
+            criteriaHint.textContent = isPendingRequestSelection(selectedArt)
+                ? 'Criteria loaded for ' + (displayArtType(selectedArt.type) || 'ART') + '. This review is attached to the pending art request. Scores are 0-10.'
+                : 'Criteria loaded for ' + (displayArtType(selectedArt.type) || 'ART') + '. Scores are 0-10.';
             emptyState.hidden = true;
             results.innerHTML = '';
             setFeedback(null);
@@ -531,18 +554,35 @@
             });
         }
 
-        async function searchArtworks() {
-            const query = searchInput.value.trim();
+        function cancelScheduledSearch() {
+            if (!searchTimer) {
+                return;
+            }
+            window.clearTimeout(searchTimer);
+            searchTimer = 0;
+        }
+
+        function abortSearch() {
+            if (searchController) {
+                searchController.abort();
+                searchController = null;
+            }
+            searchButton.disabled = false;
+        }
+
+        async function searchArtworks(queryOverride) {
+            const query = String(queryOverride != null ? queryOverride : searchInput.value).trim();
             createArtLink.href = createArtUrl(query);
 
             if (!query) {
-                emptyState.hidden = false;
+                if (selectedArt) {
+                    clearSelectedArt();
+                }
+                cancelScheduledSearch();
+                abortSearch();
                 results.innerHTML = '';
-                setFeedback('Enter a title or author first.');
-                return;
-            }
-
-            if (searchBusy) {
+                emptyState.hidden = true;
+                setFeedback(null);
                 return;
             }
 
@@ -550,12 +590,18 @@
                 clearSelectedArt();
             }
 
-            searchBusy = true;
+            cancelScheduledSearch();
+            abortSearch();
+
+            const controller = new AbortController();
+            const requestId = ++searchRequestId;
+            searchController = controller;
             searchButton.disabled = true;
             setFeedback('Searching catalog...');
 
             try {
                 const response = await fetch('/opuscore/api/artworks/search?query=' + encodeURIComponent(query), {
+                    signal: controller.signal,
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -566,29 +612,64 @@
                 }
 
                 const items = await response.json();
+                if (requestId !== searchRequestId) {
+                    return;
+                }
                 renderResults(Array.isArray(items) ? items : []);
                 setFeedback(Array.isArray(items) && items.length ? null : 'No matches found.');
             } catch (error) {
+                if (controller.signal.aborted || requestId !== searchRequestId) {
+                    return;
+                }
                 results.innerHTML = '';
                 emptyState.hidden = false;
                 setFeedback('Could not search the catalog right now.');
             } finally {
-                searchBusy = false;
-                searchButton.disabled = false;
+                if (requestId === searchRequestId) {
+                    searchButton.disabled = false;
+                    if (searchController === controller) {
+                        searchController = null;
+                    }
+                }
             }
+        }
+
+        function scheduleSearch() {
+            const query = searchInput.value.trim();
+            createArtLink.href = createArtUrl(query);
+
+            cancelScheduledSearch();
+
+            if (!query) {
+                if (selectedArt) {
+                    clearSelectedArt();
+                }
+                abortSearch();
+                results.innerHTML = '';
+                emptyState.hidden = true;
+                setFeedback(null);
+                return;
+            }
+
+            searchTimer = window.setTimeout(() => {
+                searchTimer = 0;
+                searchArtworks(query);
+            }, SEARCH_DEBOUNCE_MS);
         }
 
         function prefillFromUrl() {
             const params = new URLSearchParams(window.location.search);
+            const requestId = params.get('artRequestId') || artRequestIdField.value;
             const artId = params.get('artId') || artworkIdField.value;
             const artType = params.get('artType') || artTypeField.value;
 
-            if (!artId || !artType) {
+            if ((!artId && !requestId) || !artType) {
                 return;
             }
 
             selectArt({
-                id: Number(artId),
+                id: artId ? Number(artId) : null,
+                requestId: requestId ? Number(requestId) : null,
                 name: params.get('artName') || selectedArtNameField.value || 'Untitled work',
                 author: params.get('artAuthor') || selectedArtAuthorField.value || 'Unknown creator',
                 description: params.get('artDescription') || selectedArtDescriptionField.value || '',
@@ -597,7 +678,8 @@
             });
         }
 
-        searchButton.addEventListener('click', searchArtworks);
+        searchButton.addEventListener('click', () => searchArtworks());
+        searchInput.addEventListener('input', scheduleSearch);
         searchInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -619,9 +701,9 @@
         });
 
         form.addEventListener('submit', (event) => {
-            if (!artworkIdField.value || !artTypeField.value) {
+            if ((!artworkIdField.value && !artRequestIdField.value) || !artTypeField.value) {
                 event.preventDefault();
-                setFeedback('Select a work before publishing the review.');
+                setFeedback('Select a work or pending request before publishing the review.');
                 searchInput.focus();
                 return;
             }
