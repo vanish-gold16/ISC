@@ -67,7 +67,7 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + form.getArtworkId()));
 
         Review review = new Review(
-                form.getArtType(),
+                artwork.getType(),
                 form.isReview(),
                 artwork,
                 title,

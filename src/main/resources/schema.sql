@@ -175,9 +175,29 @@ BEGIN
         FROM information_schema.columns
         WHERE table_schema = 'public'
           AND table_name = 'reviews'
+          AND column_name = 'art_name'
+    ) THEN
+        ALTER TABLE reviews ADD COLUMN art_name VARCHAR(255);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'reviews'
           AND column_name = 'art_author'
     ) THEN
         ALTER TABLE reviews ADD COLUMN art_author VARCHAR(120);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'reviews'
+          AND column_name = 'art_description'
+    ) THEN
+        ALTER TABLE reviews ADD COLUMN art_description VARCHAR(1000);
     END IF;
 
     IF NOT EXISTS (
@@ -199,6 +219,15 @@ BEGIN
         ALTER TABLE reviews
             ADD CONSTRAINT fk_reviews_user
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+    END IF;
+
+    IF to_regclass('public.artworks') IS NOT NULL THEN
+        UPDATE reviews r
+        SET art_name = COALESCE(r.art_name, a.name),
+            art_author = COALESCE(r.art_author, a.author),
+            art_description = COALESCE(r.art_description, a.description)
+        FROM artworks a
+        WHERE r.artwork = a.id;
     END IF;
 
     IF EXISTS (

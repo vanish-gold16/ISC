@@ -26,6 +26,15 @@ public class Review {
     @JoinColumn(name = "artwork")
     private Artwork artwork;
 
+    @Column(name = "art_name", nullable = false)
+    private String artName;
+
+    @Column(name = "art_author", length = 120)
+    private String artAuthor;
+
+    @Column(name = "art_description", length = 1000)
+    private String artDescription;
+
     @Column(name = "title")
     private String title;
 
@@ -56,7 +65,7 @@ public class Review {
     public Review(ArtTypeEnum type, Boolean isReview, Artwork artwork, List<ReviewCriterion> criteriaScores) {
         this.type = type;
         this.isReview = isReview;
-        this.artwork = artwork;
+        setArtwork(artwork);
         this.criteriaScores = criteriaScores;
     }
 
@@ -70,10 +79,25 @@ public class Review {
     ) {
         this.type = type;
         this.isReview = isReview;
-        this.artwork = artwork;
+        setArtwork(artwork);
         this.title = title;
         this.body = body;
         this.criteriaScores = criteriaScores;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void syncArtworkSnapshot() {
+        if (artwork == null) {
+            return;
+        }
+
+        artName = artwork.getName();
+        artAuthor = artwork.getAuthor();
+        artDescription = artwork.getDescription();
+        if (type == null) {
+            type = artwork.getType();
+        }
     }
 
     public List<ReviewCriterion> getCriteriaScores() {
@@ -162,17 +186,30 @@ public class Review {
 
     public void setArtwork(Artwork artwork) {
         this.artwork = artwork;
+        syncArtworkSnapshot();
     }
 
     public String getArtName() {
-        return artwork != null ? artwork.getName() : null;
+        return artName != null ? artName : (artwork != null ? artwork.getName() : null);
+    }
+
+    public void setArtName(String artName) {
+        this.artName = artName;
     }
 
     public String getArtAuthor() {
-        return artwork != null ? artwork.getAuthor() : null;
+        return artAuthor != null ? artAuthor : (artwork != null ? artwork.getAuthor() : null);
+    }
+
+    public void setArtAuthor(String artAuthor) {
+        this.artAuthor = artAuthor;
     }
 
     public String getArtDescription() {
-        return artwork != null ? artwork.getDescription() : null;
+        return artDescription != null ? artDescription : (artwork != null ? artwork.getDescription() : null);
+    }
+
+    public void setArtDescription(String artDescription) {
+        this.artDescription = artDescription;
     }
 }
