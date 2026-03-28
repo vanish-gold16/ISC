@@ -332,20 +332,40 @@
                 : '/opuscore/art-requests';
         }
 
+        function parseOptionalId(value) {
+            if (typeof value === 'number') {
+                return Number.isFinite(value) ? value : undefined;
+            }
+
+            if (typeof value !== 'string') {
+                return undefined;
+            }
+
+            const normalized = value.trim();
+            if (!normalized) {
+                return undefined;
+            }
+
+            const parsed = Number(normalized);
+            return Number.isFinite(parsed) ? parsed : undefined;
+        }
+
         function normalizeArt(art) {
             if (!art) {
                 return null;
             }
 
-            const artworkId = art.id != null ? Number(art.id) : (art.artworkId != null ? Number(art.artworkId) : null);
-            const requestId = art.requestId != null ? Number(art.requestId) : null;
+            const artworkId = typeof parseOptionalId(art.id) !== 'undefined'
+                ? parseOptionalId(art.id)
+                : parseOptionalId(art.artworkId);
+            const requestId = parseOptionalId(art.requestId);
 
-            if (artworkId == null && requestId == null) {
+            if (typeof artworkId === 'undefined' && typeof requestId === 'undefined') {
                 return null;
             }
 
             return {
-                id: artworkId != null ? artworkId : requestId,
+                id: typeof artworkId !== 'undefined' ? artworkId : requestId,
                 artworkId,
                 requestId,
                 name: normalizeText(art.name, 'Untitled work'),
@@ -357,7 +377,11 @@
         }
 
         function isPendingRequestSelection(art) {
-            return !!(art && art.requestId != null && art.artworkId == null);
+            return Boolean(
+                art
+                && typeof art.requestId !== 'undefined'
+                && typeof art.artworkId === 'undefined'
+            );
         }
 
         function readStoredPrefill(expectedArtworkId, expectedRequestId) {
@@ -378,14 +402,14 @@
                     return null;
                 }
 
-                const artworkId = stored.artworkId != null ? Number(stored.artworkId) : null;
-                const requestId = stored.requestId != null ? Number(stored.requestId) : null;
+                const artworkId = parseOptionalId(stored.artworkId);
+                const requestId = parseOptionalId(stored.requestId);
 
-                if (expectedArtworkId != null && artworkId !== expectedArtworkId) {
+                if (typeof expectedArtworkId !== 'undefined' && artworkId !== expectedArtworkId) {
                     return null;
                 }
 
-                if (expectedRequestId != null && requestId !== expectedRequestId) {
+                if (typeof expectedRequestId !== 'undefined' && requestId !== expectedRequestId) {
                     return null;
                 }
 
@@ -526,8 +550,8 @@
             changeArtButton.hidden = false;
             searchInput.value = selectedArt.name;
             renderPreview(selectedArt);
-            artworkIdField.value = selectedArt.artworkId != null ? String(selectedArt.artworkId) : '';
-            artRequestIdField.value = selectedArt.requestId != null ? String(selectedArt.requestId) : '';
+            artworkIdField.value = typeof selectedArt.artworkId !== 'undefined' ? String(selectedArt.artworkId) : '';
+            artRequestIdField.value = typeof selectedArt.requestId !== 'undefined' ? String(selectedArt.requestId) : '';
             artTypeField.value = normalizeArtType(selectedArt.type);
             syncSelectedArtFields(selectedArt);
             criteriaHint.textContent = isPendingRequestSelection(selectedArt)
@@ -617,7 +641,8 @@
         }
 
         async function searchArtworks(queryOverride) {
-            const query = String(queryOverride != null ? queryOverride : searchInput.value).trim();
+            const querySource = typeof queryOverride !== 'undefined' ? queryOverride : searchInput.value;
+            const query = String(querySource).trim();
             createArtLink.href = createArtUrl(query);
 
             if (!query) {
