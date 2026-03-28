@@ -112,7 +112,7 @@
                             <option value="">Not specified</option>
                             <option th:each="occupation : ${occupations}"
                                     th:value="${occupation.name()}"
-                                    th:text="${#strings.replace(occupation.name(), '_', ' ')}">
+                                    th:text="${occupation.displayName}">
                             </option>
                         </select>
                     </label>

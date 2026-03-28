@@ -449,7 +449,7 @@ public class ProfileController {
             bio = profile.getBio();
             currentStudy = profile.getCurrentStudy();
             if (profile.getOccupationEnum() != null) {
-                occupation = profile.getOccupationEnum().name().replace('_', ' ');
+                occupation = profile.getOccupationEnum().getDisplayName();
             }
 
             String city = profile.getCity();

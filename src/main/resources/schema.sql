@@ -123,6 +123,10 @@ BEGIN
         RETURN;
     END IF;
 
+    UPDATE profiles
+    SET occupation = UPPER(occupation)
+    WHERE occupation IS NOT NULL;
+
     IF EXISTS (
         SELECT 1
         FROM pg_constraint
