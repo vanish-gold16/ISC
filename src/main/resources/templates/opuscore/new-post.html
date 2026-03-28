@@ -237,6 +237,8 @@
 
 <script th:inline="javascript">
     (function () {
+        const REVIEW_PREFILL_STORAGE_KEY = 'opuscore:review-prefill';
+        const REVIEW_PREFILL_TTL_MS = 15 * 60 * 1000;
         const criteriaByType = /*[[${criteriaByType}]]*/ {};
         const form = document.getElementById('new-review-form');
         const searchPanel = document.getElementById('review-search-panel');
@@ -356,6 +358,50 @@
 
         function isPendingRequestSelection(art) {
             return !!(art && art.requestId != null && art.artworkId == null);
+        }
+
+        function readStoredPrefill(expectedArtworkId, expectedRequestId) {
+            try {
+                const raw = sessionStorage.getItem(REVIEW_PREFILL_STORAGE_KEY);
+                if (!raw) {
+                    return null;
+                }
+
+                const stored = JSON.parse(raw);
+                if (!stored || typeof stored !== 'object') {
+                    sessionStorage.removeItem(REVIEW_PREFILL_STORAGE_KEY);
+                    return null;
+                }
+
+                if (typeof stored.ts !== 'number' || Date.now() - stored.ts > REVIEW_PREFILL_TTL_MS) {
+                    sessionStorage.removeItem(REVIEW_PREFILL_STORAGE_KEY);
+                    return null;
+                }
+
+                const artworkId = stored.artworkId != null ? Number(stored.artworkId) : null;
+                const requestId = stored.requestId != null ? Number(stored.requestId) : null;
+
+                if (expectedArtworkId != null && artworkId !== expectedArtworkId) {
+                    return null;
+                }
+
+                if (expectedRequestId != null && requestId !== expectedRequestId) {
+                    return null;
+                }
+
+                return normalizeArt({
+                    artworkId,
+                    requestId,
+                    name: stored.name,
+                    author: stored.author,
+                    description: stored.description,
+                    type: stored.type,
+                    coverUrl: stored.coverUrl
+                });
+            } catch (error) {
+                sessionStorage.removeItem(REVIEW_PREFILL_STORAGE_KEY);
+                return null;
+            }
         }
 
         function buildCriteriaCard(criterion, index) {
@@ -661,20 +707,25 @@
             const params = new URLSearchParams(window.location.search);
             const requestId = params.get('artRequestId') || artRequestIdField.value;
             const artId = params.get('artId') || artworkIdField.value;
-            const artType = params.get('artType') || artTypeField.value;
+            const parsedRequestId = requestId ? Number(requestId) : null;
+            const parsedArtId = artId ? Number(artId) : null;
+            const storedPrefill = readStoredPrefill(parsedArtId, parsedRequestId);
+            const artType = params.get('artType')
+                || artTypeField.value
+                || (storedPrefill ? storedPrefill.type : '');
 
             if ((!artId && !requestId) || !artType) {
                 return;
             }
 
             selectArt({
-                id: artId ? Number(artId) : null,
-                requestId: requestId ? Number(requestId) : null,
-                name: params.get('artName') || selectedArtNameField.value || 'Untitled work',
-                author: params.get('artAuthor') || selectedArtAuthorField.value || 'Unknown creator',
-                description: params.get('artDescription') || selectedArtDescriptionField.value || '',
+                id: parsedArtId,
+                requestId: parsedRequestId,
+                name: (storedPrefill && storedPrefill.name) || params.get('artName') || selectedArtNameField.value || 'Untitled work',
+                author: (storedPrefill && storedPrefill.author) || params.get('artAuthor') || selectedArtAuthorField.value || 'Unknown creator',
+                description: (storedPrefill && storedPrefill.description) || params.get('artDescription') || selectedArtDescriptionField.value || '',
                 type: artType,
-                coverUrl: params.get('coverUrl') || selectedArtCoverUrlField.value || ''
+                coverUrl: (storedPrefill && storedPrefill.coverUrl) || params.get('coverUrl') || selectedArtCoverUrlField.value || ''
             });
         }
 

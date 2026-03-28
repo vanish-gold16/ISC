@@ -155,12 +155,26 @@
 
                     <a class="btn btn--submit art-panel__cta"
                        th:if="${artwork != null}"
-                       th:href="@{/opuscore/new-review(artId=${artwork.id},artName=${artwork.name},artAuthor=${artwork.author},artDescription=${artwork.description},artType=${artwork.type},coverUrl=${artwork.coverUrl})}">
+                       th:href="@{/opuscore/new-review(artId=${artwork.id})}"
+                       data-review-launch="true"
+                       th:attr="data-art-id=${artwork.id},
+                                data-art-name=${artwork.name},
+                                data-art-author=${artwork.author},
+                                data-art-description=${artwork.description},
+                                data-art-type=${artwork.type},
+                                data-art-cover-url=${artwork.coverUrl}">
                         New Review
                     </a>
                     <a class="btn btn--submit art-panel__cta"
                        th:if="${pendingState}"
-                       th:href="@{/opuscore/new-review(artRequestId=${request.id},artName=${request.name},artAuthor=${request.author},artDescription=${request.description},artType=${request.type},coverUrl=${request.coverUrl})}">
+                       th:href="@{/opuscore/new-review(artRequestId=${request.id})}"
+                       data-review-launch="true"
+                       th:attr="data-art-request-id=${request.id},
+                                data-art-name=${request.name},
+                                data-art-author=${request.author},
+                                data-art-description=${request.description},
+                                data-art-type=${request.type},
+                                data-art-cover-url=${request.coverUrl}">
                         Start Review Now
                     </a>
                 </article>
@@ -170,6 +184,61 @@
 
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('art-page')}"></aside>
 </main>
+<script>
+    (function () {
+        const links = document.querySelectorAll('[data-review-launch="true"]');
+        if (!links.length) {
+            return;
+        }
+
+        const storageKey = 'opuscore:review-prefill';
+
+        function numberOrNull(value) {
+            if (value == null || value === '') {
+                return null;
+            }
+
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+
+        function buildPrefill(link) {
+            const artworkId = numberOrNull(link.dataset.artId);
+            const requestId = numberOrNull(link.dataset.artRequestId);
+            const type = typeof link.dataset.artType === 'string' ? link.dataset.artType.trim().toUpperCase() : '';
+
+            if (!artworkId && !requestId) {
+                return null;
+            }
+
+            return {
+                artworkId,
+                requestId,
+                name: link.dataset.artName || '',
+                author: link.dataset.artAuthor || '',
+                description: link.dataset.artDescription || '',
+                type,
+                coverUrl: link.dataset.artCoverUrl || '',
+                ts: Date.now()
+            };
+        }
+
+        links.forEach((link) => {
+            link.addEventListener('click', () => {
+                try {
+                    const state = buildPrefill(link);
+                    if (!state) {
+                        sessionStorage.removeItem(storageKey);
+                        return;
+                    }
+                    sessionStorage.setItem(storageKey, JSON.stringify(state));
+                } catch (error) {
+                    sessionStorage.removeItem(storageKey);
+                }
+            });
+        });
+    })();
+</script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>
 </html>
