@@ -91,6 +91,10 @@ public class AdminService {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
+        if(!request.getStatus().equals(ReviewStatusEnum.PENDING)){
+            throw new IllegalStateException("Unable to reject not pending requests");
+        }
+
         User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Admin not found: " + authentication.getName()));
         User requester = request.getRequester();
@@ -98,6 +102,9 @@ public class AdminService {
         if(rejectReason != null){
             request.setRejectionReason(rejectReason.reason());
         }
+        request.setStatus(ReviewStatusEnum.REJECTED);
+        newArtRequestRepository.save(request);
+
         request.setDecidedAt(LocalDateTime.now());
 
         notificationService.create(

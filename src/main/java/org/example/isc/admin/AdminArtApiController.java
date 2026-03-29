@@ -147,15 +147,12 @@ public class AdminArtApiController {
         NewArtRequest request = newArtRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + id));
 
-        if(request.getStatus() == ReviewStatusEnum.REJECTED){
+        if(!(request.getStatus() == ReviewStatusEnum.PENDING)){
             return ResponseEntity.badRequest().build();
         }
         else {
-            request.setStatus(ReviewStatusEnum.REJECTED);
+            return ResponseEntity.ok(toAnswer(adminService.rejectArtRequest(rejectReason, id, authentication)));
         }
-        newArtRequestRepository.save(request);
-
-        return ResponseEntity.ok(toAnswer(adminService.rejectArtRequest(rejectReason, id, authentication)));
     }
 
 //    @PostMapping("/admin/api/art-requests/{id}/request-changes")
