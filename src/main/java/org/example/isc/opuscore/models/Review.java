@@ -22,6 +22,9 @@ public class Review {
     @Column(name = "is_review")
     private Boolean isReview;
 
+    @Column(name = "art_request_id")
+    private Long artRequestId;
+
     @ManyToOne
     @JoinColumn(name = "artwork")
     private Artwork artwork;
@@ -66,6 +69,17 @@ public class Review {
         this.type = type;
         this.isReview = isReview;
         setArtwork(artwork);
+        this.criteriaScores = criteriaScores;
+    }
+
+    // for pending art
+    public Review(ArtTypeEnum type, Boolean isReview, Long artRequestId, String artName, String artAuthor, String artDescription, List<ReviewCriterion> criteriaScores) {
+        this.type = type;
+        this.isReview = isReview;
+        this.artRequestId = artRequestId;
+        this.artName = artName;
+        this.artAuthor = artAuthor;
+        this.artDescription = artDescription;
         this.criteriaScores = criteriaScores;
     }
 

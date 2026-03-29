@@ -15,10 +15,11 @@ public class NewReviewDTO {
     @NotNull
     private ArtTypeEnum artType;
 
+    private Long artRequestId;
+
     @NotNull
     private boolean isReview;
 
-    @NotNull
     private Long artworkId;
 
     @Size(max = 50)
@@ -120,5 +121,13 @@ public class NewReviewDTO {
 
     public void setValue(Long value) {
         this.value = value;
+    }
+
+    public Long getArtRequestId() {
+        return artRequestId;
+    }
+
+    public void setArtRequestId(Long artRequestId) {
+        this.artRequestId = artRequestId;
     }
 }
