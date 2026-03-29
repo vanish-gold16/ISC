@@ -151,7 +151,9 @@
                     </a>
 
                     <div class="review-score">
-                        <span class="review-score__value" th:text="${review != null && review.value != null} ? ${review.value} : '0'">0</span>
+                        <span class="review-score__value"
+                              th:classappend="${review != null and review.value != null and review.value == 100} ? ' oc-score--perfect' : ''"
+                              th:text="${review != null && review.value != null} ? ${review.value} : '0'">0</span>
                         <span class="review-score__max">/100</span>
                     </div>
                 </div>

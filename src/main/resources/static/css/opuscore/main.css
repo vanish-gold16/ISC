@@ -79,6 +79,15 @@ body > :not(#oc-reveal):not(#oc-ring):not(#oc-flash):not(#oc-entry-screen) {
 a { color: inherit; text-decoration: none; }
 button { font: inherit; cursor: pointer; }
 
+.oc-score--perfect {
+    background: linear-gradient(135deg, #fff1a6 0%, #ffd76a 24%, #ffbf47 52%, #f59e0b 76%, #fff3bf 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    color: transparent !important;
+    text-shadow: 0 0 18px rgba(255, 196, 77, 0.22);
+}
+
 .container {
     width: min(1560px, calc(100% - 32px));
     margin: 0 auto;
