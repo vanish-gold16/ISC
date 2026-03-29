@@ -159,7 +159,7 @@
                                 </button>
                             </div>
                         </div>
-                        <p class="field__hint" id="cover-hint">Original or square cover. Max 5 MB.</p>
+                        <p class="field__hint" id="cover-hint">Vertical or square cover. Max 5 MB.</p>
                     </div>
 
                     <div class="fields-column">
@@ -223,9 +223,9 @@
             <canvas id="cover-cropper-canvas" width="900" height="1320"></canvas>
         </div>
 
-        <div class="cover-modal__controls">
+            <div class="cover-modal__controls">
             <div class="cover-modal__mode-group" role="group" aria-label="Cover aspect ratio">
-                <button class="cover-modal__mode-button is-active" type="button" data-cover-mode="original">Original</button>
+                <button class="cover-modal__mode-button is-active" type="button" data-cover-mode="vertical">Vertical</button>
                 <button class="cover-modal__mode-button" type="button" data-cover-mode="square">Square</button>
             </div>
             <div class="cover-modal__scale-row">
@@ -262,8 +262,10 @@
         const modalApply = document.getElementById('cover-modal-apply');
         const modeButtons = Array.from(document.querySelectorAll('[data-cover-mode]'));
         const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
-        const defaultHint = 'Original or square cover. Max 5 MB.';
+        const defaultHint = 'Vertical or square cover. Max 5 MB.';
         const squareOutputSize = 960;
+        const verticalOutputWidth = 900;
+        const verticalOutputHeight = 1320;
         const optimizedCoverMaxBytes = 700000;
         const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
         let appliedPreviewUrl = '';
@@ -376,7 +378,7 @@
             isDragging = false;
             modalZoomInput.value = '1';
             modalZoomValue.textContent = '100%';
-            setActiveCropMode('original');
+            setActiveCropMode('vertical');
         }
 
         function showAppliedPreview(url, aspectRatio) {
@@ -455,27 +457,20 @@
         }
 
         function getCanvasSize(mode, image) {
-            if (!image) {
-                return { width: 720, height: 1056 };
-            }
-
             if (mode === 'square') {
                 return { width: squareOutputSize, height: squareOutputSize };
             }
 
-            if (!image.width || !image.height) {
-                return { width: 720, height: 1056 };
-            }
             return {
-                width: Math.max(1, image.width),
-                height: Math.max(1, image.height)
+                width: verticalOutputWidth,
+                height: verticalOutputHeight
             };
         }
 
         function applyCropMode(mode, resetView) {
             if (!cropperImage || !cropperState) return;
 
-            const nextMode = mode === 'square' ? 'square' : 'original';
+            const nextMode = mode === 'square' ? 'square' : 'vertical';
             const canvasSize = getCanvasSize(nextMode, cropperImage);
 
             cropperCanvas.width = canvasSize.width;
@@ -536,13 +531,13 @@
                 cropperState = {
                     file,
                     baseScale: 1,
-                    mode: 'original',
+                    mode: 'vertical',
                     zoom: 1,
                     offsetX: 0,
                     offsetY: 0
                 };
 
-                applyCropMode('original', true);
+                applyCropMode('vertical', true);
                 showCropper();
                 revokeCropperObjectUrl();
             };

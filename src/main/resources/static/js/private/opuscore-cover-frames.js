@@ -7,8 +7,7 @@
         }
 
         const rawRatio = width / height;
-        const clampedRatio = Math.max(MIN_RATIO, rawRatio);
-        return Math.round(clampedRatio * 1000) / 1000;
+        return rawRatio >= 1 ? 1 : MIN_RATIO;
     }
 
     function applyFrameRatio(frame, image) {
@@ -21,6 +20,7 @@
             return;
         }
 
+        frame.style.aspectRatio = image.naturalWidth >= image.naturalHeight ? '1 / 1' : '3 / 4.4';
         frame.style.setProperty('--cover-frame-aspect', String(ratio));
         frame.dataset.coverShape = image.naturalWidth >= image.naturalHeight ? 'square' : 'portrait';
     }

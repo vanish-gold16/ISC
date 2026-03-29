@@ -372,6 +372,7 @@
             if (!frame) {
                 return;
             }
+            frame.style.removeProperty('aspect-ratio');
             frame.style.removeProperty('--cover-frame-aspect');
             delete frame.dataset.coverShape;
         }
