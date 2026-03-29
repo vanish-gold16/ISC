@@ -35,10 +35,10 @@ public class Review {
     @Column(name = "art_description", length = 1000)
     private String artDescription;
 
-    @Column(name = "title")
+    @Column(name = "title", length = 50)
     private String title;
 
-    @Column(name = "body")
+    @Column(name = "body", length = 2000)
     private String body;
 
     @Column(name = "value", nullable = false)

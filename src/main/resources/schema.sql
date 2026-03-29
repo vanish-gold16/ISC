@@ -471,6 +471,7 @@ BEGIN
     END IF;
 
     IF to_regclass('public.reviews') IS NOT NULL THEN
+        ALTER TABLE reviews ALTER COLUMN body TYPE VARCHAR(2000);
         ALTER TABLE reviews ALTER COLUMN photo_url TYPE VARCHAR(1000);
     END IF;
 END;
