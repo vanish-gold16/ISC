@@ -2839,6 +2839,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const monday = getMonday(new Date());
             monday.setDate(monday.getDate() + weekOffset * 7);
             rangeLabel.textContent = `${formatDateLabel(addDays(monday, firstIdx))}-${formatDateLabel(addDays(monday, lastIdx))}`;
+            timetable.querySelectorAll(".hub-timetable__day-row[data-day-key]").forEach((row) => {
+                const idx = dayOrder[row.dataset.dayKey];
+                const dateLabel = row.querySelector("[data-day-date]");
+                if (!Number.isInteger(idx) || !dateLabel) return;
+                dateLabel.textContent = formatDateLabel(addDays(monday, idx));
+            });
             if (weekStateBadge) {
                 const showWeekStateBadge = weekOffset === 0 || Math.abs(weekOffset) === 1;
                 weekStateBadge.classList.toggle("hidden", !showWeekStateBadge);

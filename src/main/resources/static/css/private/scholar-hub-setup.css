@@ -645,6 +645,14 @@ body {
     line-height: 1.05;
 }
 
+.hub-timetable__day-date {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1;
+    color: #7f93b8;
+    font-weight: 700;
+}
+
 .hub-timetable__day-track {
     display: grid;
     grid-template-columns: repeat(var(--slot-count), minmax(0, 1fr));

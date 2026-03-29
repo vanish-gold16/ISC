@@ -69,6 +69,7 @@
                                 <header class="hub-timetable__day-label">
                                     <p class="hub-timetable__day-short" th:text="${day.shortLabel}">Mon</p>
                                     <h3 th:text="${day.label}">Monday</h3>
+                                    <p class="hub-timetable__day-date" data-day-date>29.03</p>
                                 </header>
 
                                 <div class="hub-timetable__day-track" th:style="'--slot-count:' + ${schedule.maxLessonSlots}">
