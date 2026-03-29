@@ -1,7 +1,14 @@
 <th:block th:fragment="adminBadge(isAdmin)" xmlns:th="http://www.thymeleaf.org">
-    <img th:if="${isAdmin}"
-         th:src="@{/images/private/admin/admin-badge.png}"
-         src="/images/private/admin/admin-badge.png"
-         alt="Admin"
-         style="display:inline-block;width:18px;height:18px;margin-left:6px;vertical-align:middle;object-fit:contain;flex:0 0 auto;" />
+    <span th:if="${isAdmin}"
+          style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:6px;vertical-align:middle;flex:0 0 auto;"
+          onmouseenter="var tooltip=this.querySelector('[data-admin-tooltip]'); if (tooltip) { tooltip.style.opacity='1'; tooltip.style.transform='translate(-50%, -10px) scale(1)'; }"
+          onmouseleave="var tooltip=this.querySelector('[data-admin-tooltip]'); if (tooltip) { tooltip.style.opacity='0'; tooltip.style.transform='translate(-50%, -4px) scale(0.96)'; }">
+        <img th:src="@{/images/private/admin/admin-badge.png}"
+             src="/images/private/admin/admin-badge.png"
+             alt="Admin"
+             aria-label="Admin"
+             style="display:block;width:18px;height:18px;object-fit:contain;" />
+        <span data-admin-tooltip
+              style="position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%, -4px) scale(0.96);opacity:0;pointer-events:none;white-space:nowrap;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:linear-gradient(180deg, rgba(30,34,45,0.98), rgba(15,18,26,0.96));box-shadow:0 16px 34px rgba(0,0,0,0.28);color:#f8fbff;font-size:12px;font-weight:600;line-height:1;transition:opacity 160ms ease, transform 160ms ease;z-index:40;">Admin</span>
+    </span>
 </th:block>
