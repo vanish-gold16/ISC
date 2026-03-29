@@ -67,7 +67,7 @@ public class AdminService {
                 admin,
                 "Status of your art request has changed",
                 buildArtRequestStatusBody(request),
-                null
+                artwork.getId() != null ? artwork.getId().toString() : null
         );
 
         return newArtRequestRepository.save(request);

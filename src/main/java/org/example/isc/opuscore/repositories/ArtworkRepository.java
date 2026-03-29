@@ -15,4 +15,6 @@ public interface ArtworkRepository extends JpaRepository<Artwork, Long> {
         order by a.name asc  
                 """)
     List<Artwork> findByResolvedName(String normalizedQuery);
+
+    List<Artwork> findByCreatorIdAndNameIgnoreCaseOrderByCreatedAtDesc(Long creatorId, String name);
 }
