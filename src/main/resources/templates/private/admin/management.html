@@ -149,6 +149,16 @@
                             </div>
                         </div>
 
+                        <label class="admin-field">
+                            <span class="admin-field__label">Cover</span>
+                            <input class="admin-cover-input" id="admin-art-cover-file" type="file" accept="image/*" />
+                            <div class="admin-cover-tools">
+                                <button class="btn btn--ghost" type="button" id="admin-art-cover-upload">Replace cover</button>
+                                <button class="btn btn--ghost" type="button" id="admin-art-cover-remove">Remove cover</button>
+                            </div>
+                            <p class="admin-field__hint" id="admin-art-cover-hint">Select a request to edit its cover.</p>
+                        </label>
+
                         <div class="admin-actions">
                             <button class="btn btn--ghost" type="button" id="admin-save-art">Save and approve</button>
                             <button class="btn btn--ghost admin-action--danger" type="button" id="admin-reject-art">Reject</button>
@@ -195,12 +205,17 @@
         const descriptionInput = document.getElementById('admin-art-description');
         const noteInput = document.getElementById('admin-art-note');
         const cover = document.getElementById('admin-art-cover');
+        const coverFileInput = document.getElementById('admin-art-cover-file');
+        const coverUpload = document.getElementById('admin-art-cover-upload');
+        const coverRemove = document.getElementById('admin-art-cover-remove');
+        const coverHint = document.getElementById('admin-art-cover-hint');
         const message = document.getElementById('admin-art-message');
         const status = document.getElementById('admin-art-status');
         const feedback = document.getElementById('admin-art-feedback');
         const approve = document.getElementById('admin-approve-art');
         const reject = document.getElementById('admin-reject-art');
         const save = document.getElementById('admin-save-art');
+        const defaultCoverHint = 'Upload a replacement cover or remove the current one before approval. Max 5 MB.';
 
         if (!queue || !form) return;
 
@@ -289,6 +304,10 @@
             return items.find((item) => item.id === selectedId) || null;
         }
 
+        function hasSelectedCover() {
+            return Boolean(imageUrlInput.value && imageUrlInput.value.trim());
+        }
+
         function setEmptyState(title, text) {
             if (emptyStateTitle) {
                 emptyStateTitle.textContent = title;
@@ -304,6 +323,15 @@
                 field.disabled = nextBusy || !selectedId;
             });
             requesterInput.disabled = true;
+            if (coverFileInput) {
+                coverFileInput.disabled = nextBusy || !selectedId;
+            }
+            if (coverUpload) {
+                coverUpload.disabled = nextBusy || !selectedId;
+            }
+            if (coverRemove) {
+                coverRemove.disabled = nextBusy || !selectedId || !hasSelectedCover();
+            }
             approve.disabled = nextBusy || !selectedId;
             reject.disabled = nextBusy || !selectedId;
             save.disabled = nextBusy || !selectedId;
@@ -324,11 +352,26 @@
             return parsed.toLocaleString();
         }
 
+        function setCoverHint(text, isError) {
+            if (!coverHint) {
+                return;
+            }
+            coverHint.textContent = text;
+            coverHint.classList.toggle('is-error', Boolean(isError));
+        }
+
         function coverMarkup(item) {
             if (item.imageUrl) {
                 return '<img src="' + item.imageUrl + '" alt="">';
             }
             return '<span>' + initialsFor(item) + '</span>';
+        }
+
+        function validateCoverFile(file) {
+            if (!file) return 'Choose an image file.';
+            if (!(file.type || '').startsWith('image/')) return 'Only image files are allowed.';
+            if (file.size > 5000000) return 'Cover image must be 5 MB or smaller.';
+            return null;
         }
 
         function updateQueueMeta() {
@@ -394,6 +437,7 @@
                 noteInput.value = '';
                 cover.innerHTML = 'No cover';
                 cover.classList.remove('has-image');
+                setCoverHint('Select a request to edit its cover.', false);
                 message.textContent = 'No request selected.';
                 status.textContent = 'Choose request';
                 status.className = 'admin-pill';
@@ -418,6 +462,7 @@
             noteInput.value = item.adminNote || item.rejectionReason || '';
             cover.innerHTML = coverMarkup(item);
             cover.classList.toggle('has-image', Boolean(item.imageUrl));
+            setCoverHint(defaultCoverHint, false);
             message.textContent = [
                 'Request #' + item.id,
                 item.createdAt ? 'Created: ' + formatDate(item.createdAt) : null,
@@ -456,6 +501,29 @@
             }
 
             return parseJsonResponse(response);
+        }
+
+        async function uploadCoverFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/admin/api/art-requests/cover', {
+                method: 'POST',
+                headers: csrfHeaders(),
+                body: formData
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || ('Upload failed with status ' + response.status));
+            }
+
+            const uploadedUrl = (await response.text()).trim();
+            if (!uploadedUrl) {
+                throw new Error('Upload returned empty URL');
+            }
+
+            return uploadedUrl;
         }
 
         function buildEditPayload() {
@@ -674,6 +742,68 @@
         form.addEventListener('submit', (event) => {
             event.preventDefault();
         });
+
+        if (coverUpload && coverFileInput) {
+            coverUpload.addEventListener('click', () => {
+                if (busy || !selectedId) {
+                    return;
+                }
+                coverFileInput.value = '';
+                coverFileInput.click();
+            });
+
+            coverFileInput.addEventListener('change', async () => {
+                const file = coverFileInput.files && coverFileInput.files[0];
+                if (!file || busy || !selectedId) {
+                    return;
+                }
+
+                const validationError = validateCoverFile(file);
+                if (validationError) {
+                    coverFileInput.value = '';
+                    setCoverHint(validationError, true);
+                    setFeedback('error', validationError);
+                    return;
+                }
+
+                setBusy(true);
+                setCoverHint('Uploading replacement cover...', false);
+                setFeedback('loading', 'Uploading replacement cover...');
+
+                try {
+                    const uploadedUrl = await uploadCoverFile(file);
+                    const item = current();
+                    imageUrlInput.value = uploadedUrl;
+                    if (item) {
+                        item.imageUrl = uploadedUrl;
+                    }
+                    renderEditor();
+                    setFeedback('success', 'Replacement cover uploaded. Approve the request to persist the new cover.');
+                } catch (error) {
+                    setBusy(false);
+                    setCoverHint('Failed to upload cover. Try again.', true);
+                    setFeedback('error', 'Failed to upload replacement cover.');
+                } finally {
+                    coverFileInput.value = '';
+                }
+            });
+        }
+
+        if (coverRemove) {
+            coverRemove.addEventListener('click', () => {
+                if (busy || !selectedId || !hasSelectedCover()) {
+                    return;
+                }
+
+                const item = current();
+                imageUrlInput.value = '';
+                if (item) {
+                    item.imageUrl = '';
+                }
+                renderEditor();
+                setFeedback('success', 'Cover removed from the draft. Approve the request to persist the change.');
+            });
+        }
 
         if (searchForm) {
             searchForm.addEventListener('submit', (event) => {

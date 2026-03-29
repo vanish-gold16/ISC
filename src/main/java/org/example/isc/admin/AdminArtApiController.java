@@ -2,6 +2,7 @@ package org.example.isc.admin;
 
 import jakarta.validation.Valid;
 import org.example.isc.admin.service.AdminService;
+import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.AdminArtAnswerDTO;
@@ -13,9 +14,12 @@ import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -24,11 +28,13 @@ public class AdminArtApiController {
     private final UserRepository userRepository;
     private final NewArtRequestRepository newArtRequestRepository;
     private final AdminService adminService;
+    private final ImageService imageService;
 
-    public AdminArtApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService) {
+    public AdminArtApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService, ImageService imageService) {
         this.userRepository = userRepository;
         this.newArtRequestRepository = newArtRequestRepository;
         this.adminService = adminService;
+        this.imageService = imageService;
     }
 
     @GetMapping("/art-requests")
@@ -59,6 +65,15 @@ public class AdminArtApiController {
         return ResponseEntity.ok(toAnswer(request));
     }
 
+    @PostMapping("/art-requests/cover")
+    public ResponseEntity<String> uploadArtRequestCover(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication
+    ) throws IOException {
+        User me = requireCurrentUser(authentication);
+        return ResponseEntity.ok(imageService.uploadReviewImage(file, me.getId()));
+    }
+
     @PatchMapping("/art-requests/{id}")
     public ResponseEntity<AdminArtAnswerDTO> editRequest(
             @PathVariable  Long id,
@@ -73,11 +88,9 @@ public class AdminArtApiController {
         request.setType(answer.getType());
         request.setName(answer.getName());
         request.setAuthor(answer.getAuthor());
-        request.setDescription(answer.getDescription());
-        request.setCoverUrl(answer.getImageUrl());
-        if(answer.getAdminNote() != null){
-            request.setAdminNote(answer.getAdminNote());
-        }
+        request.setDescription(blankToNull(answer.getDescription()));
+        request.setCoverUrl(blankToNull(answer.getImageUrl()));
+        request.setAdminNote(blankToNull(answer.getAdminNote()));
         request.setStatus(ReviewStatusEnum.CHANGED);
         request.setUpdatedAt(LocalDateTime.now());
 
@@ -100,12 +113,22 @@ public class AdminArtApiController {
             return ResponseEntity.badRequest().build();
         }
 
+        boolean edited = isRequestEdited(request, dto);
+        request.setType(dto.getType());
+        request.setName(dto.getName());
+        request.setAuthor(dto.getAuthor());
+        request.setDescription(blankToNull(dto.getDescription()));
+        request.setCoverUrl(blankToNull(dto.getImageUrl()));
 
         if(request.getStatus() == ReviewStatusEnum.ACCEPTED ||
                 request.getStatus() == ReviewStatusEnum.REJECTED){
             return ResponseEntity.ok().build();
         } else if(request.getStatus() == ReviewStatusEnum.PENDING){
-            request.setStatus(ReviewStatusEnum.ACCEPTED);
+            request.setStatus(edited ? ReviewStatusEnum.CHANGED : ReviewStatusEnum.ACCEPTED);
+        }
+
+        if (edited) {
+            request.setUpdatedAt(LocalDateTime.now());
         }
 
         newArtRequestRepository.save(request);
@@ -185,6 +208,22 @@ public class AdminArtApiController {
         }
         String normalized = value.trim().replaceAll("\\s+", " ");
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private boolean isRequestEdited(NewArtRequest request, NewArtRequestDTO dto) {
+        return !Objects.equals(request.getType(), dto.getType())
+                || !Objects.equals(blankToNull(request.getName()), blankToNull(dto.getName()))
+                || !Objects.equals(blankToNull(request.getAuthor()), blankToNull(dto.getAuthor()))
+                || !Objects.equals(blankToNull(request.getDescription()), blankToNull(dto.getDescription()))
+                || !Objects.equals(blankToNull(request.getCoverUrl()), blankToNull(dto.getImageUrl()));
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private User requireCurrentUser(Authentication authentication) {

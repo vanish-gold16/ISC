@@ -463,6 +463,27 @@ body {
     resize: vertical;
 }
 
+.admin-field__hint {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.admin-field__hint.is-error {
+    color: #b91c1c;
+}
+
+.admin-cover-input {
+    display: none;
+}
+
+.admin-cover-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .admin-preview {
     display: grid;
     grid-template-columns: 132px minmax(0, 1fr);
