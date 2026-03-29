@@ -60,6 +60,7 @@
     position: relative;
     isolation: isolate;
     width: 108px;
+    align-self: start;
     aspect-ratio: var(--cover-frame-aspect, 3 / 4.4);
     border-radius: 20px;
     overflow: hidden;
@@ -234,6 +235,7 @@
     .oc-rating-card__cover {
         width: 100%;
         max-width: 132px;
+        align-self: start;
     }
 
     .oc-rating-card__body {

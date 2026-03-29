@@ -85,14 +85,11 @@
                displayDescription=${review != null ? review.artDescription : null}">
     <section class="page-content">
     <section class="review-hero">
-        <button th:if="${displayCover != null}"
-                class="review-cover review-cover--trigger"
-                id="review-cover-open"
-                data-cover-frame
-                type="button"
-                aria-label="Open cover full size">
+        <div th:if="${displayCover != null}"
+             class="review-cover"
+             data-cover-frame>
             <img th:src="${displayCover}" th:alt="${displayName}" data-cover-image alt="Cover" />
-        </button>
+        </div>
         <div th:if="${displayCover == null}" class="review-cover">
             <div class="review-cover__placeholder">
                 <span>NO COVER</span>
@@ -194,14 +191,6 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('review')}"></aside>
 </main>
 
-<div class="review-cover-modal" id="review-cover-modal" hidden>
-    <button class="review-cover-modal__backdrop" id="review-cover-close-backdrop" type="button" aria-label="Close cover"></button>
-    <figure class="review-cover-modal__dialog glass-panel">
-        <img th:if="${displayCover != null}" th:src="${displayCover}" th:alt="${displayName}" alt="Cover" />
-        <button class="review-cover-modal__close" id="review-cover-close" type="button" aria-label="Close cover">&times;</button>
-    </figure>
-</div>
-
 <script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 <script>
@@ -238,39 +227,6 @@
 
         window.addEventListener('resize', syncToggle);
         syncToggle();
-    })();
-</script>
-<script>
-    (function () {
-        const openButton = document.getElementById('review-cover-open');
-        const modal = document.getElementById('review-cover-modal');
-        const closeButton = document.getElementById('review-cover-close');
-        const closeBackdrop = document.getElementById('review-cover-close-backdrop');
-
-        if (!openButton || !modal || !closeButton || !closeBackdrop) {
-            return;
-        }
-
-        const closeModal = () => {
-            modal.hidden = true;
-            document.documentElement.classList.remove('review-cover-modal-open');
-            document.body.classList.remove('review-cover-modal-open');
-        };
-
-        openButton.addEventListener('click', () => {
-            modal.hidden = false;
-            document.documentElement.classList.add('review-cover-modal-open');
-            document.body.classList.add('review-cover-modal-open');
-        });
-
-        closeButton.addEventListener('click', closeModal);
-        closeBackdrop.addEventListener('click', closeModal);
-
-        window.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && !modal.hidden) {
-                closeModal();
-            }
-        });
     })();
 </script>
 </body>
