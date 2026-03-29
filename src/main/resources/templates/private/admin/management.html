@@ -181,6 +181,7 @@
 </main>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
+<script th:if="${adminSection == 'new-arts'}" th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:if="${adminSection == 'new-arts'}">
     (function () {
         const queue = document.getElementById('admin-art-queue');
@@ -362,9 +363,34 @@
 
         function coverMarkup(item) {
             if (item.imageUrl) {
-                return '<img src="' + item.imageUrl + '" alt="">';
+                return '<img src="' + item.imageUrl + '" data-cover-image alt="">';
             }
             return '<span>' + initialsFor(item) + '</span>';
+        }
+
+        function resetCoverFrame(frame) {
+            if (!frame) {
+                return;
+            }
+            frame.style.removeProperty('--cover-frame-aspect');
+            delete frame.dataset.coverShape;
+        }
+
+        function syncCoverFrame(frame) {
+            if (!frame) {
+                return;
+            }
+            const hasImage = Boolean(frame.querySelector('img'));
+            frame.classList.toggle('has-image', hasImage);
+            if (!hasImage) {
+                frame.removeAttribute('data-cover-frame');
+                resetCoverFrame(frame);
+                return;
+            }
+            frame.setAttribute('data-cover-frame', '');
+            if (window.__opuscoreApplyCoverFrame) {
+                window.__opuscoreApplyCoverFrame(frame);
+            }
         }
 
         function validateCoverFile(file) {
@@ -395,7 +421,7 @@
 
             queue.innerHTML = items.map((item) => `
                 <button class="admin-queue__item${item.id === selectedId ? ' is-active' : ''}" type="button" data-art-request="${item.id}">
-                    <span class="admin-queue__cover">${initialsFor(item)}</span>
+                    <span class="admin-queue__cover${item.imageUrl ? ' has-image' : ''}"${item.imageUrl ? ' data-cover-frame' : ''}>${coverMarkup(item)}</span>
                     <span class="admin-queue__body">
                         <span class="admin-queue__title">${item.name}</span>
                         <span class="admin-queue__meta">${item.author} &bull; ${item.type || 'Unknown type'}</span>
@@ -414,6 +440,10 @@
                     loadRequest(nextId);
                 });
             });
+
+            if (window.__opuscoreApplyCoverFrames) {
+                window.__opuscoreApplyCoverFrames(queue);
+            }
         }
 
         function renderEditor() {
@@ -436,7 +466,7 @@
                 descriptionInput.value = '';
                 noteInput.value = '';
                 cover.innerHTML = 'No cover';
-                cover.classList.remove('has-image');
+                syncCoverFrame(cover);
                 setCoverHint('Select a request to edit its cover.', false);
                 message.textContent = 'No request selected.';
                 status.textContent = 'Choose request';
@@ -461,7 +491,7 @@
             descriptionInput.value = item.description || '';
             noteInput.value = item.adminNote || item.rejectionReason || '';
             cover.innerHTML = coverMarkup(item);
-            cover.classList.toggle('has-image', Boolean(item.imageUrl));
+            syncCoverFrame(cover);
             setCoverHint(defaultCoverHint, false);
             message.textContent = [
                 'Request #' + item.id,

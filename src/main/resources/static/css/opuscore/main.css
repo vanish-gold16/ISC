@@ -258,7 +258,6 @@ html.oc-entry-pending body::before {
     height: 280px;
     border-radius: var(--r);
     object-fit: cover;
-    border: 1px solid var(--border);
     background: var(--panel);
     box-shadow: var(--shadow);
 }
@@ -268,7 +267,6 @@ html.oc-entry-pending body::before {
     height: 280px;
     border-radius: var(--r);
     background: linear-gradient(145deg, #1a1f2e, #12151f);
-    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;

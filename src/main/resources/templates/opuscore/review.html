@@ -79,7 +79,7 @@
 </header>
 
 <main class="container page review-page"
-      th:with="displayCover=${review != null && review.photoUrl != null ? review.photoUrl : (artwork != null ? artwork.coverUrl : null)},
+      th:with="displayCover=${review != null ? review.displayPhotoUrl : (artwork != null ? artwork.coverUrl : null)},
                displayName=${review != null && review.artName != null ? review.artName : 'Untitled Work'},
                displayAuthor=${review != null && review.artAuthor != null ? review.artAuthor : 'Unknown creator'},
                displayDescription=${review != null ? review.artDescription : null}">

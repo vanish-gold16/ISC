@@ -38,6 +38,9 @@ public class Review {
     @Column(name = "art_description", length = 1000)
     private String artDescription;
 
+    @Column(name = "art_cover_url", length = 1000)
+    private String artCoverUrl;
+
     @Column(name = "title", length = 50)
     private String title;
 
@@ -109,6 +112,7 @@ public class Review {
         artName = artwork.getName();
         artAuthor = artwork.getAuthor();
         artDescription = artwork.getDescription();
+        artCoverUrl = artwork.getCoverUrl();
         if (type == null) {
             type = artwork.getType();
         }
@@ -143,7 +147,11 @@ public class Review {
         if (reviewPhoto != null) {
             return reviewPhoto;
         }
-        return artwork != null ? blankToNull(artwork.getCoverUrl()) : null;
+        String artworkCover = artwork != null ? blankToNull(artwork.getCoverUrl()) : null;
+        if (artworkCover != null) {
+            return artworkCover;
+        }
+        return blankToNull(artCoverUrl);
     }
 
     public User getUser() {
@@ -233,6 +241,14 @@ public class Review {
 
     public void setArtDescription(String artDescription) {
         this.artDescription = artDescription;
+    }
+
+    public String getArtCoverUrl() {
+        return artCoverUrl != null ? artCoverUrl : (artwork != null ? artwork.getCoverUrl() : null);
+    }
+
+    public void setArtCoverUrl(String artCoverUrl) {
+        this.artCoverUrl = artCoverUrl;
     }
 
     private String blankToNull(String value) {

@@ -209,6 +209,16 @@ BEGIN
         FROM information_schema.columns
         WHERE table_schema = 'public'
           AND table_name = 'reviews'
+          AND column_name = 'art_cover_url'
+    ) THEN
+        ALTER TABLE reviews ADD COLUMN art_cover_url VARCHAR(1000);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'reviews'
           AND column_name = 'user_id'
     ) THEN
         ALTER TABLE reviews ADD COLUMN user_id BIGINT;
@@ -229,9 +239,17 @@ BEGIN
         UPDATE reviews r
         SET art_name = COALESCE(r.art_name, a.name),
             art_author = COALESCE(r.art_author, a.author),
-            art_description = COALESCE(r.art_description, a.description)
+            art_description = COALESCE(r.art_description, a.description),
+            art_cover_url = COALESCE(r.art_cover_url, a.cover_url)
         FROM artworks a
         WHERE r.artwork = a.id;
+    END IF;
+
+    IF to_regclass('public.art_requests') IS NOT NULL THEN
+        UPDATE reviews r
+        SET art_cover_url = COALESCE(r.art_cover_url, ar.cover_url)
+        FROM art_requests ar
+        WHERE r.art_request_id = ar.id;
     END IF;
 
     IF EXISTS (

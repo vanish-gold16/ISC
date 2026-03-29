@@ -155,6 +155,7 @@ public class ReviewService {
         }
         review.setTitle(title);
         review.setBody(body);
+        review.setArtCoverUrl(request.getCoverUrl());
         review.setValue(countScore(review));
         review.setStatus(ReviewStatusEnum.PENDING);
         review.setPhotoUrl(photoUrl);

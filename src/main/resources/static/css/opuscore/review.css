@@ -38,7 +38,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 10px;
 }
 
 .review-cover__placeholder {
@@ -387,10 +386,11 @@
 .review-cover-modal__dialog {
     position: relative;
     z-index: 1;
-    width: min(560px, calc(100vw - 32px));
-    max-height: calc(100vh - 32px);
+    width: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
     margin: 0;
-    padding: 16px;
+    padding: 10px;
     border-radius: 28px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     background:
@@ -401,8 +401,9 @@
 
 .review-cover-modal__dialog img {
     display: block;
-    width: 100%;
-    max-height: calc(100vh - 64px);
+    width: auto;
+    max-width: calc(100vw - 44px);
+    max-height: calc(100vh - 44px);
     object-fit: contain;
     border-radius: 20px;
 }

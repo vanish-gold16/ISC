@@ -73,7 +73,6 @@
     height: 100%;
     object-fit: contain;
     display: block;
-    padding: 6px;
     filter: brightness(1.12) saturate(1.12) contrast(1.03);
 }
 

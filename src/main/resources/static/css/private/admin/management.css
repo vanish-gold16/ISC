@@ -331,6 +331,19 @@ body {
     color: #f8fbff;
     font-weight: 800;
     letter-spacing: 0.06em;
+    overflow: hidden;
+}
+
+.admin-queue__cover.has-image {
+    background: #dbeafe;
+    color: transparent;
+}
+
+.admin-queue__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .admin-queue__body {
@@ -486,8 +499,9 @@ body {
 
 .admin-preview {
     display: grid;
-    grid-template-columns: 132px minmax(0, 1fr);
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: 16px;
+    align-items: start;
     padding: 16px;
     border-radius: 22px;
     border: 1px solid rgba(191, 219, 254, 0.68);
@@ -495,9 +509,12 @@ body {
 }
 
 .admin-preview__cover {
-    min-height: 172px;
+    width: 132px;
+    min-height: 0;
     display: grid;
     place-items: center;
+    justify-self: start;
+    aspect-ratio: var(--cover-frame-aspect, 3 / 4.4);
     border-radius: 22px;
     background: linear-gradient(135deg, #0f172a, #2563eb);
     color: #f8fbff;
@@ -515,7 +532,7 @@ body {
 .admin-preview__cover img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
@@ -652,6 +669,7 @@ body {
     }
 
     .admin-preview__cover {
-        min-height: 140px;
+        width: min(100%, 180px);
+        min-height: 0;
     }
 }
