@@ -128,6 +128,18 @@
                 </div>
 
                 <div class="review-side">
+                    <a class="review-edit"
+                       th:if="${user != null and reviewAuthorId != null and review != null and review.id != null and user.id == reviewAuthorId}"
+                       th:href="@{/opuscore/{id}/edit(id=${review.id})}"
+                       href="/opuscore/1/edit"
+                       aria-label="Edit review">
+                        <img class="review-edit__icon"
+                             th:src="@{/images/private/icons/edit.png}"
+                             src="/images/private/icons/edit.png"
+                             alt="" />
+                        <span>Edit</span>
+                    </a>
+
                     <a class="review-author"
                        th:if="${reviewAuthorId != null}"
                        th:href="@{/opuscore/profile/{id}(id=${reviewAuthorId})}"
