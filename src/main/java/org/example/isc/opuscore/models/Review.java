@@ -124,6 +124,14 @@ public class Review {
         this.photoUrl = photoUrl;
     }
 
+    public String getDisplayPhotoUrl() {
+        String reviewPhoto = blankToNull(photoUrl);
+        if (reviewPhoto != null) {
+            return reviewPhoto;
+        }
+        return artwork != null ? blankToNull(artwork.getCoverUrl()) : null;
+    }
+
     public User getUser() {
         return user;
     }
@@ -211,5 +219,13 @@ public class Review {
 
     public void setArtDescription(String artDescription) {
         this.artDescription = artDescription;
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
