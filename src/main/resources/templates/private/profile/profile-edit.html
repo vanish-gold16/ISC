@@ -135,6 +135,7 @@
                         <input type="file" name="cover" accept="image/png, image/jpeg, image/webp"
                                onchange="openCropper(event, 'cover')" />
                         <img id="coverPreview" class="preview-cover hidden"/>
+                        <p class="upload-status" id="coverUploadStatus" aria-live="polite"></p>
                     </div>
 
                     <!-- AVATAR -->
@@ -146,6 +147,7 @@
                     <input type="file" name="avatar" accept="image/png, image/jpeg, image/webp"
                            onchange="openCropper(event, 'avatar')" />
                     <img id="avatarPreview" class="preview-avatar hidden"/>
+                    <p class="upload-status" id="avatarUploadStatus" aria-live="polite"></p>
                 </div>
                 <div class="cropper-modal hidden" id="cropper-modal" aria-hidden="true">
                     <div class="cropper-dialog" role="dialog" aria-modal="true" aria-labelledby="cropper-title">
@@ -177,6 +179,7 @@
                     let cropperImg = null;
                     let isDragging = false;
                     let dragStart = { x: 0, y: 0 };
+                    const uploadTokens = {};
 
                     function openCropper(event, kind) {
                         const file = event.target.files && event.target.files[0];
@@ -184,8 +187,8 @@
                         const inputEl = event.target;
 
                         const config = kind === 'avatar'
-                            ? { aspect: 1, width: 400, height: 400, url: '/profile/edit/avatar', previewId: 'avatarPreview' }
-                            : { aspect: 4, width: 1600, height: 400, url: '/profile/edit/cover', previewId: 'coverPreview' };
+                            ? { aspect: 1, width: 400, height: 400, url: '/profile/edit/avatar', previewId: 'avatarPreview', statusId: 'avatarUploadStatus' }
+                            : { aspect: 4, width: 1600, height: 400, url: '/profile/edit/cover', previewId: 'coverPreview', statusId: 'coverUploadStatus' };
 
                         cropperImg = new Image();
                         cropperImg.onload = () => {
@@ -211,6 +214,37 @@
                             showCropper();
                         };
                         cropperImg.src = URL.createObjectURL(file);
+                    }
+
+                    function setUploadStatus(config, text, isError) {
+                        if (!config || !config.statusId) return;
+                        const status = document.getElementById(config.statusId);
+                        if (!status) return;
+                        status.textContent = text || '';
+                        status.classList.toggle('upload-status--error', Boolean(isError));
+                    }
+
+                    function showLocalPreview(config, file) {
+                        const preview = document.getElementById(config.previewId);
+                        if (!preview) return;
+                        if (preview.dataset.localObjectUrl) {
+                            URL.revokeObjectURL(preview.dataset.localObjectUrl);
+                        }
+                        const localUrl = URL.createObjectURL(file);
+                        preview.dataset.localObjectUrl = localUrl;
+                        preview.src = localUrl;
+                        preview.classList.remove('hidden');
+                    }
+
+                    function showUploadedPreview(config, src) {
+                        const preview = document.getElementById(config.previewId);
+                        if (!preview) return;
+                        if (preview.dataset.localObjectUrl) {
+                            URL.revokeObjectURL(preview.dataset.localObjectUrl);
+                            preview.dataset.localObjectUrl = '';
+                        }
+                        preview.src = src;
+                        preview.classList.remove('hidden');
                     }
 
                     function showCropper() {
@@ -286,27 +320,52 @@
 
                     cropperApply.addEventListener('click', () => {
                         if (!cropperState) return;
+                        const currentState = cropperState;
+                        cropperApply.disabled = true;
                         cropperCanvas.toBlob((blob) => {
-                            if (!blob) return;
+                            if (!blob) {
+                                cropperApply.disabled = false;
+                                return;
+                            }
+                            const uploadToken = (uploadTokens[currentState.config.previewId] || 0) + 1;
+                            uploadTokens[currentState.config.previewId] = uploadToken;
                             const formData = new FormData();
                             formData.append('file', blob, 'crop.webp');
+                            const localFile = new File([blob], 'crop.webp', { type: 'image/webp' });
 
-                            fetch(cropperState.config.url, {
+                            showLocalPreview(currentState.config, localFile);
+                            setUploadStatus(currentState.config, 'Uploading in background...', false);
+                            if (currentState.inputEl) currentState.inputEl.value = '';
+                            hideCropper();
+                            cropperApply.disabled = false;
+
+                            fetch(currentState.config.url, {
                                 method: 'POST',
                                 body: formData,
                                 headers: {
                                     'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
                                 }
                             })
-                                .then(res => res.text())
-                                .then(src => {
-                                    const preview = document.getElementById(cropperState.config.previewId);
-                                    preview.src = src;
-                                    preview.classList.remove('hidden');
-                                    if (cropperState.inputEl) cropperState.inputEl.value = '';
-                                    hideCropper();
+                                .then(res => {
+                                    if (!res.ok) {
+                                        throw new Error('Upload failed with status ' + res.status);
+                                    }
+                                    return res.text();
                                 })
-                                .catch(err => console.error('Upload failed', err));
+                                .then(src => {
+                                    if (uploadTokens[currentState.config.previewId] !== uploadToken) {
+                                        return;
+                                    }
+                                    showUploadedPreview(currentState.config, src);
+                                    setUploadStatus(currentState.config, 'Uploaded.', false);
+                                })
+                                .catch(err => {
+                                    if (uploadTokens[currentState.config.previewId] !== uploadToken) {
+                                        return;
+                                    }
+                                    setUploadStatus(currentState.config, 'Upload failed. Try again.', true);
+                                    console.error('Upload failed', err);
+                                });
                         }, 'image/webp', 0.92);
                     });
                 </script>
@@ -328,6 +387,17 @@
 
                     .image-section {
                         margin-bottom: 25px;
+                    }
+
+                    .upload-status {
+                        min-height: 20px;
+                        margin: 0;
+                        color: #64748b;
+                        font-size: 13px;
+                    }
+
+                    .upload-status--error {
+                        color: #b91c1c;
                     }
 
                     .cropper-modal {

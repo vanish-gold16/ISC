@@ -85,6 +85,7 @@
                            name="cover"
                            accept="image/png, image/jpeg, image/webp"
                            onchange="openCropper(event, 'cover')" />
+                    <p class="upload-status" id="coverUploadStatus" aria-live="polite"></p>
                 </div>
 
                 <div class="image-section">
@@ -101,6 +102,7 @@
                            name="avatar"
                            accept="image/png, image/jpeg, image/webp"
                            onchange="openCropper(event, 'avatar')" />
+                    <p class="upload-status" id="avatarUploadStatus" aria-live="polite"></p>
                 </div>
             </div>
 
@@ -149,6 +151,8 @@
     let cropperImg = null;
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
+    const uploadStates = {};
+    const onboardingForm = document.querySelector('form.form');
 
     function openCropper(event, kind) {
         const file = event.target.files && event.target.files[0];
@@ -156,8 +160,8 @@
         const inputEl = event.target;
 
         const config = kind === 'avatar'
-            ? { width: 400, height: 400, url: '/profile/edit/avatar', previewId: 'avatarPreview', fieldId: 'avatarUrl' }
-            : { width: 1600, height: 400, url: '/profile/edit/cover', previewId: 'coverPreview', fieldId: 'coverUrl' };
+            ? { width: 400, height: 400, url: '/profile/edit/avatar', previewId: 'avatarPreview', fieldId: 'avatarUrl', statusId: 'avatarUploadStatus' }
+            : { width: 1600, height: 400, url: '/profile/edit/cover', previewId: 'coverPreview', fieldId: 'coverUrl', statusId: 'coverUploadStatus' };
 
         cropperImg = new Image();
         cropperImg.onload = () => {
@@ -183,6 +187,43 @@
             showCropper();
         };
         cropperImg.src = URL.createObjectURL(file);
+    }
+
+    function ensureUploadState(config) {
+        const key = config.fieldId;
+        if (!uploadStates[key]) {
+            uploadStates[key] = { token: 0, pending: false, promise: null };
+        }
+        return uploadStates[key];
+    }
+
+    function setUploadStatus(config, text, isError) {
+        if (!config || !config.statusId) return;
+        const status = document.getElementById(config.statusId);
+        if (!status) return;
+        status.textContent = text || '';
+        status.classList.toggle('upload-status--error', Boolean(isError));
+    }
+
+    function showLocalPreview(config, file) {
+        const preview = document.getElementById(config.previewId);
+        if (!preview) return;
+        if (preview.dataset.localObjectUrl) {
+            URL.revokeObjectURL(preview.dataset.localObjectUrl);
+        }
+        const localUrl = URL.createObjectURL(file);
+        preview.dataset.localObjectUrl = localUrl;
+        preview.src = localUrl;
+    }
+
+    function showUploadedPreview(config, src) {
+        const preview = document.getElementById(config.previewId);
+        if (!preview) return;
+        if (preview.dataset.localObjectUrl) {
+            URL.revokeObjectURL(preview.dataset.localObjectUrl);
+            preview.dataset.localObjectUrl = '';
+        }
+        preview.src = src;
     }
 
     function showCropper() {
@@ -258,12 +299,34 @@
 
     cropperApply.addEventListener('click', () => {
         if (!cropperState) return;
+        const currentState = cropperState;
+        const uploadState = ensureUploadState(currentState.config);
+        cropperApply.disabled = true;
         cropperCanvas.toBlob((blob) => {
-            if (!blob) return;
+            if (!blob) {
+                cropperApply.disabled = false;
+                return;
+            }
+            const uploadToken = uploadState.token + 1;
+            uploadState.token = uploadToken;
+            uploadState.pending = true;
             const formData = new FormData();
             formData.append('file', blob, 'crop.webp');
+            const localFile = new File([blob], 'crop.webp', { type: 'image/webp' });
+            const hiddenField = document.getElementById(currentState.config.fieldId);
 
-            fetch(cropperState.config.url, {
+            showLocalPreview(currentState.config, localFile);
+            if (hiddenField) {
+                hiddenField.value = '';
+            }
+            setUploadStatus(currentState.config, 'Uploading in background...', false);
+            if (currentState.inputEl) {
+                currentState.inputEl.value = '';
+            }
+            hideCropper();
+            cropperApply.disabled = false;
+
+            let uploadPromise = fetch(currentState.config.url, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -277,22 +340,56 @@
                     return res.text();
                 })
                 .then(src => {
-                    const preview = document.getElementById(cropperState.config.previewId);
-                    const hiddenField = document.getElementById(cropperState.config.fieldId);
-                    if (preview) {
-                        preview.src = src;
+                    if (uploadState.token !== uploadToken) {
+                        return src;
                     }
+                    showUploadedPreview(currentState.config, src);
                     if (hiddenField) {
                         hiddenField.value = src;
                     }
-                    if (cropperState.inputEl) {
-                        cropperState.inputEl.value = '';
-                    }
-                    hideCropper();
+                    setUploadStatus(currentState.config, 'Uploaded.', false);
+                    return src;
                 })
-                .catch(err => console.error('Upload failed', err));
+                .catch(err => {
+                    if (uploadState.token === uploadToken) {
+                        setUploadStatus(currentState.config, 'Upload failed. Try again.', true);
+                    }
+                    console.error('Upload failed', err);
+                    throw err;
+                })
+                .finally(() => {
+                    if (uploadState.token === uploadToken) {
+                        uploadState.pending = false;
+                        if (uploadState.promise === uploadPromise) {
+                            uploadState.promise = null;
+                        }
+                    }
+                });
+
+            uploadState.promise = uploadPromise;
         }, 'image/webp', 0.92);
     });
+
+    if (onboardingForm) {
+        onboardingForm.addEventListener('submit', async (event) => {
+            const pendingUploads = Object.values(uploadStates)
+                .filter((state) => state.pending && state.promise)
+                .map((state) => state.promise);
+
+            if (!pendingUploads.length) {
+                return;
+            }
+
+            event.preventDefault();
+
+            try {
+                await Promise.all(pendingUploads);
+                onboardingForm.submit();
+            } catch (error) {
+                console.error('Pending upload failed', error);
+            }
+        });
+    }
 </script>
 <style>
     .onboarding-media {
@@ -303,6 +400,17 @@
     .image-section {
         display: grid;
         gap: 10px;
+    }
+
+    .upload-status {
+        min-height: 20px;
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .upload-status--error {
+        color: #b91c1c;
     }
 
     .field-label {

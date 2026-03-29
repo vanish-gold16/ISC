@@ -265,6 +265,11 @@
         let cropperState = null;
         let cropperImage = null;
         let cropperObjectUrl = '';
+        const coverUploadState = {
+            token: 0,
+            pending: false,
+            promise: null
+        };
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
 
@@ -310,7 +315,29 @@
             return Boolean(uploadedImageUrlField.value);
         }
 
+        function hasAppliedPreview() {
+            return Boolean(appliedPreviewUrl);
+        }
+
+        function restoreAppliedPreview() {
+            if (!hasAppliedPreview()) {
+                return false;
+            }
+            previewImg.src = appliedPreviewUrl;
+            preview.hidden = false;
+            drop.hidden = true;
+            uploader.classList.add('has-preview');
+            return true;
+        }
+
+        function invalidateCoverUpload() {
+            coverUploadState.token += 1;
+            coverUploadState.pending = false;
+            coverUploadState.promise = null;
+        }
+
         function resetPreview() {
+            invalidateCoverUpload();
             clearAppliedPreviewUrl();
             preview.hidden = true;
             drop.hidden = false;
@@ -355,6 +382,61 @@
             preview.hidden = false;
             drop.hidden = true;
             uploader.classList.add('has-preview');
+        }
+
+        function uploadCoverInBackground(file) {
+            const uploadToken = coverUploadState.token + 1;
+            const formData = new FormData();
+            formData.append('file', file);
+
+            coverUploadState.token = uploadToken;
+            coverUploadState.pending = true;
+            uploadedImageUrlField.value = '';
+
+            let uploadPromise = fetch('/opuscore/new-review/cover', {
+                method: 'POST',
+                body: formData,
+                headers: csrfField && csrfField.value ? {
+                    'X-CSRF-TOKEN': csrfField.value
+                } : {}
+            })
+                .then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error('Upload failed: ' + response.status);
+                    }
+
+                    const uploadedUrl = (await response.text()).trim();
+                    if (!uploadedUrl) {
+                        throw new Error('Upload returned empty URL');
+                    }
+
+                    if (uploadToken !== coverUploadState.token) {
+                        return uploadedUrl;
+                    }
+
+                    uploadedImageUrlField.value = uploadedUrl;
+                    showAppliedPreview(uploadedUrl);
+                    setHint('Cover uploaded.', false);
+                    return uploadedUrl;
+                })
+                .catch((error) => {
+                    if (uploadToken === coverUploadState.token) {
+                        uploadedImageUrlField.value = '';
+                        setHint('Failed to upload cover. Try again.', true);
+                    }
+                    throw error;
+                })
+                .finally(() => {
+                    if (uploadToken === coverUploadState.token) {
+                        coverUploadState.pending = false;
+                        if (coverUploadState.promise === uploadPromise) {
+                            coverUploadState.promise = null;
+                        }
+                    }
+                });
+
+            coverUploadState.promise = uploadPromise;
+            return uploadPromise;
         }
 
         function clampOffsets(scale) {
@@ -496,8 +578,12 @@
                 return;
             }
 
+            modalApply.disabled = true;
+            setHint('Preparing cover...', false);
+
             const blob = await createOptimizedCoverBlob();
             if (!blob || !cropperState) {
+                modalApply.disabled = false;
                 setHint('Failed to prepare cover image. Try another file.', true);
                 return;
             }
@@ -507,42 +593,16 @@
                 type: 'image/jpeg',
                 lastModified: Date.now()
             });
+            const localPreviewUrl = URL.createObjectURL(optimizedFile);
 
-            const formData = new FormData();
-            formData.append('file', optimizedFile);
+            input.value = '';
+            syncInputFile(null);
+            showAppliedPreview(localPreviewUrl);
+            setHint('Cover selected. Uploading in background...', false);
+            hideCropper();
+            modalApply.disabled = false;
 
-            modalApply.disabled = true;
-            setHint('Uploading cover...', false);
-
-            try {
-                const response = await fetch('/opuscore/new-review/cover', {
-                    method: 'POST',
-                    body: formData,
-                    headers: csrfField && csrfField.value ? {
-                        'X-CSRF-TOKEN': csrfField.value
-                    } : {}
-                });
-
-                if (!response.ok) {
-                    throw new Error('Upload failed: ' + response.status);
-                }
-
-                const uploadedUrl = (await response.text()).trim();
-                if (!uploadedUrl) {
-                    throw new Error('Upload returned empty URL');
-                }
-
-                uploadedImageUrlField.value = uploadedUrl;
-                input.value = '';
-                syncInputFile(null);
-                showAppliedPreview(uploadedUrl);
-                setHint('Cover uploaded.', false);
-                hideCropper();
-            } catch (error) {
-                setHint('Failed to upload cover. Try again.', true);
-            } finally {
-                modalApply.disabled = false;
-            }
+            uploadCoverInBackground(optimizedFile).catch(() => {});
         });
 
         modalCloseButtons.forEach((button) => {
@@ -552,6 +612,8 @@
                 if (hasUploadedCover()) {
                     showAppliedPreview(uploadedImageUrlField.value);
                     setHint('Cover uploaded.', false);
+                } else if (restoreAppliedPreview()) {
+                    setHint(coverUploadState.pending ? 'Cover selected. Uploading in background...' : defaultHint, false);
                 } else {
                     preview.hidden = true;
                     drop.hidden = false;
@@ -593,6 +655,8 @@
                 if (hasUploadedCover()) {
                     showAppliedPreview(uploadedImageUrlField.value);
                     setHint('Cover uploaded.', false);
+                } else if (restoreAppliedPreview()) {
+                    setHint(coverUploadState.pending ? 'Cover selected. Uploading in background...' : defaultHint, false);
                 } else {
                     preview.hidden = true;
                     drop.hidden = false;
@@ -653,9 +717,13 @@
         if (hasUploadedCover()) {
             showAppliedPreview(uploadedImageUrlField.value);
             setHint('Cover uploaded.', false);
+        } else if (restoreAppliedPreview()) {
+            setHint(coverUploadState.pending ? 'Cover selected. Uploading in background...' : defaultHint, false);
         } else {
             resetPreview();
         }
+
+        window.__artRequestCoverUploadState = coverUploadState;
     })();
 </script>
 
@@ -733,6 +801,18 @@
 
             submit.disabled = true;
             showStatus('loading', 'Sending the request to the admin queue...');
+
+            const coverUploadState = window.__artRequestCoverUploadState;
+            if (coverUploadState && coverUploadState.pending && coverUploadState.promise) {
+                showStatus('loading', 'Finishing cover upload...');
+                try {
+                    await coverUploadState.promise;
+                } catch (error) {
+                    submit.disabled = false;
+                    showStatus('error', 'Cover upload failed. Upload it again or remove it before sending.');
+                    return;
+                }
+            }
 
             const payload = {
                 requesterId: 0,
