@@ -79,10 +79,10 @@
                 <input id="artType" type="hidden" th:field="*{artType}" />
                 <input id="value" type="hidden" min="0" max="100" step="1" th:field="*{value}" />
                 <input id="imageUrl" type="hidden" th:field="*{imageUrl}" />
-                <input id="selectedArtName" type="hidden" name="selectedArtName" th:value="${param.selectedArtName}" />
-                <input id="selectedArtAuthor" type="hidden" name="selectedArtAuthor" th:value="${param.selectedArtAuthor}" />
-                <input id="selectedArtDescription" type="hidden" name="selectedArtDescription" th:value="${param.selectedArtDescription}" />
-                <input id="selectedArtCoverUrl" type="hidden" name="selectedArtCoverUrl" th:value="${param.selectedArtCoverUrl}" />
+                <input id="selectedArtName" type="hidden" name="selectedArtName" th:value="${selectedArtName != null ? selectedArtName : param.selectedArtName}" />
+                <input id="selectedArtAuthor" type="hidden" name="selectedArtAuthor" th:value="${selectedArtAuthor != null ? selectedArtAuthor : param.selectedArtAuthor}" />
+                <input id="selectedArtDescription" type="hidden" name="selectedArtDescription" th:value="${selectedArtDescription != null ? selectedArtDescription : param.selectedArtDescription}" />
+                <input id="selectedArtCoverUrl" type="hidden" name="selectedArtCoverUrl" th:value="${selectedArtCoverUrl != null ? selectedArtCoverUrl : param.selectedArtCoverUrl}" />
 
                 <section class="review-search glass-panel" id="review-search-panel">
                     <div class="review-search__head">

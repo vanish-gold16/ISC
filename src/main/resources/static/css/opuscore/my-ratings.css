@@ -63,7 +63,6 @@
     aspect-ratio: var(--cover-frame-aspect, 3 / 4.4);
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(8, 12, 20, 0.92);
 }
 

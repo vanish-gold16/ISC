@@ -16,7 +16,6 @@
     aspect-ratio: var(--cover-frame-aspect, 3 / 4.4);
     padding: 0;
     border-radius: var(--r);
-    border: 1px solid var(--border);
     overflow: hidden;
     background: var(--panel);
     box-shadow: var(--shadow);
@@ -25,12 +24,11 @@
 .review-cover--trigger {
     display: block;
     cursor: zoom-in;
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .review-cover--trigger:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.22);
     box-shadow:
         0 20px 38px rgba(8, 12, 22, 0.32),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);

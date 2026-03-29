@@ -1,17 +1,20 @@
 package org.example.isc.opuscore.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.isc.cloudinary.ImageService;
+import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.models.Artwork;
+import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.repositories.ArtworkRepository;
+import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ReviewService;
 import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.repositories.ReviewRepository;
+import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +41,7 @@ public class ReviewController {
     private final OpusCoreCriteriaCatalog criteriaCatalog;
     private final ReviewRepository reviewRepository;
     private final ArtworkRepository artworkRepository;
+    private final NewArtRequestRepository newArtRequestRepository;
 
     public ReviewController(
             UserRepository userRepository,
@@ -45,19 +49,23 @@ public class ReviewController {
             ReviewService reviewService,
             OpusCoreCriteriaCatalog criteriaCatalog,
             ReviewRepository reviewRepository,
-            ArtworkRepository artworkRepository) {
+            ArtworkRepository artworkRepository,
+            NewArtRequestRepository newArtRequestRepository) {
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.reviewService = reviewService;
         this.criteriaCatalog = criteriaCatalog;
         this.reviewRepository = reviewRepository;
         this.artworkRepository = artworkRepository;
+        this.newArtRequestRepository = newArtRequestRepository;
     }
 
     @GetMapping("/new-review")
     public String getNewReview(
             Authentication authentication,
             Model model,
+            @RequestParam(value = "artId", required = false) Long artId,
+            @RequestParam(value = "artRequestId", required = false) Long artRequestId,
             @RequestParam(value = "error", required = false) String error
     ){
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
@@ -72,6 +80,18 @@ public class ReviewController {
 
         if (form.getValue() == null) {
             form.setValue(0L);
+        }
+
+        Long selectedArtworkId = form.getArtworkId() != null ? form.getArtworkId() : artId;
+        Long selectedArtRequestId = form.getArtRequestId() != null ? form.getArtRequestId() : artRequestId;
+
+        if (selectedArtRequestId != null) {
+            String redirect = populatePendingRequestPrefill(me, form, model, selectedArtRequestId);
+            if (redirect != null) {
+                return redirect;
+            }
+        } else if (selectedArtworkId != null) {
+            populateArtworkPrefill(form, model, selectedArtworkId);
         }
 
         model.addAttribute("form", form);
@@ -123,7 +143,7 @@ public class ReviewController {
     ){
         if (bindingResult.hasErrors()) {
             model.addAttribute("form", form);
-            return getNewReview(authentication, model, null);
+            return getNewReview(authentication, model, null, null, null);
         }
 
         Long review = 0L;
@@ -133,7 +153,7 @@ public class ReviewController {
         } catch (IllegalArgumentException | IOException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("form", form);
-            return getNewReview(authentication, model, null);
+            return getNewReview(authentication, model, null, null, null);
         }
         model.addAttribute("POST_NEW_REVIEW", true);
 
@@ -152,6 +172,67 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
         return ResponseEntity.ok(imageService.uploadReviewImage(file, me.getId()));
+    }
+
+    private String populatePendingRequestPrefill(
+            User me,
+            NewReviewDTO form,
+            Model model,
+            Long artRequestId
+    ) {
+        NewArtRequest request = newArtRequestRepository.findById(artRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("Art request not found: " + artRequestId));
+
+        boolean isOwner = request.getRequester() != null
+                && request.getRequester().getId() != null
+                && request.getRequester().getId().equals(me.getId());
+        boolean isAdmin = me.getRole() == RoleEnum.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            return "redirect:/opuscore";
+        }
+
+        if (request.getStatus() == ReviewStatusEnum.REJECTED) {
+            return "redirect:/opuscore";
+        }
+
+        if (request.getApprovedArtworkId() != null) {
+            populateArtworkPrefill(form, model, request.getApprovedArtworkId());
+            return null;
+        }
+
+        form.setArtworkId(null);
+        form.setArtRequestId(request.getId());
+        form.setArtType(request.getType());
+        populateSelectedArtModel(model, request.getName(), request.getAuthor(), request.getDescription(), request.getCoverUrl());
+        return null;
+    }
+
+    private void populateArtworkPrefill(
+            NewReviewDTO form,
+            Model model,
+            Long artworkId
+    ) {
+        Artwork artwork = artworkRepository.findById(artworkId)
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + artworkId));
+
+        form.setArtworkId(artwork.getId());
+        form.setArtRequestId(null);
+        form.setArtType(artwork.getType());
+        populateSelectedArtModel(model, artwork.getName(), artwork.getAuthor(), artwork.getDescription(), artwork.getCoverUrl());
+    }
+
+    private void populateSelectedArtModel(
+            Model model,
+            String name,
+            String author,
+            String description,
+            String coverUrl
+    ) {
+        model.addAttribute("selectedArtName", name);
+        model.addAttribute("selectedArtAuthor", author);
+        model.addAttribute("selectedArtDescription", description);
+        model.addAttribute("selectedArtCoverUrl", coverUrl);
     }
 
 }

@@ -167,7 +167,6 @@
     display: grid;
     place-items: center;
     border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
         linear-gradient(135deg, rgba(108, 142, 255, 0.26), rgba(192, 132, 252, 0.18));
@@ -264,7 +263,6 @@
     display: grid;
     place-items: center;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
         linear-gradient(135deg, rgba(108, 142, 255, 0.26), rgba(192, 132, 252, 0.18));
