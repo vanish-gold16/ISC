@@ -108,7 +108,11 @@ public class ReviewService {
         NewArtRequest request = newArtRequestRepository.findById(form.getArtRequestId())
                 .orElseThrow(() -> new IllegalArgumentException("Request not found: " + form.getArtRequestId()));
 
-        if(request.getRequester().getUsername() != me.getUsername()){
+        if(!request.getStatus().equals(ReviewStatusEnum.PENDING)){
+            throw new IllegalArgumentException("This review isn't pending already: " + request);
+        }
+
+        if(!request.getRequester().getUsername().equals(me.getUsername())){
             throw new IllegalStateException("There is no this pending art for current user: " + authentication.getName());
         }
 
@@ -128,7 +132,7 @@ public class ReviewService {
         }
 
         Review review = new Review(
-                form.getArtType(),
+                request.getType(),
                 form.isReview(),
                 request.getId(),
                 request.getName(),
@@ -149,6 +153,8 @@ public class ReviewService {
                 reviewCriterion.setWeight(dto.getWeight());
             });
         }
+        review.setTitle(title);
+        review.setBody(body);
         review.setValue(countScore(review));
         review.setStatus(ReviewStatusEnum.PENDING);
         review.setPhotoUrl(photoUrl);

@@ -108,6 +108,8 @@ public class AdminService {
                 buildArtRequestStatusBody(request),
                 null
         );
+
+        reviewRepository.deleteAllByArtRequestId(request.getId());
         return newArtRequestRepository.save(request);
     }
 
@@ -120,9 +122,6 @@ public class AdminService {
         List<Review> reviews = reviewRepository.findAllByArtRequestId(artRequestId);
         for (Review review : reviews) {
             review.setArtwork(artwork);
-            review.setTitle(artwork.getName());
-            review.setArtAuthor(artwork.getAuthor());
-            review.setArtDescription(artwork.getDescription());
         }
         return reviews;
     }
