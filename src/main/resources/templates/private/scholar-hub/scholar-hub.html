@@ -321,7 +321,8 @@
                         <label class="grade-form__card-head" for="subject-grade-value">
                             <span class="grade-form__label">Grade</span>
                         </label>
-                        <input class="grade-form__hero-input" id="subject-grade-value" type="text" inputmode="decimal" placeholder="5" />
+                        <input class="grade-form__hero-input" id="subject-grade-value" type="text" inputmode="decimal" placeholder="5" aria-describedby="subject-grade-feedback" />
+                        <p class="grade-form__message hidden" id="subject-grade-feedback" aria-live="polite"></p>
                         <div class="grade-form__card-footer">
                         <label class="grade-form__system" for="subject-grade-system">
                             <span class="grade-form__label">Grading system</span>

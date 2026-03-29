@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const defaultGradeReason = "Exam";
     const gradePreferencesStorageKey = "scholarHub.gradePreferences";
     const userSettingsStorageKey = "isc.userSettingsCache";
+    const letterGradeValues = new Set(["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"]);
 
     const homeworkModal        = document.getElementById("homework-modal");
     const homeworkTitleInput   = document.getElementById("homework-title");
@@ -82,6 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const subjectGradeDescriptionInput = document.getElementById("subject-grade-description");
     const subjectGradeReasonInput = document.getElementById("subject-grade-reason");
     const subjectGradeSaveButton = document.getElementById("subject-grade-save");
+    const subjectGradeValueCard = subjectGradeValueInput?.closest(".grade-form__card--value") || null;
+    const subjectGradeFeedback = document.getElementById("subject-grade-feedback");
     const subjectSideModal     = document.getElementById("subject-modal-side");
     const subjectSideTrigger   = document.querySelector("[data-open-subject-side-modal]");
     const subjectUpcomingLayer = document.getElementById("subject-modal-upcoming-layer");
@@ -683,6 +686,145 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function getGradeValidationMessage(system) {
+        switch (normalizeGradeSystem(system)) {
+            case "Percentage_Grading":
+                return "Enter a number from 0 to 100.";
+            case "GPA_4_Point_Scale":
+                return "Enter a number from 0 to 4.";
+            case "Numeric_Grading_1_to_12":
+                return "Enter a number from 1 to 12.";
+            case "Numeric_Grading_1_to_10":
+                return "Enter a number from 1 to 10.";
+            case "Numeric_Grading_1_to_20":
+                return "Enter a number from 1 to 20.";
+            case "Numeric_Grading_5_to_1":
+                return "Enter a number from 1 to 5.";
+            case "Numeric_Grading_6_to_1":
+                return "Enter a number from 1 to 6.";
+            case "Pass_Fail":
+                return "Use Pass or Fail.";
+            case "Letter_Grading":
+                return "Use A+, A, A-, B+, B, B-, C+, C, C-, D+, D, D-, or F.";
+            case "Numeric_Grading_1_to_5":
+            default:
+                return "Enter a number from 1 to 5.";
+        }
+    }
+
+    function normalizeGradeInputValue(system, value) {
+        const trimmedValue = String(value || "").trim();
+        if (!trimmedValue) return "";
+
+        const upperValue = trimmedValue.toUpperCase();
+        switch (normalizeGradeSystem(system)) {
+            case "Letter_Grading":
+                return upperValue
+                    .replace(/\u0410/g, "A")
+                    .replace(/\u0412/g, "B")
+                    .replace(/\u0421/g, "C");
+            case "Pass_Fail":
+                return upperValue;
+            default:
+                return upperValue.replace(",", ".");
+        }
+    }
+
+    function validateGradeValue(system, value) {
+        const normalizedSystem = normalizeGradeSystem(system);
+        const normalizedValue = normalizeGradeInputValue(normalizedSystem, value);
+
+        if (!normalizedValue) {
+            return { valid: false, normalizedValue, message: "Enter a grade value." };
+        }
+
+        if (normalizedSystem === "Letter_Grading") {
+            return letterGradeValues.has(normalizedValue)
+                ? { valid: true, normalizedValue, message: "" }
+                : { valid: false, normalizedValue, message: getGradeValidationMessage(normalizedSystem) };
+        }
+
+        if (normalizedSystem === "Pass_Fail") {
+            return normalizedValue === "PASS" || normalizedValue === "FAIL"
+                ? { valid: true, normalizedValue, message: "" }
+                : { valid: false, normalizedValue, message: getGradeValidationMessage(normalizedSystem) };
+        }
+
+        const numericValue = Number(normalizedValue);
+        if (!Number.isFinite(numericValue)) {
+            return { valid: false, normalizedValue, message: getGradeValidationMessage(normalizedSystem) };
+        }
+
+        let min = 1;
+        let max = 5;
+        switch (normalizedSystem) {
+            case "Percentage_Grading":
+                min = 0;
+                max = 100;
+                break;
+            case "GPA_4_Point_Scale":
+                min = 0;
+                max = 4;
+                break;
+            case "Numeric_Grading_1_to_12":
+                max = 12;
+                break;
+            case "Numeric_Grading_1_to_10":
+                max = 10;
+                break;
+            case "Numeric_Grading_1_to_20":
+                max = 20;
+                break;
+            case "Numeric_Grading_6_to_1":
+                max = 6;
+                break;
+            case "Numeric_Grading_5_to_1":
+            case "Numeric_Grading_1_to_5":
+            default:
+                max = 5;
+                break;
+        }
+
+        return numericValue < min || numericValue > max
+            ? { valid: false, normalizedValue, message: getGradeValidationMessage(normalizedSystem) }
+            : { valid: true, normalizedValue, message: "" };
+    }
+
+    function setSubjectGradeValidationMessage(message = "") {
+        const hasMessage = Boolean(message);
+        subjectGradeValueCard?.classList.toggle("is-invalid", hasMessage);
+        if (subjectGradeValueInput) {
+            subjectGradeValueInput.setAttribute("aria-invalid", hasMessage ? "true" : "false");
+        }
+        if (subjectGradeFeedback) {
+            subjectGradeFeedback.textContent = hasMessage ? message : "";
+            subjectGradeFeedback.classList.toggle("hidden", !hasMessage);
+        }
+    }
+
+    function validateActiveSubjectGradeInput(options = {}) {
+        const shouldApplyUi = options.applyUi === true;
+        const shouldNormalizeInput = options.normalizeInput === true;
+
+        if (!subjectGradeSystemInput || !subjectGradeValueInput) {
+            return { valid: true, normalizedValue: "", message: "" };
+        }
+
+        const result = validateGradeValue(
+            subjectGradeSystemInput.value || getPreferredGradeSystem(),
+            subjectGradeValueInput.value
+        );
+
+        if (shouldApplyUi) {
+            setSubjectGradeValidationMessage(result.valid ? "" : result.message);
+        }
+        if (result.valid && shouldNormalizeInput) {
+            subjectGradeValueInput.value = result.normalizedValue;
+        }
+
+        return result;
+    }
+
     function syncGradeValueInput() {
         if (!subjectGradeValueInput || !subjectGradeSystemInput) return;
         const system = subjectGradeSystemInput.value || getPreferredGradeSystem();
@@ -1006,6 +1148,7 @@ document.addEventListener("DOMContentLoaded", () => {
             subjectGradeDeleteButton.classList.add("hidden");
             subjectGradeDeleteButton.disabled = false;
         }
+        setSubjectGradeValidationMessage("");
         syncGradeValueInput();
     }
 
@@ -1977,9 +2120,16 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("error", "Grade context is missing.");
             return;
         }
-        if (!payload.value) {
-            showToast("error", "Grade value is required.");
+        const gradeValidation = validateGradeValue(payload.system, payload.value);
+        if (!gradeValidation.valid) {
+            setSubjectGradeValidationMessage(gradeValidation.message);
+            subjectGradeValueInput?.focus();
             return;
+        }
+        payload.value = gradeValidation.normalizedValue;
+        setSubjectGradeValidationMessage("");
+        if (subjectGradeValueInput) {
+            subjectGradeValueInput.value = gradeValidation.normalizedValue;
         }
 
         try {
@@ -3067,7 +3217,32 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     if (subjectGradeSystemInput) {
-        subjectGradeSystemInput.addEventListener("change", syncGradeValueInput);
+        subjectGradeSystemInput.addEventListener("change", () => {
+            syncGradeValueInput();
+            if (!String(subjectGradeValueInput?.value || "").trim()) {
+                setSubjectGradeValidationMessage("");
+                return;
+            }
+            validateActiveSubjectGradeInput({ applyUi: true });
+        });
+    }
+    if (subjectGradeValueInput) {
+        subjectGradeValueInput.addEventListener("input", () => {
+            if (!String(subjectGradeValueInput.value || "").trim()) {
+                setSubjectGradeValidationMessage("");
+                return;
+            }
+            if (subjectGradeValueCard?.classList.contains("is-invalid")) {
+                validateActiveSubjectGradeInput({ applyUi: true });
+            }
+        });
+        subjectGradeValueInput.addEventListener("blur", () => {
+            if (!String(subjectGradeValueInput.value || "").trim()) {
+                setSubjectGradeValidationMessage("");
+                return;
+            }
+            validateActiveSubjectGradeInput({ applyUi: true });
+        });
     }
     if (subjectHomeworkDetailSaveButton) {
         subjectHomeworkDetailSaveButton.addEventListener("click", () => { void saveSubjectHomeworkDetail(); });
