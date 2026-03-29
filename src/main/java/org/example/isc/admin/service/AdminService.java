@@ -6,17 +6,22 @@ import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.NewReviewDTO;
 import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.NewArtRequest;
+import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
+import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AdminService {
@@ -25,12 +30,14 @@ public class AdminService {
     private final NewArtRequestRepository newArtRequestRepository;
     private final ArtworkRepository artworkRepository;
     private final NotificationService notificationService;
+    private final ReviewRepository reviewRepository;
 
-    public AdminService(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, ArtworkRepository artworkRepository, NotificationService notificationService) {
+    public AdminService(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, ArtworkRepository artworkRepository, NotificationService notificationService, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.newArtRequestRepository = newArtRequestRepository;
         this.artworkRepository = artworkRepository;
         this.notificationService = notificationService;
+        this.reviewRepository = reviewRepository;
     }
 
     @Transactional
@@ -65,11 +72,13 @@ public class AdminService {
                 NotificationEnum.ART_REQUEST_STATUS,
                 requester,
                 admin,
-                "Status of your art request has changed",
+                "Status of your art request has been changed",
                 buildArtRequestStatusBody(request),
                 artwork.getId() != null ? artwork.getId().toString() : null
         );
 
+
+        acceptReviewsForPendingArt(request.getId(), request.getApprovedArtworkId());
         return newArtRequestRepository.save(request);
     }
 
@@ -100,6 +109,22 @@ public class AdminService {
                 null
         );
         return newArtRequestRepository.save(request);
+    }
+
+    public List<Review> acceptReviewsForPendingArt(
+        Long artRequestId,
+        Long acceptedArtId
+    ){
+        Artwork artwork = artworkRepository.findById(acceptedArtId)
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + acceptedArtId));
+        List<Review> reviews = reviewRepository.findAllByArtRequestId(artRequestId);
+        for (Review review : reviews) {
+            review.setArtwork(artwork);
+            review.setTitle(artwork.getName());
+            review.setArtAuthor(artwork.getAuthor());
+            review.setArtDescription(artwork.getDescription());
+        }
+        return reviews;
     }
 
     private String buildArtRequestStatusBody(NewArtRequest request) {
