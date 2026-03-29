@@ -88,9 +88,10 @@
         <button th:if="${displayCover != null}"
                 class="review-cover review-cover--trigger"
                 id="review-cover-open"
+                data-cover-frame
                 type="button"
                 aria-label="Open cover full size">
-            <img th:src="${displayCover}" th:alt="${displayName}" alt="Cover" />
+            <img th:src="${displayCover}" th:alt="${displayName}" data-cover-image alt="Cover" />
         </button>
         <div th:if="${displayCover == null}" class="review-cover">
             <div class="review-cover__placeholder">
@@ -201,6 +202,7 @@
     </figure>
 </div>
 
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 <script>
     (function () {

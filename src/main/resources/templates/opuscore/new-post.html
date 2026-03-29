@@ -114,7 +114,7 @@
 
                 <section class="review-editor" id="review-editor" hidden>
                     <section class="review-preview glass-panel">
-                        <div class="review-preview__cover" id="review-preview-cover">ART</div>
+                        <div class="review-preview__cover" id="review-preview-cover" data-cover-frame>ART</div>
                         <div class="review-preview__copy">
                             <div class="review-preview__topline">
                                 <span class="review-preview__type" id="review-preview-type">ART</span>
@@ -187,6 +187,7 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script>
     (function () {
         const reviewToggle = document.getElementById('review');
@@ -504,8 +505,11 @@
 
         function renderPreview(art) {
             previewCover.innerHTML = art.coverUrl
-                ? '<img src="' + art.coverUrl + '" alt="">'
+                ? '<img src="' + art.coverUrl + '" data-cover-image alt="">'
                 : '<span>' + initialsFor(art) + '</span>';
+            if (window.__opuscoreApplyCoverFrame) {
+                window.__opuscoreApplyCoverFrame(previewCover);
+            }
             previewName.textContent = art.name;
             previewAuthor.textContent = art.author;
             previewType.textContent = displayArtType(art.type) || 'ART';
@@ -580,9 +584,13 @@
 
             const cover = document.createElement('span');
             cover.className = 'review-search-result__cover';
+            cover.setAttribute('data-cover-frame', '');
             cover.innerHTML = normalizedArt.coverUrl
-                ? '<img src="' + normalizedArt.coverUrl + '" alt="">'
+                ? '<img src="' + normalizedArt.coverUrl + '" data-cover-image alt="">'
                 : '<span>' + initialsFor(normalizedArt) + '</span>';
+            if (window.__opuscoreApplyCoverFrame) {
+                window.__opuscoreApplyCoverFrame(cover);
+            }
 
             const copy = document.createElement('span');
             copy.className = 'review-search-result__copy';

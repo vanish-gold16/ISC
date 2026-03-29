@@ -85,7 +85,7 @@
 
         #cover-cropper-canvas {
             width: min(100%, 320px) !important;
-            aspect-ratio: 3 / 4.4 !important;
+            aspect-ratio: var(--cover-cropper-aspect, 3 / 4.4) !important;
             display: block !important;
         }
     </style>
@@ -143,7 +143,7 @@
                 <div class="form-grid">
                     <div class="cover-column">
                         <label class="cover-label">Cover</label>
-                        <div class="cover-uploader" id="cover-uploader">
+                        <div class="cover-uploader" id="cover-uploader" data-cover-frame>
                             <input id="image" class="cover-input" type="file" accept="image/*" aria-label="Upload cover" />
                             <button class="cover-drop" id="cover-drop" type="button" aria-label="Upload cover">
                                 <span class="cover-drop__inner">
@@ -153,13 +153,13 @@
                                 </span>
                             </button>
                             <div class="cover-preview" id="cover-preview" hidden>
-                                <img id="cover-preview-img" alt="Cover preview" />
+                                <img id="cover-preview-img" data-cover-image alt="Cover preview" />
                                 <button class="cover-remove" type="button" id="cover-remove" aria-label="Remove cover">
                                     <img src="/images/private/icons/delete.png" alt="" />
                                 </button>
                             </div>
                         </div>
-                        <p class="field__hint" id="cover-hint">Vertical cover preferred. Max 5 MB.</p>
+                        <p class="field__hint" id="cover-hint">Original or square cover. Max 5 MB.</p>
                     </div>
 
                     <div class="fields-column">
@@ -207,6 +207,7 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('new-review')}"></aside>
 </main>
 
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <div class="cover-modal" id="cover-modal" hidden aria-hidden="true">
     <div class="cover-modal__backdrop" data-cover-modal-close></div>
     <div class="cover-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="cover-modal-title">
@@ -223,6 +224,10 @@
         </div>
 
         <div class="cover-modal__controls">
+            <div class="cover-modal__mode-group" role="group" aria-label="Cover aspect ratio">
+                <button class="cover-modal__mode-button is-active" type="button" data-cover-mode="original">Original</button>
+                <button class="cover-modal__mode-button" type="button" data-cover-mode="square">Square</button>
+            </div>
             <div class="cover-modal__scale-row">
                 <span class="cover-modal__scale-label">Scale</span>
                 <span class="cover-modal__scale-value" id="cover-modal-zoom-value">100%</span>
@@ -255,10 +260,10 @@
         const modalZoomInput = document.getElementById('cover-modal-zoom-input');
         const modalZoomValue = document.getElementById('cover-modal-zoom-value');
         const modalApply = document.getElementById('cover-modal-apply');
+        const modeButtons = Array.from(document.querySelectorAll('[data-cover-mode]'));
         const modalCloseButtons = document.querySelectorAll('[data-cover-modal-close]');
-        const defaultHint = 'Vertical cover preferred. Max 5 MB.';
-        const outputWidth = 720;
-        const outputHeight = 1056;
+        const defaultHint = 'Original or square cover. Max 5 MB.';
+        const squareOutputSize = 960;
         const optimizedCoverMaxBytes = 700000;
         const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
         let appliedPreviewUrl = '';
@@ -274,9 +279,6 @@
         let dragStart = { x: 0, y: 0 };
 
         if (!form || !input || !drop || !preview || !previewImg || !remove || !uploadedImageUrlField || !modal || !cropperCanvas || !cropperContext || !modalZoomInput || !modalZoomValue || !modalApply) return;
-
-        cropperCanvas.width = outputWidth;
-        cropperCanvas.height = outputHeight;
 
         function setHint(text, isError) {
             if (!hint) return;
@@ -343,6 +345,7 @@
             drop.hidden = false;
             previewImg.src = '';
             uploader.classList.remove('has-preview');
+            uploader.style.removeProperty('--cover-frame-aspect');
             uploadedImageUrlField.value = '';
             input.value = '';
             syncInputFile(null);
@@ -373,15 +376,21 @@
             isDragging = false;
             modalZoomInput.value = '1';
             modalZoomValue.textContent = '100%';
+            setActiveCropMode('original');
         }
 
-        function showAppliedPreview(url) {
+        function showAppliedPreview(url, aspectRatio) {
             clearAppliedPreviewUrl();
             appliedPreviewUrl = url;
             previewImg.src = url;
             preview.hidden = false;
             drop.hidden = true;
             uploader.classList.add('has-preview');
+            if (aspectRatio) {
+                uploader.style.setProperty('--cover-frame-aspect', aspectRatio);
+            } else if (window.__opuscoreApplyCoverFrame) {
+                window.__opuscoreApplyCoverFrame(uploader);
+            }
         }
 
         function uploadCoverInBackground(file) {
@@ -415,7 +424,7 @@
                     }
 
                     uploadedImageUrlField.value = uploadedUrl;
-                    showAppliedPreview(uploadedUrl);
+                    showAppliedPreview(uploadedUrl, uploader.style.getPropertyValue('--cover-frame-aspect'));
                     setHint('Cover uploaded.', false);
                     return uploadedUrl;
                 })
@@ -437,6 +446,58 @@
 
             coverUploadState.promise = uploadPromise;
             return uploadPromise;
+        }
+
+        function setActiveCropMode(mode) {
+            modeButtons.forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.coverMode === mode);
+            });
+        }
+
+        function getCanvasSize(mode, image) {
+            if (!image) {
+                return { width: 720, height: 1056 };
+            }
+
+            if (mode === 'square') {
+                return { width: squareOutputSize, height: squareOutputSize };
+            }
+
+            if (!image.width || !image.height) {
+                return { width: 720, height: 1056 };
+            }
+            return {
+                width: Math.max(1, image.width),
+                height: Math.max(1, image.height)
+            };
+        }
+
+        function applyCropMode(mode, resetView) {
+            if (!cropperImage || !cropperState) return;
+
+            const nextMode = mode === 'square' ? 'square' : 'original';
+            const canvasSize = getCanvasSize(nextMode, cropperImage);
+
+            cropperCanvas.width = canvasSize.width;
+            cropperCanvas.height = canvasSize.height;
+            cropperCanvas.style.setProperty('--cover-cropper-aspect', canvasSize.width + ' / ' + canvasSize.height);
+
+            cropperState.mode = nextMode;
+            cropperState.baseScale = Math.max(
+                cropperCanvas.width / cropperImage.width,
+                cropperCanvas.height / cropperImage.height
+            );
+
+            if (resetView) {
+                cropperState.zoom = 1;
+                cropperState.offsetX = 0;
+                cropperState.offsetY = 0;
+                modalZoomInput.value = '1';
+                modalZoomValue.textContent = '100%';
+            }
+
+            setActiveCropMode(nextMode);
+            drawCropper();
         }
 
         function clampOffsets(scale) {
@@ -472,22 +533,16 @@
             revokeCropperObjectUrl();
             cropperImage = new Image();
             cropperImage.onload = () => {
-                const baseScale = Math.max(
-                    cropperCanvas.width / cropperImage.width,
-                    cropperCanvas.height / cropperImage.height
-                );
-
                 cropperState = {
                     file,
-                    baseScale,
+                    baseScale: 1,
+                    mode: 'original',
                     zoom: 1,
                     offsetX: 0,
                     offsetY: 0
                 };
 
-                modalZoomInput.value = '1';
-                modalZoomValue.textContent = '100%';
-                drawCropper();
+                applyCropMode('original', true);
                 showCropper();
                 revokeCropperObjectUrl();
             };
@@ -572,6 +627,13 @@
             drawCropper();
         });
 
+        modeButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                if (!cropperState) return;
+                applyCropMode(button.dataset.coverMode, true);
+            });
+        });
+
         modalApply.addEventListener('click', async () => {
             if (!cropperState) {
                 hideCropper();
@@ -594,10 +656,11 @@
                 lastModified: Date.now()
             });
             const localPreviewUrl = URL.createObjectURL(optimizedFile);
+            const aspectRatio = cropperCanvas.width + ' / ' + cropperCanvas.height;
 
             input.value = '';
             syncInputFile(null);
-            showAppliedPreview(localPreviewUrl);
+            showAppliedPreview(localPreviewUrl, aspectRatio);
             setHint('Cover selected. Uploading in background...', false);
             hideCropper();
             modalApply.disabled = false;
@@ -610,7 +673,7 @@
                 input.value = '';
                 syncInputFile(null);
                 if (hasUploadedCover()) {
-                    showAppliedPreview(uploadedImageUrlField.value);
+                    showAppliedPreview(uploadedImageUrlField.value, uploader.style.getPropertyValue('--cover-frame-aspect'));
                     setHint('Cover uploaded.', false);
                 } else if (restoreAppliedPreview()) {
                     setHint(coverUploadState.pending ? 'Cover selected. Uploading in background...' : defaultHint, false);
@@ -653,7 +716,7 @@
                 input.value = '';
                 syncInputFile(null);
                 if (hasUploadedCover()) {
-                    showAppliedPreview(uploadedImageUrlField.value);
+                    showAppliedPreview(uploadedImageUrlField.value, uploader.style.getPropertyValue('--cover-frame-aspect'));
                     setHint('Cover uploaded.', false);
                 } else if (restoreAppliedPreview()) {
                     setHint(coverUploadState.pending ? 'Cover selected. Uploading in background...' : defaultHint, false);

@@ -72,8 +72,8 @@
     <section class="page-content">
         <section class="art-page-shell" th:classappend="${pendingState} ? ' is-pending' : ''">
             <section class="art-hero glass-panel art-content-block">
-                <div class="art-hero__cover">
-                    <img th:if="${displayCover != null}" th:src="${displayCover}" alt="" />
+                <div class="art-hero__cover" data-cover-frame>
+                    <img th:if="${displayCover != null}" th:src="${displayCover}" data-cover-image alt="" />
                     <div class="art-hero__cover-fallback" th:if="${displayCover == null}">
                         <span th:text="${displayType}">ART</span>
                     </div>
@@ -184,6 +184,7 @@
 
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('art-page')}"></aside>
 </main>
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script>
     (function () {
         const links = document.querySelectorAll('[data-review-launch="true"]');

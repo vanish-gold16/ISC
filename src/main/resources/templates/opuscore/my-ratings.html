@@ -74,8 +74,8 @@
                th:each="rating : ${ratings}"
                th:href="@{/opuscore/{id}(id=${rating.id})}"
                href="/opuscore/1">
-                <div class="oc-rating-card__cover">
-                    <img th:if="${rating.displayPhotoUrl != null}" th:src="${rating.displayPhotoUrl}" alt="" />
+                <div class="oc-rating-card__cover" data-cover-frame>
+                    <img th:if="${rating.displayPhotoUrl != null}" th:src="${rating.displayPhotoUrl}" data-cover-image alt="" />
                     <div class="oc-rating-card__cover-fallback" th:if="${rating.displayPhotoUrl == null}">
                         <span th:text="${rating.type != null ? rating.type : 'ART'}">ART</span>
                     </div>
@@ -109,6 +109,7 @@
 
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('my-ratings')}"></aside>
 </main>
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
 </body>
 </html>
