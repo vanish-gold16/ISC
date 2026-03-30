@@ -36,6 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const defaultGradeReason = "Exam";
     const gradePreferencesStorageKey = "scholarHub.gradePreferences";
     const userSettingsStorageKey = "isc.userSettingsCache";
+    const lessonTimeKeys = [
+        "firstLesson",
+        "secondLesson",
+        "thirdLesson",
+        "fourthLesson",
+        "fifthLesson",
+        "sixthLesson",
+        "seventhLesson",
+        "eighthLesson"
+    ];
     const letterGradeValues = new Set(["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"]);
 
     const homeworkModal        = document.getElementById("homework-modal");
@@ -392,10 +402,29 @@ document.addEventListener("DOMContentLoaded", () => {
         return supportedGradeSystems.includes(system) ? system : defaultGradeSystem;
     }
 
+    function normalizeLessonTimeValue(value) {
+        const normalized = String(value || "").trim();
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(normalized) ? normalized : "";
+    }
+
+    function normalizeLessonTimes(rawLessonTimes) {
+        const normalized = {};
+        const source = rawLessonTimes && typeof rawLessonTimes === "object" ? rawLessonTimes : {};
+        lessonTimeKeys.forEach((key) => {
+            const value = normalizeLessonTimeValue(source[key]);
+            if (value) {
+                normalized[key] = value;
+            }
+        });
+        return normalized;
+    }
+
     function defaultUserSettings() {
         return {
             scholarHub: {
-                preferredGradeSystem: defaultGradeSystem
+                preferredGradeSystem: defaultGradeSystem,
+                startOfEachLesson: {},
+                endOfEachLesson: {}
             },
             appearance: {
                 theme: "system",
@@ -415,7 +444,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return {
             scholarHub: {
-                preferredGradeSystem: normalizeGradeSystem(source?.scholarHub?.preferredGradeSystem)
+                preferredGradeSystem: normalizeGradeSystem(source?.scholarHub?.preferredGradeSystem),
+                startOfEachLesson: normalizeLessonTimes(source?.scholarHub?.startOfEachLesson),
+                endOfEachLesson: normalizeLessonTimes(source?.scholarHub?.endOfEachLesson)
             },
             appearance: {
                 theme: ["system", "light", "dark"].includes(source?.appearance?.theme)
@@ -503,12 +534,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function getLessonTimeForOrder(settings, lessonOrder) {
+        const numericOrder = Number(lessonOrder);
+        const key = Number.isFinite(numericOrder) ? lessonTimeKeys[numericOrder - 1] : null;
+        if (!key) {
+            return "";
+        }
+        const start = normalizeLessonTimeValue(settings?.scholarHub?.startOfEachLesson?.[key]);
+        const end = normalizeLessonTimeValue(settings?.scholarHub?.endOfEachLesson?.[key]);
+        if (start && end) {
+            return `${start} - ${end}`;
+        }
+        return start || end;
+    }
+
+    function applyLessonTimesToTimetable(settings) {
+        document.querySelectorAll("[data-axis-lesson-order]").forEach((cell) => {
+            const lessonTime = getLessonTimeForOrder(settings, cell.dataset.axisLessonOrder);
+            const timeNode = cell.querySelector("[data-axis-lesson-time]");
+            if (!timeNode) return;
+            timeNode.textContent = lessonTime;
+            timeNode.classList.toggle("hidden", !lessonTime);
+        });
+    }
+
     async function loadUserSettings() {
         if (userSettingsLoadPromise) return userSettingsLoadPromise;
 
         const cached = readCachedUserSettings();
         if (cached) {
             setPreferredGradeSystem(cached.scholarHub.preferredGradeSystem);
+            applyLessonTimesToTimetable(cached);
         }
 
         userSettingsLoadPromise = requestJson("/api/settings/me", { method: "GET" })
@@ -516,11 +572,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const normalized = normalizeUserSettings(response);
                 writeCachedUserSettings(normalized);
                 setPreferredGradeSystem(normalized.scholarHub.preferredGradeSystem);
+                applyLessonTimesToTimetable(normalized);
                 return normalized;
             })
             .catch((error) => {
                 console.error(error);
-                return readCachedUserSettings() || defaultUserSettings();
+                const fallback = readCachedUserSettings() || defaultUserSettings();
+                applyLessonTimesToTimetable(fallback);
+                return fallback;
             })
             .finally(() => {
                 userSettingsLoadPromise = null;
@@ -3304,6 +3363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const nextSettings = normalizeUserSettings(event.detail);
         writeCachedUserSettings(nextSettings);
         const preferredSystem = setPreferredGradeSystem(nextSettings.scholarHub.preferredGradeSystem);
+        applyLessonTimesToTimetable(nextSettings);
         syncPreferredGradeSystemInputs(preferredSystem);
         if (!activeHomeworkDetailEntry?.homework?.gradeId && subjectHomeworkDetailGradeSystemInput) {
             subjectHomeworkDetailGradeSystemInput.value = preferredSystem;
@@ -3315,6 +3375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     void loadUserSettings().then((settings) => {
         const preferredSystem = setPreferredGradeSystem(settings.scholarHub.preferredGradeSystem);
+        applyLessonTimesToTimetable(settings);
         syncPreferredGradeSystemInputs(preferredSystem);
         if (gradesLoaded) {
             renderSubjectGradesWidget();

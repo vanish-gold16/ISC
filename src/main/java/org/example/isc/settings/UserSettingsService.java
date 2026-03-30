@@ -8,12 +8,18 @@ import org.example.isc.settings.dto.AppearanceSettingsDTO;
 import org.example.isc.settings.dto.NotificationSettingsDTO;
 import org.example.isc.settings.dto.ScholarHubSettingsDTO;
 import org.example.isc.settings.dto.UserSettingsDTO;
+import org.example.isc.settings.enums.LessonEnum;
 import org.example.isc.settings.repository.UserSettingsRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 public class UserSettingsService {
+    private static final Pattern LESSON_TIME_PATTERN = Pattern.compile("^([01]\\d|2[0-3]):[0-5]\\d$");
 
     private final UserSettingsRepository userSettingsRepository;
     private final ObjectMapper objectMapper;
@@ -67,9 +73,15 @@ public class UserSettingsService {
         UserSettingsDTO normalized = dto != null ? dto : new UserSettingsDTO();
 
         ScholarHubSettingsDTO scholarHub = normalized.getScholarHub();
-        if (scholarHub == null || scholarHub.getPreferredGradeSystem() == null) {
-            normalized.setScholarHub(defaults.getScholarHub());
+        if (scholarHub == null) {
+            scholarHub = new ScholarHubSettingsDTO();
         }
+        if (scholarHub.getPreferredGradeSystem() == null) {
+            scholarHub.setPreferredGradeSystem(defaults.getScholarHub().getPreferredGradeSystem());
+        }
+        scholarHub.setStartOfEachLesson(normalizeLessonTimes(scholarHub.getStartOfEachLesson()));
+        scholarHub.setEndOfEachLesson(normalizeLessonTimes(scholarHub.getEndOfEachLesson()));
+        normalized.setScholarHub(scholarHub);
 
         AppearanceSettingsDTO appearance = normalized.getAppearance();
         if (appearance == null) {
@@ -96,6 +108,32 @@ public class UserSettingsService {
                 new AppearanceSettingsDTO("system", false, "comfortable"),
                 new NotificationSettingsDTO(true, true)
         );
+    }
+
+    private Map<LessonEnum, String> normalizeLessonTimes(Map<LessonEnum, String> rawLessonTimes) {
+        Map<LessonEnum, String> normalized = new EnumMap<>(LessonEnum.class);
+        if (rawLessonTimes == null) {
+            return normalized;
+        }
+
+        for (Map.Entry<LessonEnum, String> entry : rawLessonTimes.entrySet()) {
+            LessonEnum key = entry.getKey();
+            String value = normalizeLessonTime(entry.getValue());
+            if (key != null && value != null) {
+                normalized.put(key, value);
+            }
+        }
+
+        return normalized;
+    }
+
+    private String normalizeLessonTime(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value.trim();
+        return LESSON_TIME_PATTERN.matcher(normalized).matches() ? normalized : null;
     }
 
     private String writeSettingsJson(UserSettingsDTO dto) {

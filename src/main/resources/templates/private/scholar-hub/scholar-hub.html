@@ -55,14 +55,14 @@
                             <div class="schedule-axis schedule-axis--preview" aria-hidden="true">
                                 <div class="schedule-axis__spacer"></div>
                                 <div class="schedule-axis__track">
-                                    <span class="schedule-axis__cell">1</span>
-                                    <span class="schedule-axis__cell">2</span>
-                                    <span class="schedule-axis__cell">3</span>
-                                    <span class="schedule-axis__cell">4</span>
-                                    <span class="schedule-axis__cell">5</span>
-                                    <span class="schedule-axis__cell">6</span>
-                                    <span class="schedule-axis__cell">7</span>
-                                    <span class="schedule-axis__cell">8</span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="1"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">1</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="2"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">2</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="3"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">3</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="4"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">4</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="5"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">5</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="6"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">6</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="7"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">7</span></span>
+                                    <span class="schedule-axis__cell" data-axis-lesson-order="8"><span class="schedule-axis__time hidden" data-axis-lesson-time></span><span class="schedule-axis__number">8</span></span>
                                 </div>
                             </div>
                             <article class="hub-timetable__day-row" th:each="day : ${schedule.days}" th:attr="data-day-key=${day.key}">
@@ -80,11 +80,9 @@
 
                                         <div class="hub-timetable__cell hub-timetable__cell--filled"
                                              th:if="${!lesson.empty}"
-                                             th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}"
-                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-day-subject-id=${lesson.daySubjectId},data-subject-id=${lesson.subjectId},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName},data-subject-room=${lesson.room},data-subject-teacher=${lesson.teacherName}">
+                                            th:style="${lesson.color != null ? '--preview-accent:' + lesson.color : ''}"
+                                             th:attr="data-day-key=${day.key},data-lesson-order=${lesson.lessonOrder},data-day-subject-id=${lesson.daySubjectId},data-subject-id=${lesson.subjectId},data-subject-name=${lesson.subjectName},data-subject-short-name=${lesson.shortName != null ? lesson.shortName : lesson.subjectName},data-subject-room=${lesson.room},data-subject-teacher=${lesson.teacherName},data-lesson-time=${lesson.lessonTime}">
                                             <div class="hub-timetable__cell-top">
-                                                <span class="hub-timetable__order"
-                                                      th:text="${lesson.lessonOrder != null ? '#' + lesson.lessonOrder : '#'}">#1</span>
                                                 <div class="hub-timetable__cell-meta">
                                                     <span class="hub-timetable__room"
                                                           th:text="${lesson.room != null ? lesson.room : 'Room'}">Room</span>

@@ -19,6 +19,16 @@
         "GPA_4_Point_Scale",
         "Pass_Fail"
     ];
+    const lessonTimeKeys = [
+        "firstLesson",
+        "secondLesson",
+        "thirdLesson",
+        "fourthLesson",
+        "fifthLesson",
+        "sixthLesson",
+        "seventhLesson",
+        "eighthLesson"
+    ];
 
     const sectionButtons = Array.from(settingsModal.querySelectorAll("[data-settings-section-target]"));
     const panes = Array.from(settingsModal.querySelectorAll("[data-settings-pane]"));
@@ -28,6 +38,8 @@
     const resetButton = document.getElementById("header-settings-reset");
     const saveButton = document.getElementById("header-settings-save");
     const scholarHubGradeSystem = document.getElementById("settings-scholarhub-grade-system");
+    const scholarHubLessonStartInputs = Array.from(settingsModal.querySelectorAll("[data-settings-lesson-start]"));
+    const scholarHubLessonEndInputs = Array.from(settingsModal.querySelectorAll("[data-settings-lesson-end]"));
     const appearanceTheme = document.getElementById("settings-appearance-theme");
     const appearanceDensity = document.getElementById("settings-appearance-density");
     const appearanceReduceMotion = document.getElementById("settings-appearance-reduce-motion");
@@ -43,7 +55,9 @@
     function defaultSettings() {
         return {
             scholarHub: {
-                preferredGradeSystem: "Numeric_Grading_1_to_5"
+                preferredGradeSystem: "Numeric_Grading_1_to_5",
+                startOfEachLesson: {},
+                endOfEachLesson: {}
             },
             appearance: {
                 theme: "system",
@@ -61,6 +75,23 @@
         return JSON.parse(JSON.stringify(settings));
     }
 
+    function normalizeLessonTime(value) {
+        const normalized = String(value || "").trim();
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(normalized) ? normalized : "";
+    }
+
+    function collectLessonTimes(source) {
+        const lessonTimes = {};
+        const raw = source && typeof source === "object" ? source : {};
+        lessonTimeKeys.forEach((key) => {
+            const normalized = normalizeLessonTime(raw[key]);
+            if (normalized) {
+                lessonTimes[key] = normalized;
+            }
+        });
+        return lessonTimes;
+    }
+
     function normalizeSettings(settings) {
         const defaults = defaultSettings();
         const source = settings && typeof settings === "object" ? settings : {};
@@ -70,6 +101,8 @@
         if (supportedGradeSystems.includes(preferredGradeSystem)) {
             normalized.scholarHub.preferredGradeSystem = preferredGradeSystem;
         }
+        normalized.scholarHub.startOfEachLesson = collectLessonTimes(source?.scholarHub?.startOfEachLesson);
+        normalized.scholarHub.endOfEachLesson = collectLessonTimes(source?.scholarHub?.endOfEachLesson);
 
         const theme = source?.appearance?.theme;
         if (theme === "system" || theme === "light" || theme === "dark") {
@@ -186,6 +219,14 @@
     function renderForm() {
         const normalized = normalizeSettings(draftSettings);
         scholarHubGradeSystem.value = normalized.scholarHub.preferredGradeSystem;
+        scholarHubLessonStartInputs.forEach((input) => {
+            const key = input.dataset.settingsLessonStart;
+            input.value = key ? (normalized.scholarHub.startOfEachLesson[key] || "") : "";
+        });
+        scholarHubLessonEndInputs.forEach((input) => {
+            const key = input.dataset.settingsLessonEnd;
+            input.value = key ? (normalized.scholarHub.endOfEachLesson[key] || "") : "";
+        });
         appearanceTheme.value = normalized.appearance.theme;
         appearanceDensity.value = normalized.appearance.density;
         appearanceReduceMotion.checked = normalized.appearance.reduceMotion;
@@ -197,9 +238,28 @@
     }
 
     function collectForm() {
+        const startOfEachLesson = {};
+        scholarHubLessonStartInputs.forEach((input) => {
+            const key = input.dataset.settingsLessonStart;
+            const normalized = normalizeLessonTime(input.value);
+            if (key && normalized) {
+                startOfEachLesson[key] = normalized;
+            }
+        });
+        const endOfEachLesson = {};
+        scholarHubLessonEndInputs.forEach((input) => {
+            const key = input.dataset.settingsLessonEnd;
+            const normalized = normalizeLessonTime(input.value);
+            if (key && normalized) {
+                endOfEachLesson[key] = normalized;
+            }
+        });
+
         return normalizeSettings({
             scholarHub: {
-                preferredGradeSystem: scholarHubGradeSystem.value
+                preferredGradeSystem: scholarHubGradeSystem.value,
+                startOfEachLesson,
+                endOfEachLesson
             },
             appearance: {
                 theme: appearanceTheme.value,
@@ -387,6 +447,8 @@
 
     [
         scholarHubGradeSystem,
+        ...scholarHubLessonStartInputs,
+        ...scholarHubLessonEndInputs,
         appearanceTheme,
         appearanceDensity,
         appearanceReduceMotion,

@@ -470,7 +470,24 @@
                 -webkit-appearance: none;
             }
 
+            .header-settings-modal__input {
+                width: 100%;
+                min-height: 48px;
+                border-radius: 16px;
+                border: 1px solid rgba(202, 216, 241, 0.9);
+                background: rgba(255, 255, 255, 0.78);
+                color: #10213f;
+                font: inherit;
+                padding: 0 16px;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            }
+
+            .header-settings-modal__field-grid--lesson-times {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
             .header-settings-modal__select:focus-visible,
+            .header-settings-modal__input:focus-visible,
             .header-settings-modal__toggle-input:focus-visible + .header-settings-modal__toggle-card {
                 outline: 2px solid rgba(84, 113, 179, 0.4);
                 outline-offset: 2px;
@@ -609,6 +626,10 @@
 
                 .header-settings-modal__field-grid {
                     grid-template-columns: 1fr;
+                }
+
+                .header-settings-modal__field-grid--lesson-times {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
             }
 
@@ -1068,6 +1089,82 @@
                                             <option value="GPA_4_Point_Scale">GPA 4.0</option>
                                             <option value="Pass_Fail">Pass / Fail</option>
                                         </select>
+                                    </div>
+                                    <p class="header-settings-modal__note">Lesson start and end are optional. If only one value is set, the timetable will show just that one.</p>
+                                </article>
+
+                                <article class="header-settings-modal__card">
+                                    <div class="header-settings-modal__card-head">
+                                        <h4 class="header-settings-modal__card-title">Lesson start times</h4>
+                                        <p class="header-settings-modal__card-text">These values are shown above the subject name in timetable cards as a range when both start and end are present.</p>
+                                    </div>
+                                    <div class="header-settings-modal__stack">
+                                        <div class="header-settings-modal__field-grid header-settings-modal__field-grid--lesson-times">
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-1">Lesson 1 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-1" type="time" data-settings-lesson-start="firstLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-1">Lesson 1 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-1" type="time" data-settings-lesson-end="firstLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-2">Lesson 2 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-2" type="time" data-settings-lesson-start="secondLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-2">Lesson 2 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-2" type="time" data-settings-lesson-end="secondLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-3">Lesson 3 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-3" type="time" data-settings-lesson-start="thirdLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-3">Lesson 3 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-3" type="time" data-settings-lesson-end="thirdLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-4">Lesson 4 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-4" type="time" data-settings-lesson-start="fourthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-4">Lesson 4 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-4" type="time" data-settings-lesson-end="fourthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-5">Lesson 5 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-5" type="time" data-settings-lesson-start="fifthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-5">Lesson 5 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-5" type="time" data-settings-lesson-end="fifthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-6">Lesson 6 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-6" type="time" data-settings-lesson-start="sixthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-6">Lesson 6 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-6" type="time" data-settings-lesson-end="sixthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-7">Lesson 7 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-7" type="time" data-settings-lesson-start="seventhLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-7">Lesson 7 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-7" type="time" data-settings-lesson-end="seventhLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-start-8">Lesson 8 start</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-start-8" type="time" data-settings-lesson-start="eighthLesson" />
+                                            </div>
+                                            <div class="header-settings-modal__field">
+                                                <label class="header-settings-modal__field-label" for="settings-scholarhub-lesson-end-8">Lesson 8 end</label>
+                                                <input class="header-settings-modal__input" id="settings-scholarhub-lesson-end-8" type="time" data-settings-lesson-end="eighthLesson" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </article>
                             </div>

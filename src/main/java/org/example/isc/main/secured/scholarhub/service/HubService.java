@@ -21,6 +21,9 @@ import org.example.isc.main.secured.repositories.scholarhub.HomeworkRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SchedulesRepository;
 import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.example.isc.main.secured.repositories.scholarhub.TeachersRepository;
+import org.example.isc.settings.UserSettingsService;
+import org.example.isc.settings.dto.UserSettingsDTO;
+import org.example.isc.settings.enums.LessonEnum;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -52,14 +55,24 @@ public class HubService {
     private final TeachersRepository teachersRepository;
     private final GradeRepository gradeRepository;
     private final HomeworkRepository homeworkRepository;
+    private final UserSettingsService userSettingsService;
 
-    public HubService(UserRepository userRepository, SchedulesRepository schedulesRepository, SubjectsRepository subjectsRepository, TeachersRepository teachersRepository, GradeRepository gradeRepository, HomeworkRepository homeworkRepository) {
+    public HubService(
+            UserRepository userRepository,
+            SchedulesRepository schedulesRepository,
+            SubjectsRepository subjectsRepository,
+            TeachersRepository teachersRepository,
+            GradeRepository gradeRepository,
+            HomeworkRepository homeworkRepository,
+            UserSettingsService userSettingsService
+    ) {
         this.userRepository = userRepository;
         this.schedulesRepository = schedulesRepository;
         this.subjectsRepository = subjectsRepository;
         this.teachersRepository = teachersRepository;
         this.gradeRepository = gradeRepository;
         this.homeworkRepository = homeworkRepository;
+        this.userSettingsService = userSettingsService;
     }
 
     @Transactional
@@ -208,6 +221,8 @@ public class HubService {
 
         Schedule schedule = schedulesRepository.findByUser(me);
         if(schedule == null) return null;
+        UserSettingsDTO settings = userSettingsService.getSettingsForUser(me.getId());
+        Map<Long, String> lessonTimesByOrder = mapLessonTimesByOrder(settings);
 
         List<Day> scheduleDays = schedule.getDays() == null ? List.of() : schedule.getDays();
 
@@ -220,7 +235,7 @@ public class HubService {
                     List<ScheduleLessonView> orderedLessons = dayLessons.stream()
                             .filter(lesson -> lesson.getSubject() != null)
                             .sorted(Comparator.comparing(DaySubject::getLessonOrder, Comparator.nullsLast(Long::compareTo)))
-                            .map(this::toScheduleLessonView)
+                            .map(lesson -> toScheduleLessonView(lesson, lessonTimesByOrder))
                             .toList();
 
                     List<ScheduleLessonView> visibleLessons = buildVisibleSlots(orderedLessons, previewLimitPerDay);
@@ -260,11 +275,12 @@ public class HubService {
         return new ScheduleView(totalLessons, maxLessonSlots, paddedDays);
     }
 
-    private ScheduleLessonView toScheduleLessonView(DaySubject lesson) {
+    private ScheduleLessonView toScheduleLessonView(DaySubject lesson, Map<Long, String> lessonTimesByOrder) {
         Subject subject = lesson.getSubject();
         String teacherName = subject.getTeachers() == null || subject.getTeachers().isEmpty()
                 ? null
                 : subject.getTeachers().get(0).getFullName();
+        String lessonTime = lesson.getLessonOrder() != null ? lessonTimesByOrder.get(lesson.getLessonOrder()) : null;
 
         return new ScheduleLessonView(
                 lesson.getLessonOrder(),
@@ -272,6 +288,7 @@ public class HubService {
                 subject.getId(),
                 subject.getFullName(),
                 subject.getShortName(),
+                lessonTime,
                 teacherName,
                 lesson.getRoom() != null ? lesson.getRoom() : subject.getRoom(),
                 subject.getColor(),
@@ -305,7 +322,7 @@ public class HubService {
             if (lesson != null) {
                 visibleSlots.add(lesson);
             } else {
-                visibleSlots.add(new ScheduleLessonView(order, null, null, null, null, null, null, null, true));
+                visibleSlots.add(new ScheduleLessonView(order, null, null, null, null, null, null, null, null, true));
             }
         }
 
@@ -315,9 +332,56 @@ public class HubService {
     private List<ScheduleLessonView> padLessons(List<ScheduleLessonView> lessons, int maxLessonSlots) {
         List<ScheduleLessonView> padded = new ArrayList<>(lessons);
         for (int index = padded.size() + 1; index <= maxLessonSlots; index++) {
-            padded.add(new ScheduleLessonView((long) index, null, null, null, null, null, null, null, true));
+            padded.add(new ScheduleLessonView((long) index, null, null, null, null, null, null, null, null, true));
         }
         return padded;
+    }
+
+    private Map<Long, String> mapLessonTimesByOrder(UserSettingsDTO settings) {
+        Map<Long, String> lessonTimesByOrder = new HashMap<>();
+        if (settings == null || settings.getScholarHub() == null) {
+            return lessonTimesByOrder;
+        }
+
+        for (LessonEnum lessonKey : LessonEnum.values()) {
+            Long lessonOrder = toLessonOrder(lessonKey);
+            String start = settings.getScholarHub().getStartOfEachLesson() == null
+                    ? null
+                    : normalize(settings.getScholarHub().getStartOfEachLesson().get(lessonKey));
+            String end = settings.getScholarHub().getEndOfEachLesson() == null
+                    ? null
+                    : normalize(settings.getScholarHub().getEndOfEachLesson().get(lessonKey));
+            String lessonTime = buildLessonTime(start, end);
+            if (lessonOrder != null && lessonTime != null) {
+                lessonTimesByOrder.put(lessonOrder, lessonTime);
+            }
+        }
+
+        return lessonTimesByOrder;
+    }
+
+    private String buildLessonTime(String start, String end) {
+        if (start != null && end != null) {
+            return start + " - " + end;
+        }
+        return start != null ? start : end;
+    }
+
+    private Long toLessonOrder(LessonEnum lesson) {
+        if (lesson == null) {
+            return null;
+        }
+
+        return switch (lesson) {
+            case firstLesson -> 1L;
+            case secondLesson -> 2L;
+            case thirdLesson -> 3L;
+            case fourthLesson -> 4L;
+            case fifthLesson -> 5L;
+            case sixthLesson -> 6L;
+            case seventhLesson -> 7L;
+            case eighthLesson -> 8L;
+        };
     }
 
 
