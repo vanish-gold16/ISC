@@ -3,13 +3,18 @@ package org.example.isc.main.secured.scholarhub.controller.api;
 import jakarta.validation.Valid;
 import org.example.isc.main.dto.scholarship.GradeDTO;
 import org.example.isc.main.secured.models.scholarship.Grade;
+import org.example.isc.main.secured.models.scholarship.Subject;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
+import org.example.isc.main.secured.repositories.scholarhub.GradeRepository;
+import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.example.isc.main.secured.scholarhub.service.GradeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -18,10 +23,14 @@ public class GradeApiController {
 
     private final UserRepository userRepository;
     private final GradeService gradeService;
+    private final GradeRepository gradeRepository;
+    private final SubjectsRepository subjectsRepository;
 
-    public GradeApiController(UserRepository userRepository, GradeService gradeService) {
+    public GradeApiController(UserRepository userRepository, GradeService gradeService, GradeRepository gradeRepository, SubjectsRepository subjectsRepository) {
         this.userRepository = userRepository;
         this.gradeService = gradeService;
+        this.gradeRepository = gradeRepository;
+        this.subjectsRepository = subjectsRepository;
     }
 
     @GetMapping
@@ -73,6 +82,31 @@ public class GradeApiController {
         User me = requireCurrentUser(authentication);
         gradeService.delete(id, me.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/average")
+    public ResponseEntity<BigDecimal> getAverageGrade(
+        Authentication authentication
+    ){
+        User me = requireCurrentUser(authentication);
+
+        List<Subject> subjects = subjectsRepository.findAllByUserUsername(me.getUsername());
+        List<Grade> grades = new  ArrayList<>();
+        for (int i = 0; i < subjects.size(); i++) {
+            grades = gradeRepository.findAllBySubjectIdAndSubjectUserUsername(
+                    subjects.get(i).getId(),
+                    subjects.get(i).getUser().getUsername()
+            );
+        }
+        return ResponseEntity.ok(average(grades));
+    }
+
+    private BigDecimal average(List<Grade> grades) {
+        BigDecimal average = new BigDecimal(0);
+        for (int i = 0; i < grades.size(); i++) {
+            average.add(grades.get(i).getConverted());
+        }
+        return average.divide(BigDecimal.valueOf(grades.size()));
     }
 
     public GradeDTO toDTO(Grade grade) {
