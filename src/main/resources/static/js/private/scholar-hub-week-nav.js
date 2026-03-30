@@ -915,24 +915,60 @@ document.addEventListener("DOMContentLoaded", () => {
         return getHighestPriorityHomework(visibleHomeworks);
     }
 
+    function getHomeworkIndicatorColor(homework) {
+        if (!homework || (!homework.title && !homework.details) || homework.status === "Completed") {
+            return null;
+        }
+        return homework.status === "Graded"
+            ? gradedHomeworkIndicatorColor
+            : getPriorityColor(homework.priority);
+    }
+
     function setHomeworkIndicator(cell, homework) {
         const indicator = cell.querySelector("[data-homework-indicator]");
         if (!indicator) return;
         indicator.classList.remove("hidden");
         indicator.style.removeProperty("--homework-color");
-        if (!homework || (!homework.title && !homework.details) || homework.status === "Completed") {
+        const color = getHomeworkIndicatorColor(homework);
+        if (!color) {
             indicator.classList.add("hidden");
             return;
         }
-        const color = homework.status === "Graded"
-            ? gradedHomeworkIndicatorColor
-            : getPriorityColor(homework.priority);
-        if (color) indicator.style.setProperty("--homework-color", color);
+        indicator.style.setProperty("--homework-color", color);
+    }
+
+    function getDayIndicatorHomework(dayRow) {
+        if (!dayRow) return null;
+        const visibleHomeworks = Array.from(dayRow.querySelectorAll(".hub-timetable__cell--filled[data-week-start]"))
+            .flatMap((cell) => getCachedHomeworks(cell))
+            .filter((homework) => homework && (homework.title || homework.details) && homework.status !== "Completed");
+
+        return getHighestPriorityHomework(visibleHomeworks);
+    }
+
+    function setDayHomeworkIndicator(dayRow, homework) {
+        const indicator = dayRow?.querySelector("[data-day-homework-indicator]");
+        if (!indicator) return;
+
+        indicator.classList.remove("hidden");
+        indicator.style.removeProperty("--homework-color");
+
+        const color = getHomeworkIndicatorColor(homework);
+        if (!color) {
+            indicator.classList.add("hidden");
+            return;
+        }
+
+        indicator.style.setProperty("--homework-color", color);
     }
 
     function refreshHomeworkIndicators(scope) {
         (scope || document).querySelectorAll(".hub-timetable__cell--filled[data-week-start]").forEach((cell) => {
             setHomeworkIndicator(cell, getIndicatorHomework(cell));
+        });
+
+        (scope || document).querySelectorAll(".hub-timetable__day-row[data-day-key]").forEach((dayRow) => {
+            setDayHomeworkIndicator(dayRow, getDayIndicatorHomework(dayRow));
         });
     }
 

@@ -627,6 +627,7 @@ body {
     display: grid;
     align-content: center;
     gap: 3px;
+    position: relative;
 }
 
 .hub-timetable__day-short {
@@ -651,6 +652,17 @@ body {
     line-height: 1;
     color: #7f93b8;
     font-weight: 700;
+}
+
+.hub-timetable__day-homework-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.78);
+    background: var(--homework-color, #22c55e);
+    position: absolute;
+    top: 8px;
+    right: 8px;
 }
 
 .hub-timetable__day-track {
