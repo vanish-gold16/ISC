@@ -64,13 +64,6 @@
 <main class="container page new-review-page">
     <section class="page-content">
         <section class="new-review">
-            <header class="new-review__header glass-panel">
-                <div>
-                    <p class="new-review__eyebrow">New review</p>
-                    <h1 class="new-review__title">New Review</h1>
-                    <p class="new-review__subtitle">Find a work in the catalog, or continue from a pending art request, then write either a quick rating or a full review with text.</p>
-                </div>
-            </header>
 
             <form class="new-review__form glass-panel" th:action="@{/opuscore/new-review}" th:object="${form}" method="post" id="new-review-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />

@@ -579,6 +579,179 @@ body {
     color: #b91c1c;
 }
 
+.admin-cover-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2400;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: rgba(8, 15, 32, 0.52);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.admin-cover-modal.is-open {
+    display: grid;
+}
+
+.admin-cover-modal[hidden] {
+    display: none !important;
+}
+
+.admin-cover-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+}
+
+.admin-cover-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(560px, calc(100vw - 32px));
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 28px;
+    border: 1px solid rgba(191, 219, 254, 0.78);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(239, 246, 255, 0.98) 100%);
+    box-shadow:
+        0 26px 58px rgba(15, 23, 42, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.admin-cover-modal__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-cover-modal__eyebrow {
+    margin: 0 0 6px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.admin-cover-modal__title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+}
+
+.admin-cover-modal__close {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background: rgba(255, 255, 255, 0.88);
+    color: #1e293b;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.admin-cover-modal__canvas-wrap {
+    display: grid;
+    place-items: center;
+    padding: 10px;
+    border-radius: 24px;
+    border: 1px solid rgba(191, 219, 254, 0.74);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(219, 234, 254, 0.56)),
+        rgba(219, 234, 254, 0.4);
+}
+
+#admin-cover-cropper-canvas {
+    width: min(100%, 320px);
+    aspect-ratio: var(--admin-cover-cropper-aspect, 3 / 4.4);
+    border-radius: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    background: linear-gradient(180deg, rgba(241, 245, 249, 0.94), rgba(226, 232, 240, 0.94));
+    cursor: grab;
+}
+
+#admin-cover-cropper-canvas:active {
+    cursor: grabbing;
+}
+
+.admin-cover-modal__controls {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-cover-modal__mode-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background: rgba(255, 255, 255, 0.84);
+}
+
+.admin-cover-modal__mode-button {
+    min-width: 96px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-cover-modal__mode-button.is-active {
+    background: #dbeafe;
+    color: #1d4ed8;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 10px 24px rgba(37, 99, 235, 0.14);
+}
+
+.admin-cover-modal__scale-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-cover-modal__scale-label,
+.admin-cover-modal__scale-value {
+    color: #334155;
+    font-size: 12px;
+}
+
+.admin-cover-modal__scale-value {
+    font-weight: 700;
+}
+
+.admin-cover-modal__slider {
+    width: 100%;
+}
+
+.admin-cover-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+html.admin-cover-modal-open,
+body.admin-cover-modal-open {
+    overflow: hidden;
+}
+
 .admin-placeholder {
     margin-top: 22px;
     border: 1px solid rgba(219, 234, 254, 0.86);
@@ -671,5 +844,19 @@ body {
     .admin-preview__cover {
         width: min(100%, 180px);
         min-height: 0;
+    }
+
+    .admin-cover-modal {
+        padding: 16px;
+    }
+
+    .admin-cover-modal__dialog {
+        width: min(100%, 520px);
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .admin-cover-modal__title {
+        font-size: 24px;
     }
 }

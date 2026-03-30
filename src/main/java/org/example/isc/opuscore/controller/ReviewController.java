@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/opuscore")
@@ -90,8 +91,15 @@ public class ReviewController {
             if (redirect != null) {
                 return redirect;
             }
+            selectedArtworkId = form.getArtworkId();
+            selectedArtRequestId = form.getArtRequestId();
         } else if (selectedArtworkId != null) {
             populateArtworkPrefill(form, model, selectedArtworkId);
+        }
+
+        Optional<Review> existingReview = reviewService.findExistingReview(me.getId(), selectedArtworkId, selectedArtRequestId);
+        if (existingReview.isPresent()) {
+            return "redirect:/opuscore/" + existingReview.get().getId();
         }
 
         model.addAttribute("form", form);

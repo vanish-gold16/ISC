@@ -141,7 +141,26 @@
                     </div>
                 </article>
 
-                <article class="glass-panel art-panel art-panel--review">
+                <a class="glass-panel art-panel art-panel--review art-panel--review-link"
+                   th:if="${existingReview != null}"
+                   th:href="@{/opuscore/{id}(id=${existingReview.id})}">
+                    <p class="art-panel__eyebrow">Your Review</p>
+                    <h2 class="art-panel__title">You already rated this work</h2>
+                    <p class="art-panel__text"
+                       th:text="${pendingState} ? 'Open the review you already left for this pending request.' : 'Open the review you already left for this work.'">
+                        Open your existing review.
+                    </p>
+
+                    <div class="art-panel__review-score">
+                        <span class="art-panel__review-score-value"
+                              th:text="${existingReview.value}">0</span>
+                        <span class="art-panel__review-score-max">/100</span>
+                    </div>
+
+                    <span class="art-panel__review-link-copy">Open your review</span>
+                </a>
+
+                <article class="glass-panel art-panel art-panel--review" th:if="${existingReview == null}">
                     <p class="art-panel__eyebrow">New Review</p>
                     <h2 class="art-panel__title">Review this work</h2>
                     <p class="art-panel__text"

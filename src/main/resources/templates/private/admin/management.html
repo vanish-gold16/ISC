@@ -180,6 +180,40 @@
     <aside th:replace="~{/private/blocks/right-sidebar :: rightSidebar('admin')}"></aside>
 </main>
 
+<div class="admin-cover-modal" id="admin-cover-modal" hidden aria-hidden="true" th:if="${adminSection == 'new-arts'}">
+    <div class="admin-cover-modal__backdrop" data-admin-cover-modal-close></div>
+    <div class="admin-cover-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="admin-cover-modal-title">
+        <div class="admin-cover-modal__head">
+            <div>
+                <p class="admin-cover-modal__eyebrow">Cover editor</p>
+                <h2 class="admin-cover-modal__title" id="admin-cover-modal-title">Adjust replacement cover</h2>
+            </div>
+            <button class="admin-cover-modal__close" type="button" aria-label="Close cover editor" data-admin-cover-modal-close>&times;</button>
+        </div>
+
+        <div class="admin-cover-modal__canvas-wrap">
+            <canvas id="admin-cover-cropper-canvas" width="900" height="1320"></canvas>
+        </div>
+
+        <div class="admin-cover-modal__controls">
+            <div class="admin-cover-modal__mode-group" role="group" aria-label="Cover aspect ratio">
+                <button class="admin-cover-modal__mode-button is-active" type="button" data-admin-cover-mode="vertical">Vertical</button>
+                <button class="admin-cover-modal__mode-button" type="button" data-admin-cover-mode="square">Square</button>
+            </div>
+            <div class="admin-cover-modal__scale-row">
+                <span class="admin-cover-modal__scale-label">Scale</span>
+                <span class="admin-cover-modal__scale-value" id="admin-cover-modal-zoom-value">100%</span>
+            </div>
+            <input id="admin-cover-modal-zoom-input" class="admin-cover-modal__slider" type="range" min="1" max="3" step="0.01" value="1" />
+        </div>
+
+        <div class="admin-cover-modal__actions">
+            <button class="btn btn--primary" type="button" id="admin-cover-modal-apply">Apply</button>
+            <button class="btn btn--ghost" type="button" data-admin-cover-modal-close>Cancel</button>
+        </div>
+    </div>
+</div>
+
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
 <script th:if="${adminSection == 'new-arts'}" th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:if="${adminSection == 'new-arts'}">
@@ -216,13 +250,32 @@
         const approve = document.getElementById('admin-approve-art');
         const reject = document.getElementById('admin-reject-art');
         const save = document.getElementById('admin-save-art');
-        const defaultCoverHint = 'Upload a replacement cover or remove the current one before approval. Max 5 MB.';
+        const coverModal = document.getElementById('admin-cover-modal');
+        const cropperCanvas = document.getElementById('admin-cover-cropper-canvas');
+        const cropperContext = cropperCanvas ? cropperCanvas.getContext('2d') : null;
+        const cropperZoomInput = document.getElementById('admin-cover-modal-zoom-input');
+        const cropperZoomValue = document.getElementById('admin-cover-modal-zoom-value');
+        const cropperApply = document.getElementById('admin-cover-modal-apply');
+        const cropperModeButtons = Array.from(document.querySelectorAll('[data-admin-cover-mode]'));
+        const cropperCloseButtons = document.querySelectorAll('[data-admin-cover-modal-close]');
+        const defaultCoverHint = 'Choose a replacement cover, crop it as vertical or square, then save or approve. Max 5 MB.';
+        const squareOutputSize = 960;
+        const verticalOutputWidth = 900;
+        const verticalOutputHeight = 1320;
+        const optimizedCoverMaxBytes = 700000;
+        const coverQualitySteps = [0.86, 0.78, 0.7, 0.62, 0.54];
 
         if (!queue || !form) return;
 
         let items = [];
         let selectedId = null;
         let busy = false;
+        let pendingCoverDraft = null;
+        let cropperState = null;
+        let cropperImage = null;
+        let cropperObjectUrl = '';
+        let isCoverDragging = false;
+        let coverDragStart = { x: 0, y: 0 };
 
         function currentSearch() {
             return searchInput ? searchInput.value.trim() : '';
@@ -305,8 +358,12 @@
             return items.find((item) => item.id === selectedId) || null;
         }
 
+        function hasPendingCoverDraft() {
+            return Boolean(pendingCoverDraft && pendingCoverDraft.file);
+        }
+
         function hasSelectedCover() {
-            return Boolean(imageUrlInput.value && imageUrlInput.value.trim());
+            return hasPendingCoverDraft() || Boolean(imageUrlInput.value && imageUrlInput.value.trim());
         }
 
         function setEmptyState(title, text) {
@@ -361,6 +418,20 @@
             coverHint.classList.toggle('is-error', Boolean(isError));
         }
 
+        function syncCoverHint() {
+            if (!selectedId) {
+                setCoverHint('Select a request to edit its cover.', false);
+                return;
+            }
+
+            if (hasPendingCoverDraft()) {
+                setCoverHint('Replacement cover is ready. Save or approve to upload it.', false);
+                return;
+            }
+
+            setCoverHint(defaultCoverHint, false);
+        }
+
         function coverMarkup(item) {
             if (item.imageUrl) {
                 return '<img src="' + item.imageUrl + '" data-cover-image alt="">';
@@ -375,6 +446,26 @@
             frame.style.removeProperty('aspect-ratio');
             frame.style.removeProperty('--cover-frame-aspect');
             delete frame.dataset.coverShape;
+        }
+
+        function revokeCropperObjectUrl() {
+            if (!cropperObjectUrl) {
+                return;
+            }
+            URL.revokeObjectURL(cropperObjectUrl);
+            cropperObjectUrl = '';
+        }
+
+        function revokePendingCoverPreview() {
+            if (!pendingCoverDraft || !pendingCoverDraft.previewUrl || !pendingCoverDraft.previewUrl.startsWith('blob:')) {
+                return;
+            }
+            URL.revokeObjectURL(pendingCoverDraft.previewUrl);
+        }
+
+        function clearPendingCoverDraft() {
+            revokePendingCoverPreview();
+            pendingCoverDraft = null;
         }
 
         function syncCoverFrame(frame) {
@@ -392,6 +483,39 @@
             if (window.__opuscoreApplyCoverFrame) {
                 window.__opuscoreApplyCoverFrame(frame);
             }
+        }
+
+        function renderCoverSection(item) {
+            if (!cover) {
+                return;
+            }
+
+            resetCoverFrame(cover);
+
+            if (!item) {
+                cover.textContent = 'No cover';
+                cover.classList.remove('has-image');
+                return;
+            }
+
+            if (hasPendingCoverDraft()) {
+                const image = document.createElement('img');
+                image.src = pendingCoverDraft.previewUrl;
+                image.alt = '';
+                image.setAttribute('data-cover-image', '');
+                cover.replaceChildren(image);
+                cover.classList.add('has-image');
+                cover.setAttribute('data-cover-frame', '');
+                if (pendingCoverDraft.aspectRatio) {
+                    cover.style.aspectRatio = pendingCoverDraft.aspectRatio;
+                    cover.style.setProperty('--cover-frame-aspect', pendingCoverDraft.aspectRatio);
+                    cover.dataset.coverShape = pendingCoverDraft.aspectRatio === '1 / 1' ? 'square' : 'portrait';
+                }
+                return;
+            }
+
+            cover.innerHTML = coverMarkup(item);
+            syncCoverFrame(cover);
         }
 
         function validateCoverFile(file) {
@@ -466,9 +590,8 @@
                 requesterInput.value = '';
                 descriptionInput.value = '';
                 noteInput.value = '';
-                cover.innerHTML = 'No cover';
-                syncCoverFrame(cover);
-                setCoverHint('Select a request to edit its cover.', false);
+                renderCoverSection(null);
+                syncCoverHint();
                 message.textContent = 'No request selected.';
                 status.textContent = 'Choose request';
                 status.className = 'admin-pill';
@@ -491,9 +614,8 @@
             requesterInput.value = requesterLabel(item);
             descriptionInput.value = item.description || '';
             noteInput.value = item.adminNote || item.rejectionReason || '';
-            cover.innerHTML = coverMarkup(item);
-            syncCoverFrame(cover);
-            setCoverHint(defaultCoverHint, false);
+            renderCoverSection(item);
+            syncCoverHint();
             message.textContent = [
                 'Request #' + item.id,
                 item.createdAt ? 'Created: ' + formatDate(item.createdAt) : null,
@@ -554,6 +676,214 @@
                 throw new Error('Upload returned empty URL');
             }
 
+            return uploadedUrl;
+        }
+
+        function hideCoverCropper() {
+            if (!coverModal) {
+                return;
+            }
+            coverModal.classList.remove('is-open');
+            coverModal.hidden = true;
+            coverModal.setAttribute('aria-hidden', 'true');
+            document.documentElement.classList.remove('admin-cover-modal-open');
+            document.body.classList.remove('admin-cover-modal-open');
+            revokeCropperObjectUrl();
+            cropperImage = null;
+            cropperState = null;
+            isCoverDragging = false;
+            if (cropperZoomInput) {
+                cropperZoomInput.value = '1';
+            }
+            if (cropperZoomValue) {
+                cropperZoomValue.textContent = '100%';
+            }
+            setActiveCropMode('vertical');
+        }
+
+        function showCoverCropper() {
+            if (!coverModal) {
+                return;
+            }
+            coverModal.hidden = false;
+            coverModal.classList.add('is-open');
+            coverModal.setAttribute('aria-hidden', 'false');
+            document.documentElement.classList.add('admin-cover-modal-open');
+            document.body.classList.add('admin-cover-modal-open');
+        }
+
+        function setActiveCropMode(mode) {
+            cropperModeButtons.forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.adminCoverMode === mode);
+            });
+        }
+
+        function getCropCanvasSize(mode) {
+            if (mode === 'square') {
+                return { width: squareOutputSize, height: squareOutputSize };
+            }
+
+            return {
+                width: verticalOutputWidth,
+                height: verticalOutputHeight
+            };
+        }
+
+        function clampCropOffsets(scale) {
+            if (!cropperState || !cropperImage || !cropperCanvas) {
+                return;
+            }
+            const imageWidth = cropperImage.width * scale;
+            const imageHeight = cropperImage.height * scale;
+            const minX = (cropperCanvas.width - imageWidth) / 2;
+            const minY = (cropperCanvas.height - imageHeight) / 2;
+            const maxX = -minX;
+            const maxY = -minY;
+
+            cropperState.offsetX = Math.min(Math.max(cropperState.offsetX, minX), maxX);
+            cropperState.offsetY = Math.min(Math.max(cropperState.offsetY, minY), maxY);
+        }
+
+        function drawCoverCropper() {
+            if (!cropperState || !cropperImage || !cropperCanvas || !cropperContext) {
+                return;
+            }
+            const scale = cropperState.baseScale * cropperState.zoom;
+            clampCropOffsets(scale);
+
+            const imageWidth = cropperImage.width * scale;
+            const imageHeight = cropperImage.height * scale;
+            const drawX = (cropperCanvas.width - imageWidth) / 2 + cropperState.offsetX;
+            const drawY = (cropperCanvas.height - imageHeight) / 2 + cropperState.offsetY;
+
+            cropperContext.clearRect(0, 0, cropperCanvas.width, cropperCanvas.height);
+            cropperContext.imageSmoothingEnabled = true;
+            cropperContext.imageSmoothingQuality = 'high';
+            cropperContext.drawImage(cropperImage, drawX, drawY, imageWidth, imageHeight);
+        }
+
+        function applyCropMode(mode, resetView) {
+            if (!cropperState || !cropperImage || !cropperCanvas) {
+                return;
+            }
+
+            const nextMode = mode === 'square' ? 'square' : 'vertical';
+            const canvasSize = getCropCanvasSize(nextMode);
+            cropperCanvas.width = canvasSize.width;
+            cropperCanvas.height = canvasSize.height;
+            cropperCanvas.style.setProperty('--admin-cover-cropper-aspect', canvasSize.width + ' / ' + canvasSize.height);
+
+            cropperState.mode = nextMode;
+            cropperState.baseScale = Math.max(
+                cropperCanvas.width / cropperImage.width,
+                cropperCanvas.height / cropperImage.height
+            );
+
+            if (resetView) {
+                cropperState.zoom = 1;
+                cropperState.offsetX = 0;
+                cropperState.offsetY = 0;
+                if (cropperZoomInput) {
+                    cropperZoomInput.value = '1';
+                }
+                if (cropperZoomValue) {
+                    cropperZoomValue.textContent = '100%';
+                }
+            }
+
+            setActiveCropMode(nextMode);
+            drawCoverCropper();
+        }
+
+        function openCoverCropper(file) {
+            if (!coverModal || !cropperCanvas || !cropperContext || !cropperZoomInput || !cropperZoomValue || !cropperApply) {
+                setCoverHint('Cover editor is unavailable on this page.', true);
+                setFeedback('error', 'Cover editor is unavailable on this page.');
+                return;
+            }
+
+            revokeCropperObjectUrl();
+            cropperImage = new Image();
+            cropperImage.onload = () => {
+                cropperState = {
+                    file,
+                    mode: 'vertical',
+                    baseScale: 1,
+                    zoom: 1,
+                    offsetX: 0,
+                    offsetY: 0
+                };
+                applyCropMode('vertical', true);
+                showCoverCropper();
+                revokeCropperObjectUrl();
+            };
+            cropperImage.onerror = () => {
+                setCoverHint('Could not open that image. Try another file.', true);
+                if (coverFileInput) {
+                    coverFileInput.value = '';
+                }
+                hideCoverCropper();
+            };
+            cropperObjectUrl = URL.createObjectURL(file);
+            cropperImage.src = cropperObjectUrl;
+        }
+
+        function cropCanvasToBlob(type, quality) {
+            return new Promise((resolve) => {
+                if (!cropperCanvas) {
+                    resolve(null);
+                    return;
+                }
+                cropperCanvas.toBlob(resolve, type, quality);
+            });
+        }
+
+        async function createOptimizedCoverBlob() {
+            let lastBlob = null;
+
+            for (const quality of coverQualitySteps) {
+                const blob = await cropCanvasToBlob('image/jpeg', quality);
+                if (!blob) {
+                    continue;
+                }
+
+                lastBlob = blob;
+                if (blob.size <= optimizedCoverMaxBytes) {
+                    return blob;
+                }
+            }
+
+            return lastBlob;
+        }
+
+        function storePendingCoverDraft(file, aspectRatio) {
+            clearPendingCoverDraft();
+            pendingCoverDraft = {
+                file,
+                aspectRatio: aspectRatio || '',
+                previewUrl: URL.createObjectURL(file)
+            };
+            renderCoverSection(current());
+            syncCoverHint();
+            setBusy(false);
+        }
+
+        async function resolvePendingCoverUpload() {
+            if (!hasPendingCoverDraft()) {
+                return null;
+            }
+
+            const uploadedUrl = await uploadCoverFile(pendingCoverDraft.file);
+            const item = current();
+
+            imageUrlInput.value = uploadedUrl;
+            if (item) {
+                item.imageUrl = uploadedUrl;
+            }
+
+            clearPendingCoverDraft();
+            renderCoverSection(item);
+            syncCoverHint();
             return uploadedUrl;
         }
 
@@ -624,6 +954,10 @@
                 selectedId = nextSelectedId && items.some((item) => item.id === nextSelectedId)
                     ? nextSelectedId
                     : null;
+                if (!selectedId) {
+                    clearPendingCoverDraft();
+                    hideCoverCropper();
+                }
                 renderQueue();
                 if (selectedId) {
                     await loadRequest(selectedId, true);
@@ -660,6 +994,10 @@
         }
 
         async function loadRequest(id, keepFeedback) {
+            if (selectedId !== id) {
+                clearPendingCoverDraft();
+                hideCoverCropper();
+            }
             selectedId = id;
             renderQueue();
             setBusy(true);
@@ -689,6 +1027,8 @@
         }
 
         function removeCurrentFromQueue(successMessage) {
+            clearPendingCoverDraft();
+            hideCoverCropper();
             items = items.filter((item) => item.id !== selectedId);
             selectedId = null;
             renderQueue();
@@ -711,6 +1051,13 @@
             setFeedback('loading', 'Saving edits and approving as Changed...');
 
             try {
+                if (hasPendingCoverDraft()) {
+                    setCoverHint('Uploading replacement cover...', false);
+                    setFeedback('loading', 'Uploading replacement cover...');
+                    await resolvePendingCoverUpload();
+                }
+
+                setFeedback('loading', 'Saving edits and approving as Changed...');
                 await sendJson('/admin/api/art-requests/' + selectedId, {
                     method: 'PATCH',
                     body: JSON.stringify(buildEditPayload())
@@ -723,6 +1070,11 @@
 
                 removeCurrentFromQueue('Request #' + selectedId + ' was saved and approved as Changed.');
             } catch (error) {
+                if (hasPendingCoverDraft()) {
+                    setCoverHint('Failed to upload replacement cover. Try again.', true);
+                } else {
+                    syncCoverHint();
+                }
                 setBusy(false);
                 setFeedback('error', 'Failed to save and approve the request.');
             }
@@ -737,6 +1089,13 @@
             setFeedback('loading', 'Approving request as-is...');
 
             try {
+                if (hasPendingCoverDraft()) {
+                    setCoverHint('Uploading replacement cover...', false);
+                    setFeedback('loading', 'Uploading replacement cover...');
+                    await resolvePendingCoverUpload();
+                }
+
+                setFeedback('loading', 'Approving request as-is...');
                 await sendJson('/admin/api/art-requests/' + selectedId + '/approve', {
                     method: 'POST',
                     body: JSON.stringify(buildApprovePayload())
@@ -744,6 +1103,11 @@
 
                 removeCurrentFromQueue('Request #' + selectedId + ' was approved without edits.');
             } catch (error) {
+                if (hasPendingCoverDraft()) {
+                    setCoverHint('Failed to upload replacement cover. Try again.', true);
+                } else {
+                    syncCoverHint();
+                }
                 setBusy(false);
                 setFeedback('error', 'Failed to approve the request.');
             }
@@ -783,7 +1147,7 @@
                 coverFileInput.click();
             });
 
-            coverFileInput.addEventListener('change', async () => {
+            coverFileInput.addEventListener('change', () => {
                 const file = coverFileInput.files && coverFileInput.files[0];
                 if (!file || busy || !selectedId) {
                     return;
@@ -797,26 +1161,9 @@
                     return;
                 }
 
-                setBusy(true);
-                setCoverHint('Uploading replacement cover...', false);
-                setFeedback('loading', 'Uploading replacement cover...');
-
-                try {
-                    const uploadedUrl = await uploadCoverFile(file);
-                    const item = current();
-                    imageUrlInput.value = uploadedUrl;
-                    if (item) {
-                        item.imageUrl = uploadedUrl;
-                    }
-                    renderEditor();
-                    setFeedback('success', 'Replacement cover uploaded. Approve the request to persist the new cover.');
-                } catch (error) {
-                    setBusy(false);
-                    setCoverHint('Failed to upload cover. Try again.', true);
-                    setFeedback('error', 'Failed to upload replacement cover.');
-                } finally {
-                    coverFileInput.value = '';
-                }
+                setCoverHint('Opening cover editor...', false);
+                setFeedback(null, 'Adjust the cover and apply the crop.');
+                openCoverCropper(file);
             });
         }
 
@@ -827,14 +1174,123 @@
                 }
 
                 const item = current();
+                clearPendingCoverDraft();
                 imageUrlInput.value = '';
                 if (item) {
                     item.imageUrl = '';
                 }
-                renderEditor();
+                renderCoverSection(item);
+                syncCoverHint();
+                setBusy(false);
                 setFeedback('success', 'Cover removed from the draft. Approve the request to persist the change.');
             });
         }
+
+        if (cropperZoomInput) {
+            cropperZoomInput.addEventListener('input', () => {
+                if (!cropperState) {
+                    return;
+                }
+                cropperState.zoom = Number(cropperZoomInput.value || '1');
+                cropperZoomValue.textContent = Math.round(cropperState.zoom * 100) + '%';
+                drawCoverCropper();
+            });
+        }
+
+        cropperModeButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                if (!cropperState) {
+                    return;
+                }
+                applyCropMode(button.dataset.adminCoverMode, true);
+            });
+        });
+
+        cropperCloseButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                if (coverFileInput) {
+                    coverFileInput.value = '';
+                }
+                hideCoverCropper();
+                syncCoverHint();
+            });
+        });
+
+        if (cropperApply) {
+            cropperApply.addEventListener('click', async () => {
+                if (!cropperState) {
+                    hideCoverCropper();
+                    return;
+                }
+
+                cropperApply.disabled = true;
+                setCoverHint('Preparing replacement cover...', false);
+
+                try {
+                    const blob = await createOptimizedCoverBlob();
+                    if (!blob || !cropperState || !cropperCanvas) {
+                        setCoverHint('Failed to prepare cover image. Try another file.', true);
+                        return;
+                    }
+
+                    const baseName = cropperState.file.name.replace(/\.[^.]+$/, '');
+                    const optimizedFile = new File([blob], baseName + '-cover.jpg', {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    const aspectRatio = cropperCanvas.width + ' / ' + cropperCanvas.height;
+
+                    storePendingCoverDraft(optimizedFile, aspectRatio);
+                    setFeedback('success', 'Replacement cover is ready. Save or approve to upload it.');
+                    hideCoverCropper();
+                } finally {
+                    cropperApply.disabled = false;
+                    if (coverFileInput) {
+                        coverFileInput.value = '';
+                    }
+                }
+            });
+        }
+
+        if (cropperCanvas) {
+            cropperCanvas.addEventListener('mousedown', (event) => {
+                if (!cropperState) {
+                    return;
+                }
+                isCoverDragging = true;
+                coverDragStart = { x: event.clientX, y: event.clientY };
+            });
+
+            cropperCanvas.addEventListener('mouseleave', () => {
+                isCoverDragging = false;
+            });
+        }
+
+        window.addEventListener('mousemove', (event) => {
+            if (!isCoverDragging || !cropperState) {
+                return;
+            }
+            const deltaX = event.clientX - coverDragStart.x;
+            const deltaY = event.clientY - coverDragStart.y;
+            coverDragStart = { x: event.clientX, y: event.clientY };
+            cropperState.offsetX += deltaX;
+            cropperState.offsetY += deltaY;
+            drawCoverCropper();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isCoverDragging = false;
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && coverModal && coverModal.classList.contains('is-open')) {
+                if (coverFileInput) {
+                    coverFileInput.value = '';
+                }
+                hideCoverCropper();
+                syncCoverHint();
+            }
+        });
 
         if (searchForm) {
             searchForm.addEventListener('submit', (event) => {

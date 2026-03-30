@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 public class ReviewService {
@@ -52,6 +53,10 @@ public class ReviewService {
             return newReviewForPendingArt(authentication, form);
         }
 
+        if (form.getArtworkId() == null) {
+            throw new IllegalArgumentException("Artwork is required for a review.");
+        }
+
         String photoUrl = blankToNull(form.getImageUrl());
         if(photoUrl == null && form.getImage() != null && !form.getImage().isEmpty()) {
             if (form.getImage().getSize() > MAX_REVIEW_IMAGE_BYTES) {
@@ -69,6 +74,8 @@ public class ReviewService {
 
         Artwork artwork = artworkRepository.findById(form.getArtworkId())
                 .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + form.getArtworkId()));
+
+        ensureNoExistingReview(me.getId(), artwork.getId(), null);
 
         Review review = new Review(
                 artwork.getType(),
@@ -116,6 +123,8 @@ public class ReviewService {
             throw new IllegalStateException("There is no this pending art for current user: " + authentication.getName());
         }
 
+        ensureNoExistingReview(me.getId(), request.getApprovedArtworkId(), request.getId());
+
         String photoUrl = blankToNull(form.getImageUrl());
         if(photoUrl == null && form.getImage() != null && !form.getImage().isEmpty()) {
             if (form.getImage().getSize() > MAX_REVIEW_IMAGE_BYTES) {
@@ -162,6 +171,28 @@ public class ReviewService {
 
         reviewRepository.save(review);
         return review.getId();
+    }
+
+    public Optional<Review> findExistingReview(Long userId, Long artworkId, Long artRequestId) {
+        if (artRequestId != null) {
+            Optional<Review> requestReview = reviewRepository.findTopByUserIdAndArtRequestIdOrderByIdDesc(userId, artRequestId);
+            if (requestReview.isPresent()) {
+                return requestReview;
+            }
+        }
+
+        if (artworkId != null) {
+            return reviewRepository.findTopByUserIdAndArtworkIdOrderByIdDesc(userId, artworkId);
+        }
+
+        return Optional.empty();
+    }
+
+    private void ensureNoExistingReview(Long userId, Long artworkId, Long artRequestId) {
+        Optional<Review> existingReview = findExistingReview(userId, artworkId, artRequestId);
+        if (existingReview.isPresent()) {
+            throw new IllegalArgumentException("You already left a review for this work.");
+        }
     }
 
     private int countScore(Review review){

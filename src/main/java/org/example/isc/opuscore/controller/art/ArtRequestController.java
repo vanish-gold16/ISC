@@ -8,6 +8,7 @@ import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.dto.NewArtRequestDTO;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
+import org.example.isc.opuscore.service.ReviewService;
 import org.example.isc.opuscore.service.ArtworkService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -25,11 +26,18 @@ public class ArtRequestController {
     private final UserRepository userRepository;
     private final ArtworkService artworkService;
     private final NewArtRequestRepository newArtRequestRepository;
+    private final ReviewService reviewService;
 
-    public ArtRequestController(UserRepository userRepository, ArtworkService artworkService, NewArtRequestRepository newArtRequestRepository) {
+    public ArtRequestController(
+            UserRepository userRepository,
+            ArtworkService artworkService,
+            NewArtRequestRepository newArtRequestRepository,
+            ReviewService reviewService
+    ) {
         this.userRepository = userRepository;
         this.artworkService = artworkService;
         this.newArtRequestRepository = newArtRequestRepository;
+        this.reviewService = reviewService;
     }
 
     @GetMapping
@@ -71,7 +79,10 @@ public class ArtRequestController {
         }
 
         model.addAttribute("title", request.getName() != null ? request.getName() : "Pending artwork");
+        model.addAttribute("user", me);
         model.addAttribute("request", request);
+        reviewService.findExistingReview(me.getId(), request.getApprovedArtworkId(), request.getId())
+                .ifPresent(review -> model.addAttribute("existingReview", review));
 
         return "/opuscore/art-page";
     }
