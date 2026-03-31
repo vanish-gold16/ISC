@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ]);
     const defaultHomeworkPriority = "_00FF00";
     const testHomeworkStoredPriority = "_6B21A8";
+    const homeworkTitleMaxLength = 100;
     const homeworkStatuses = ["Pending", "Completed", "Non_completed", "Graded"];
     const gradedHomeworkIndicatorColor = "#215cc9";
     const supportedGradeSystems = [
@@ -219,6 +220,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function normalizePriorityValue(priority) {
         return priority === "_FFFF00" ? "_D97706" : priority;
+    }
+
+    function getHomeworkTitleValidationMessage(title) {
+        const normalizedTitle = String(title || "").trim();
+        if (!normalizedTitle) {
+            return "Title is required.";
+        }
+        if (normalizedTitle.length > homeworkTitleMaxLength) {
+            return `Title must be ${homeworkTitleMaxLength} characters or fewer.`;
+        }
+        return "";
     }
 
     function resetStatusDropdownAnimation(dropdown) {
@@ -2463,8 +2475,9 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("error", "Homework context is missing.");
             return;
         }
-        if (!payload.title) {
-            showToast("error", "Title is required.");
+        const titleValidationMessage = getHomeworkTitleValidationMessage(payload.title);
+        if (titleValidationMessage) {
+            showToast("error", titleValidationMessage);
             return;
         }
 
@@ -2513,8 +2526,9 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("error", "Homework context is missing.");
             return;
         }
-        if (!payload.title) {
-            showToast("error", "Title is required.");
+        const titleValidationMessage = getHomeworkTitleValidationMessage(payload.title);
+        if (titleValidationMessage) {
+            showToast("error", titleValidationMessage);
             return;
         }
 
@@ -3015,7 +3029,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const details  = String(homeworkDetailsInput.value || "").trim();
         const priority = homeworkPriorityInput.value || defaultHomeworkPriority;
         const status   = homeworkStatusInput ? (homeworkStatusInput.value || "Pending") : "Pending";
-        if (!title) { showToast("error", "Title is required."); return; }
+        const titleValidationMessage = getHomeworkTitleValidationMessage(title);
+        if (titleValidationMessage) { showToast("error", titleValidationMessage); return; }
 
         const payload = {
             title, details, priority,

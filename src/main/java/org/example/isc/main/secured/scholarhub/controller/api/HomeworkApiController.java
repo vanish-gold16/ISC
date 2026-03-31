@@ -72,10 +72,12 @@ public class HomeworkApiController {
     ){
         requireCurrentUser(authentication);
 
-        if(id.equals(homeworkDTO.getId())) return ResponseEntity.badRequest().build();
+        if (homeworkDTO.getId() != null && !id.equals(homeworkDTO.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
 
         Homework editedHomework = homeworkService.edit(id, homeworkDTO);
-        log.info("Homework edited: " +  homeworkDTO.getId());
+        log.info("Homework edited: {}", editedHomework.getId());
 
         return ResponseEntity.ok().build();
     }

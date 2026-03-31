@@ -10,10 +10,12 @@ import java.time.LocalDate;
 
 public class HomeworkDTO {
 
+    public static final int TITLE_MAX_LENGTH = 100;
+
     private Long id;
 
     @NotNull
-    @Size(max = 30)
+    @Size(max = TITLE_MAX_LENGTH)
     private String title;
 
     @Size(max = 500)

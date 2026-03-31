@@ -79,7 +79,8 @@ class HubServiceTest {
                 subjectsRepository,
                 teachersRepository,
                 gradeRepository,
-                homeworkRepository
+                homeworkRepository,
+                null
         );
 
         Schedule updatedSchedule = hubService.setup(
