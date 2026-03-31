@@ -538,3 +538,19 @@ $$;
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
   @@
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'user_settings'
+          AND column_name = 'settings_json'
+          AND data_type <> 'text'
+    ) THEN
+        ALTER TABLE user_settings ALTER COLUMN settings_json TYPE TEXT;
+    END IF;
+END;
+$$;
+@@
