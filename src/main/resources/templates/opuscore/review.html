@@ -170,7 +170,13 @@
         <div class="review-section">
             <div class="section-title">Criteria scores</div>
             <div class="criteria-grid" th:if="${criteriaScores != null}">
-                <div class="criteria-card" th:each="c : ${criteriaScores}">
+                <div class="criteria-card"
+                     th:each="c : ${criteriaScores}"
+                     data-criterion-card="true"
+                     tabindex="0"
+                     role="button"
+                     aria-haspopup="dialog"
+                     th:attr="data-criterion-name=${c.name},data-criterion-description=${c.description},aria-label=${'Open description for ' + (c.name != null ? c.name : 'criterion')}">
                     <div class="criteria-header">
                         <div>
                             <div class="criteria-name" th:text="${c.name} ?: 'Criterion'">Criterion</div>
@@ -193,8 +199,25 @@
     <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('review')}"></aside>
 </main>
 
+<div class="criterion-modal" id="criterion-modal" hidden aria-hidden="true" data-criterion-modal>
+    <div class="criterion-modal__backdrop" data-criterion-modal-close></div>
+    <div class="criterion-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="criterion-modal-title" aria-describedby="criterion-modal-description">
+        <div class="criterion-modal__head">
+            <div>
+                <p class="criterion-modal__eyebrow">Criterion</p>
+                <h2 class="criterion-modal__title" id="criterion-modal-title" data-criterion-modal-title>Criterion</h2>
+            </div>
+            <button class="criterion-modal__close" type="button" aria-label="Close criterion description" data-criterion-modal-close>&times;</button>
+        </div>
+        <div class="criterion-modal__body">
+            <p class="criterion-modal__description" id="criterion-modal-description" data-criterion-modal-description>Description is not available yet.</p>
+        </div>
+    </div>
+</div>
+
 <script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
+<script th:src="@{/js/private/opuscore-criteria-modal.js}" src="/js/private/opuscore-criteria-modal.js"></script>
 <script>
     (function () {
         const description = document.getElementById('review-desc');
