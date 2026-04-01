@@ -117,10 +117,9 @@
                         </div>
                     </section>
 
-                    <section class="hub-preview-card hub-preview-card--page grade-overview-card" id="schedule-average-card" aria-label="Average grade across all subjects">
+                    <section class="hub-preview-card hub-preview-card--page grade-overview-card" id="schedule-average-card" aria-label="Open all grades across all subjects" role="button" tabindex="0">
                         <div class="grade-overview-card__head">
                             <div>
-                                <p class="planner__eyebrow">Performance</p>
                                 <h2>Average grade</h2>
                             </div>
                             <span class="hub-preview-card__badge" id="schedule-average-grade-system">1 to 5</span>
@@ -516,6 +515,29 @@
             <div class="subject-modal__body week-homework-modal__body">
                 <div class="week-homework-modal__list" id="week-homework-list"></div>
                 <p class="subject-modal__empty hidden" id="week-homework-empty">No homework for this week yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="subject-modal subject-detail-modal hidden" id="schedule-average-modal" aria-hidden="true">
+    <div class="subject-modal__backdrop" data-close-schedule-average-modal></div>
+    <div class="subject-modal__dialog subject-detail-modal__dialog schedule-average-modal__dialog" id="schedule-average-modal-panel" role="dialog" aria-modal="true" aria-labelledby="schedule-average-modal-title">
+        <div class="subject-detail-modal__content schedule-average-modal__content">
+            <div class="subject-detail-modal__head">
+                <div>
+                    <p class="subject-detail-modal__kicker">Grade overview</p>
+                    <h3 class="subject-detail-modal__side-title" id="schedule-average-modal-title">All grades</h3>
+                    <p class="homework-modal__context" id="schedule-average-modal-context">Across all subjects</p>
+                </div>
+                <button class="subject-modal__close" type="button" aria-label="Close" data-close-schedule-average-modal>x</button>
+            </div>
+            <div class="subject-modal__body schedule-average-modal__body">
+                <div class="schedule-grade-list" id="schedule-average-grade-list"></div>
+                <p class="subject-modal__empty hidden" id="schedule-average-grade-list-empty">No grades yet.</p>
+                <div class="subject-create-panel__actions">
+                    <button class="btn btn--ghost" type="button" data-close-schedule-average-modal>Close</button>
+                </div>
             </div>
         </div>
     </div>

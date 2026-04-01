@@ -136,6 +136,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduleAverageValue = document.getElementById("schedule-average-grade-value");
     const scheduleAverageHint = document.getElementById("schedule-average-grade-hint");
     const scheduleAverageSystemBadge = document.getElementById("schedule-average-grade-system");
+    const scheduleAverageModal = document.getElementById("schedule-average-modal");
+    const scheduleAverageModalPanel = document.getElementById("schedule-average-modal-panel");
+    const scheduleAverageModalContext = document.getElementById("schedule-average-modal-context");
+    const scheduleAverageGradeList = document.getElementById("schedule-average-grade-list");
+    const scheduleAverageGradeListEmpty = document.getElementById("schedule-average-grade-list-empty");
+    const closeScheduleAverageTriggers = Array.from(document.querySelectorAll("[data-close-schedule-average-modal]"));
 
     const homeworkCache = new Map();
     let gradeRecords = [];
@@ -153,6 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeWeekHomeworkTrigger = null;
     let userSettingsCache = null;
     let userSettingsLoadPromise = null;
+    let activeAverageCardAnim = null;
+    let averageCardAnimBusy = false;
 
     // Stores { cell, clone, rect } while the subject modal is open
     let activeCardAnim = null;
@@ -169,6 +177,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function formatFullDateLabel(date) {
         return new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "2-digit", month: "2-digit" }).format(date);
+    }
+
+    function formatGradeListDate(date) {
+        return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit" }).format(date);
+    }
+
+    function formatGradeListDateMeta(date) {
+        return new Intl.DateTimeFormat("ru-RU", { weekday: "short", year: "numeric" }).format(date);
     }
 
     function toIsoDate(date) {
@@ -796,6 +812,181 @@ document.addEventListener("DOMContentLoaded", () => {
             scheduleAverageNormalized = null;
             scheduleAverageLoaded = false;
             renderScheduleAverageWidget({ error: true });
+        }
+    }
+
+    function isScheduleAverageModalOpen() {
+        return !!scheduleAverageModal && !scheduleAverageModal.classList.contains("hidden");
+    }
+
+    function getScheduleAverageCells() {
+        const timetable = document.querySelector("#schedule-preview .hub-timetable");
+        return timetable
+            ? Array.from(timetable.querySelectorAll(".hub-timetable__cell--filled[data-day-subject-id]"))
+            : [];
+    }
+
+    function getScheduleAverageGradePlacement(grade, cells = getScheduleAverageCells()) {
+        const assignedDaySubjectId = Number(grade?.assignedDaySubjectId || "0");
+        const subjectId = Number(grade?.subjectId || "0");
+        const assignedCell = assignedDaySubjectId
+            ? cells.find((cell) => Number(cell.dataset.daySubjectId || "0") === assignedDaySubjectId)
+            : null;
+        const subjectCell = assignedCell || cells.find((cell) => Number(cell.dataset.subjectId || "0") === subjectId) || null;
+        const lessonDateValue = assignedCell?.dataset?.lessonDate ? new Date(assignedCell.dataset.lessonDate) : null;
+        const lessonDate = lessonDateValue && !Number.isNaN(lessonDateValue.getTime()) ? lessonDateValue : null;
+        const lessonOrder = Number(assignedCell?.dataset?.lessonOrder || "0");
+
+        return {
+            assignedCell,
+            subjectCell,
+            lessonDate,
+            lessonOrder,
+            subjectName: subjectCell?.dataset?.subjectShortName || subjectCell?.dataset?.subjectName || "Subject"
+        };
+    }
+
+    function getSortedScheduleAverageGrades() {
+        const cells = getScheduleAverageCells();
+        return gradeRecords
+            .map((grade) => ({
+                grade,
+                placement: getScheduleAverageGradePlacement(grade, cells)
+            }))
+            .sort((left, right) => {
+                const leftTime = left.placement.lessonDate?.getTime();
+                const rightTime = right.placement.lessonDate?.getTime();
+                const leftHasDate = Number.isFinite(leftTime);
+                const rightHasDate = Number.isFinite(rightTime);
+
+                if (leftHasDate !== rightHasDate) {
+                    return leftHasDate ? -1 : 1;
+                }
+
+                if (leftHasDate && rightHasDate && rightTime !== leftTime) {
+                    return rightTime - leftTime;
+                }
+
+                if ((right.placement.lessonOrder || 0) !== (left.placement.lessonOrder || 0)) {
+                    return (right.placement.lessonOrder || 0) - (left.placement.lessonOrder || 0);
+                }
+
+                return Number(right.grade?.id || 0) - Number(left.grade?.id || 0);
+            });
+    }
+
+    function renderScheduleAverageGradesModal({ loading = false, error = false } = {}) {
+        if (!scheduleAverageGradeList || !scheduleAverageGradeListEmpty) return;
+
+        const preferredSystem = getPreferredGradeSystem();
+        scheduleAverageGradeList.innerHTML = "";
+        scheduleAverageGradeListEmpty.classList.add("hidden");
+        scheduleAverageGradeListEmpty.textContent = "No grades yet.";
+
+        if (scheduleAverageModalContext) {
+            scheduleAverageModalContext.textContent = `Across all subjects • ${getGradeSystemLabel(preferredSystem)}`;
+        }
+
+        if (loading) {
+            scheduleAverageGradeList.innerHTML = '<p class="schedule-grade-list__state">Loading grades...</p>';
+            return;
+        }
+
+        if (error) {
+            scheduleAverageGradeListEmpty.textContent = "Could not load grades right now.";
+            scheduleAverageGradeListEmpty.classList.remove("hidden");
+            return;
+        }
+
+        const grades = getSortedScheduleAverageGrades();
+        if (scheduleAverageModalContext) {
+            scheduleAverageModalContext.textContent = `Across all subjects • ${grades.length} grades`;
+        }
+
+        if (!grades.length) {
+            scheduleAverageGradeListEmpty.classList.remove("hidden");
+            return;
+        }
+
+        grades.forEach(({ grade, placement }) => {
+            const item = document.createElement("article");
+            item.className = "schedule-grade-list__item";
+
+            const date = document.createElement("div");
+            date.className = "schedule-grade-list__date";
+
+            const dateDay = document.createElement("p");
+            dateDay.className = "schedule-grade-list__date-day";
+            dateDay.textContent = placement.lessonDate ? formatGradeListDate(placement.lessonDate) : "No date";
+
+            const dateMeta = document.createElement("p");
+            dateMeta.className = "schedule-grade-list__date-meta";
+            dateMeta.textContent = placement.lessonDate
+                ? `${formatGradeListDateMeta(placement.lessonDate)} • Lesson #${placement.lessonOrder || "?"}`
+                : "Not linked to a lesson";
+
+            date.append(dateDay, dateMeta);
+
+            const main = document.createElement("div");
+            main.className = "schedule-grade-list__main";
+
+            const top = document.createElement("div");
+            top.className = "schedule-grade-list__top";
+
+            const subject = document.createElement("p");
+            subject.className = "schedule-grade-list__subject";
+            subject.textContent = placement.subjectName;
+
+            const value = document.createElement("span");
+            value.className = "schedule-grade-list__value";
+            value.textContent =
+                convertNormalizedToGradeValue(getNormalizedGradeValue(grade), preferredSystem) ||
+                String(grade?.value || "").trim() ||
+                "?";
+
+            top.append(subject, value);
+
+            const meta = document.createElement("div");
+            meta.className = "schedule-grade-list__meta";
+
+            const reason = document.createElement("span");
+            reason.textContent = grade?.reason || defaultGradeReason;
+            meta.appendChild(reason);
+
+            const system = document.createElement("span");
+            system.textContent = getGradeSystemLabel(grade?.system || preferredSystem);
+            meta.appendChild(system);
+
+            if (placement.assignedCell) {
+                const lesson = document.createElement("span");
+                lesson.textContent = getLessonContext(placement.assignedCell).context;
+                meta.appendChild(lesson);
+            }
+
+            main.append(top, meta);
+
+            if (grade?.description) {
+                const description = document.createElement("p");
+                description.className = "schedule-grade-list__description";
+                description.textContent = grade.description;
+                main.appendChild(description);
+            }
+
+            item.append(date, main);
+            scheduleAverageGradeList.appendChild(item);
+        });
+    }
+
+    async function refreshScheduleAverageGradesModal(force = false) {
+        if (!scheduleAverageModal) return;
+
+        renderScheduleAverageGradesModal({ loading: true });
+        try {
+            await loadGrades(force);
+            renderScheduleAverageGradesModal();
+        } catch (error) {
+            console.error(error);
+            renderScheduleAverageGradesModal({ error: true });
         }
     }
 
@@ -2335,6 +2526,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isSubjectGradesListModalOpen()) {
                 renderSubjectGradesListModal();
             }
+            if (isScheduleAverageModalOpen()) {
+                renderScheduleAverageGradesModal();
+            }
             showToast("success", gradeId ? "Grade updated." : "Grade saved.");
             closeSubjectGradesModal();
         } catch (error) {
@@ -2359,6 +2553,9 @@ document.addEventListener("DOMContentLoaded", () => {
             renderSubjectGradesWidget();
             if (isSubjectGradesListModalOpen()) {
                 renderSubjectGradesListModal();
+            }
+            if (isScheduleAverageModalOpen()) {
+                renderScheduleAverageGradesModal();
             }
             showToast("success", "Grade deleted.");
             closeSubjectGradesModal();
@@ -3035,6 +3232,182 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function openScheduleAverageModal() {
+        if (!scheduleAverageCard || !scheduleAverageModal || !scheduleAverageModalPanel) return;
+        if (averageCardAnimBusy || cardAnimBusy) return;
+
+        averageCardAnimBusy = true;
+        renderScheduleAverageGradesModal({ loading: true });
+
+        const rect = scheduleAverageCard.getBoundingClientRect();
+        const SCALE = 1.13;
+        const TARGET_X = 80;
+        const TARGET_Y = 72;
+        const OPEN_MS = 680;
+        const finalW = rect.width * SCALE;
+        const finalH = rect.height * SCALE;
+
+        const clone = scheduleAverageCard.cloneNode(true);
+        clone.removeAttribute("id");
+        clone.removeAttribute("role");
+        clone.removeAttribute("tabindex");
+        clone.setAttribute("aria-hidden", "true");
+        clone.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+
+        clone.style.cssText = [
+            "position:fixed",
+            `left:${rect.left}px`,
+            `top:${rect.top}px`,
+            `width:${rect.width}px`,
+            `height:${rect.height}px`,
+            "margin:0",
+            "min-height:unset",
+            "box-sizing:border-box",
+            "contain:layout style paint",
+            "transform-origin:top left",
+            "transform:none",
+            "pointer-events:none",
+            "transition:none",
+            "z-index:9998",
+            "box-shadow:0 6px 20px rgba(17,32,63,0.13)",
+            "will-change:transform,box-shadow"
+        ].join(";");
+
+        document.body.appendChild(clone);
+        scheduleAverageCard.classList.add("is-animating");
+        activeAverageCardAnim = { card: scheduleAverageCard, clone };
+
+        scheduleAverageModal.classList.remove("hidden");
+        scheduleAverageModal.setAttribute("aria-hidden", "false");
+
+        const backdrop = scheduleAverageModal.querySelector(".subject-modal__backdrop");
+        if (backdrop) {
+            backdrop.style.transition = "none";
+            backdrop.style.opacity = "0";
+        }
+
+        const gap = 24;
+        const dialogLeft = TARGET_X + finalW + gap;
+        const rightRoom = window.innerWidth - dialogLeft - 32;
+        const belowTop = TARGET_Y + finalH + gap;
+        let dialogTop;
+        let dialogWidth;
+        let dialogMaxHeight;
+        let dialogX;
+
+        if (rightRoom >= 320) {
+            dialogTop = TARGET_Y;
+            dialogX = dialogLeft;
+            dialogWidth = Math.min(620, rightRoom);
+            dialogMaxHeight = `calc(100vh - ${TARGET_Y + 32}px)`;
+        } else {
+            dialogTop = belowTop;
+            dialogX = TARGET_X;
+            dialogWidth = Math.min(620, window.innerWidth - TARGET_X - 32);
+            dialogMaxHeight = `calc(100vh - ${belowTop + 32}px)`;
+        }
+
+        Object.assign(scheduleAverageModalPanel.style, {
+            position: "fixed",
+            top: `${dialogTop}px`,
+            left: `${dialogX}px`,
+            width: `${dialogWidth}px`,
+            maxHeight: dialogMaxHeight,
+            opacity: "0",
+            transform: "translateX(28px)",
+            transition: "none"
+        });
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const tx = TARGET_X - rect.left;
+                const ty = TARGET_Y - rect.top;
+
+                clone.style.transition = [
+                    `transform ${OPEN_MS}ms cubic-bezier(0.25,0.86,0.2,1)`,
+                    `box-shadow ${OPEN_MS}ms ease`
+                ].join(",");
+                clone.style.transform = `translate(${tx}px,${ty}px) scale(${SCALE})`;
+                clone.style.boxShadow = "0 22px 64px rgba(17,32,63,0.24)";
+
+                if (backdrop) {
+                    backdrop.style.transition = "opacity 460ms ease";
+                    backdrop.style.opacity = "1";
+                }
+            });
+        });
+
+        window.setTimeout(() => {
+            scheduleAverageModalPanel.style.transition = [
+                "opacity 360ms cubic-bezier(0.25,0.8,0.25,1)",
+                "transform 360ms cubic-bezier(0.25,0.8,0.25,1)"
+            ].join(",");
+            scheduleAverageModalPanel.style.opacity = "1";
+            scheduleAverageModalPanel.style.transform = "translateX(0)";
+        }, Math.round(OPEN_MS * 0.52));
+
+        window.setTimeout(() => {
+            averageCardAnimBusy = false;
+        }, OPEN_MS + 60);
+
+        void refreshScheduleAverageGradesModal();
+    }
+
+    function closeScheduleAverageModal() {
+        if (!scheduleAverageModal || scheduleAverageModal.classList.contains("hidden")) return;
+        if (averageCardAnimBusy) return;
+
+        averageCardAnimBusy = true;
+
+        const dialog = scheduleAverageModalPanel;
+        const backdrop = scheduleAverageModal.querySelector(".subject-modal__backdrop");
+        const CLOSE_MS = 540;
+
+        if (dialog) {
+            dialog.style.transition = "opacity 200ms ease, transform 200ms cubic-bezier(0.4,0,1,1)";
+            dialog.style.opacity = "0";
+            dialog.style.transform = "translateX(18px)";
+        }
+
+        if (backdrop) {
+            backdrop.style.transition = `opacity ${CLOSE_MS}ms ease`;
+            backdrop.style.opacity = "0";
+        }
+
+        if (activeAverageCardAnim) {
+            const { card, clone } = activeAverageCardAnim;
+
+            window.setTimeout(() => {
+                clone.style.transition = [
+                    `transform ${CLOSE_MS}ms cubic-bezier(0.3,0,0.15,1)`,
+                    `box-shadow ${CLOSE_MS}ms ease`
+                ].join(",");
+                clone.style.transform = "none";
+                clone.style.boxShadow = "0 6px 20px rgba(17,32,63,0.13)";
+            }, 60);
+
+            window.setTimeout(() => {
+                clone.remove();
+                card.classList.remove("is-animating");
+                activeAverageCardAnim = null;
+                averageCardAnimBusy = false;
+                scheduleAverageModal.classList.add("hidden");
+                scheduleAverageModal.setAttribute("aria-hidden", "true");
+                if (dialog) dialog.removeAttribute("style");
+                if (backdrop) backdrop.removeAttribute("style");
+            }, 60 + CLOSE_MS + 40);
+            return;
+        }
+
+        window.setTimeout(() => {
+            averageCardAnimBusy = false;
+            scheduleAverageModal.classList.add("hidden");
+            scheduleAverageModal.setAttribute("aria-hidden", "true");
+            if (dialog) dialog.removeAttribute("style");
+            if (backdrop) backdrop.removeAttribute("style");
+        }, 260);
+    }
+
     /* ─────────────────────────────────────────────────
        HOMEWORK MODAL
     ───────────────────────────────────────────────── */
@@ -3299,6 +3672,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     closeHomeworkTriggers.forEach((t) => t.addEventListener("click", closeHomeworkModal));
+    closeScheduleAverageTriggers.forEach((t) => t.addEventListener("click", closeScheduleAverageModal));
     closeSubjectTriggers.forEach((t)  => t.addEventListener("click", (event) => {
         if (event.currentTarget.classList.contains("subject-modal__backdrop")) {
             if (isSubjectHomeworkDetailModalOpen()) {
@@ -3335,6 +3709,19 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             e.stopPropagation();
             openSubjectGradesModal();
+        });
+    }
+
+    if (scheduleAverageCard) {
+        scheduleAverageCard.addEventListener("click", (event) => {
+            if (event.target.closest("a, button, input, textarea, select, label")) return;
+            openScheduleAverageModal();
+        });
+
+        scheduleAverageCard.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            openScheduleAverageModal();
         });
     }
 
@@ -3448,6 +3835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (homeworkModal && !homeworkModal.classList.contains("hidden")) closeHomeworkModal();
+            else if (isScheduleAverageModalOpen()) closeScheduleAverageModal();
             else if (isSubjectHomeworkDetailModalOpen()) closeSubjectHomeworkDetailModal();
             else if (isSubjectUpcomingLayerOpen()) closeSubjectUpcomingLayer();
             else if (isSubjectGradesModalOpen()) closeSubjectGradesModal();
@@ -3473,6 +3861,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (gradesLoaded) {
             renderSubjectGradesWidget();
+            if (isScheduleAverageModalOpen()) {
+                renderScheduleAverageGradesModal();
+            }
         }
     });
     void loadUserSettings().then((settings) => {
@@ -3482,6 +3873,9 @@ document.addEventListener("DOMContentLoaded", () => {
         void refreshScheduleAverageWidget();
         if (gradesLoaded) {
             renderSubjectGradesWidget();
+            if (isScheduleAverageModalOpen()) {
+                renderScheduleAverageGradesModal();
+            }
         }
     });
 });
