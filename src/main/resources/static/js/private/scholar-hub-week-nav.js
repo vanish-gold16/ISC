@@ -977,16 +977,92 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function renderCompactScheduleAverageGradesModal({ loading = false, error = false } = {}) {
+        if (!scheduleAverageGradeList || !scheduleAverageGradeListEmpty) return;
+
+        const preferredSystem = getPreferredGradeSystem();
+        scheduleAverageGradeList.innerHTML = "";
+        scheduleAverageGradeListEmpty.classList.add("hidden");
+        scheduleAverageGradeListEmpty.textContent = "No grades yet.";
+
+        if (scheduleAverageModalContext) {
+            scheduleAverageModalContext.textContent = `Across all subjects - ${getGradeSystemLabel(preferredSystem)}`;
+        }
+
+        if (loading) {
+            scheduleAverageGradeList.innerHTML = '<p class="schedule-grade-list__state">Loading grades...</p>';
+            return;
+        }
+
+        if (error) {
+            scheduleAverageGradeListEmpty.textContent = "Could not load grades right now.";
+            scheduleAverageGradeListEmpty.classList.remove("hidden");
+            return;
+        }
+
+        const grades = getSortedScheduleAverageGrades();
+        if (scheduleAverageModalContext) {
+            scheduleAverageModalContext.textContent =
+                `Across all subjects - ${grades.length} grades - ${getGradeSystemLabel(preferredSystem)}`;
+        }
+
+        if (!grades.length) {
+            scheduleAverageGradeListEmpty.classList.remove("hidden");
+            return;
+        }
+
+        grades.forEach(({ grade, placement }) => {
+            const item = document.createElement("article");
+            item.className = "schedule-grade-list__item";
+
+            const subject = document.createElement("p");
+            subject.className = "schedule-grade-list__subject";
+            subject.textContent = placement.subjectName;
+
+            const date = document.createElement("p");
+            date.className = "schedule-grade-list__date";
+            date.textContent = placement.lessonDate
+                ? formatGradeListDate(placement.lessonDate)
+                : "No date";
+
+            const value = document.createElement("p");
+            value.className = "schedule-grade-list__value";
+            value.textContent =
+                convertNormalizedToGradeValue(getNormalizedGradeValue(grade), preferredSystem) ||
+                String(grade?.value || "").trim() ||
+                "?";
+
+            const meta = document.createElement("p");
+            meta.className = "schedule-grade-list__meta";
+            meta.textContent = grade?.reason || defaultGradeReason;
+
+            const tooltipLines = [
+                placement.subjectName,
+                placement.lessonDate
+                    ? `${formatGradeListDate(placement.lessonDate)} - Lesson ${placement.lessonOrder || "?"}`
+                    : "Not linked to a lesson",
+                grade?.reason || defaultGradeReason,
+                grade?.description ? String(grade.description).trim() : ""
+            ].filter(Boolean);
+            if (tooltipLines.length) {
+                item.title = tooltipLines.join("\n");
+            }
+
+            item.append(subject, date, value, meta);
+            scheduleAverageGradeList.appendChild(item);
+        });
+    }
+
     async function refreshScheduleAverageGradesModal(force = false) {
         if (!scheduleAverageModal) return;
 
-        renderScheduleAverageGradesModal({ loading: true });
+        renderCompactScheduleAverageGradesModal({ loading: true });
         try {
             await loadGrades(force);
-            renderScheduleAverageGradesModal();
+            renderCompactScheduleAverageGradesModal();
         } catch (error) {
             console.error(error);
-            renderScheduleAverageGradesModal({ error: true });
+            renderCompactScheduleAverageGradesModal({ error: true });
         }
     }
 
@@ -2527,7 +2603,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderSubjectGradesListModal();
             }
             if (isScheduleAverageModalOpen()) {
-                renderScheduleAverageGradesModal();
+                renderCompactScheduleAverageGradesModal();
             }
             showToast("success", gradeId ? "Grade updated." : "Grade saved.");
             closeSubjectGradesModal();
@@ -2555,7 +2631,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderSubjectGradesListModal();
             }
             if (isScheduleAverageModalOpen()) {
-                renderScheduleAverageGradesModal();
+                renderCompactScheduleAverageGradesModal();
             }
             showToast("success", "Grade deleted.");
             closeSubjectGradesModal();
@@ -3237,7 +3313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (averageCardAnimBusy || cardAnimBusy) return;
 
         averageCardAnimBusy = true;
-        renderScheduleAverageGradesModal({ loading: true });
+        renderCompactScheduleAverageGradesModal({ loading: true });
 
         const rect = scheduleAverageCard.getBoundingClientRect();
         const SCALE = 1.13;
@@ -3862,7 +3938,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gradesLoaded) {
             renderSubjectGradesWidget();
             if (isScheduleAverageModalOpen()) {
-                renderScheduleAverageGradesModal();
+                renderCompactScheduleAverageGradesModal();
             }
         }
     });
@@ -3874,7 +3950,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gradesLoaded) {
             renderSubjectGradesWidget();
             if (isScheduleAverageModalOpen()) {
-                renderScheduleAverageGradesModal();
+                renderCompactScheduleAverageGradesModal();
             }
         }
     });
