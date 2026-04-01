@@ -569,18 +569,106 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function getLessonTimeForOrder(settings, lessonOrder) {
+    function getLessonTimeKeyForOrder(lessonOrder) {
         const numericOrder = Number(lessonOrder);
-        const key = Number.isFinite(numericOrder) ? lessonTimeKeys[numericOrder - 1] : null;
+        return Number.isFinite(numericOrder) ? lessonTimeKeys[numericOrder - 1] : null;
+    }
+
+    function parseTimeToMinutes(value) {
+        const normalized = normalizeLessonTimeValue(value);
+        if (!normalized) {
+            return null;
+        }
+        const [hours, minutes] = normalized.split(":").map(Number);
+        return (hours * 60) + minutes;
+    }
+
+    function getLessonTimeBoundsForOrder(settings, lessonOrder) {
+        const key = getLessonTimeKeyForOrder(lessonOrder);
+        if (!key) {
+            return null;
+        }
+
+        const start = normalizeLessonTimeValue(settings?.scholarHub?.startOfEachLesson?.[key]);
+        const end = normalizeLessonTimeValue(settings?.scholarHub?.endOfEachLesson?.[key]);
+        if (!start || !end) {
+            return null;
+        }
+
+        return {
+            start,
+            end,
+            startMinutes: parseTimeToMinutes(start),
+            endMinutes: parseTimeToMinutes(end)
+        };
+    }
+
+    function getLessonTimeForOrder(settings, lessonOrder) {
+        const key = getLessonTimeKeyForOrder(lessonOrder);
         if (!key) {
             return "";
         }
+
+        const bounds = getLessonTimeBoundsForOrder(settings, lessonOrder);
+        if (bounds) {
+            return `${bounds.start} - ${bounds.end}`;
+        }
+
         const start = normalizeLessonTimeValue(settings?.scholarHub?.startOfEachLesson?.[key]);
         const end = normalizeLessonTimeValue(settings?.scholarHub?.endOfEachLesson?.[key]);
-        if (start && end) {
-            return `${start} - ${end}`;
-        }
         return start || end;
+    }
+
+    function parseLessonDateValue(value) {
+        const normalized = String(value || "").trim();
+        if (!normalized) {
+            return null;
+        }
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+            const [year, month, day] = normalized.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        const parsed = new Date(normalized);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function isSameLocalDate(left, right) {
+        return left.getFullYear() === right.getFullYear()
+            && left.getMonth() === right.getMonth()
+            && left.getDate() === right.getDate();
+    }
+
+    function isCurrentLessonCell(cell, settings, now = new Date()) {
+        if (!cell || !cell.closest(".hub-timetable--page")) {
+            return false;
+        }
+
+        const lessonDate = parseLessonDateValue(cell.dataset.lessonDate);
+        if (!lessonDate || !isSameLocalDate(lessonDate, now)) {
+            return false;
+        }
+
+        const bounds = getLessonTimeBoundsForOrder(settings, cell.dataset.lessonOrder);
+        if (!bounds
+            || !Number.isFinite(bounds.startMinutes)
+            || !Number.isFinite(bounds.endMinutes)
+            || bounds.endMinutes <= bounds.startMinutes) {
+            return false;
+        }
+
+        const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+        return currentMinutes >= bounds.startMinutes && currentMinutes < bounds.endMinutes;
+    }
+
+    function refreshCurrentLessonHighlight(settings = readCachedUserSettings() || defaultUserSettings()) {
+        const normalizedSettings = normalizeUserSettings(settings);
+        const now = new Date();
+
+        document.querySelectorAll(".hub-timetable--page .hub-timetable__cell--filled").forEach((cell) => {
+            cell.classList.toggle("is-current-lesson", isCurrentLessonCell(cell, normalizedSettings, now));
+        });
     }
 
     function applyLessonTimesToTimetable(settings) {
@@ -591,6 +679,12 @@ document.addEventListener("DOMContentLoaded", () => {
             timeNode.textContent = lessonTime;
             timeNode.classList.toggle("hidden", !lessonTime);
         });
+
+        document.querySelectorAll(".hub-timetable__cell--filled[data-lesson-order]").forEach((cell) => {
+            cell.dataset.lessonTime = getLessonTimeForOrder(settings, cell.dataset.lessonOrder);
+        });
+
+        refreshCurrentLessonHighlight(settings);
     }
 
     async function loadUserSettings() {
@@ -3660,6 +3754,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             void loadHomeworkForWeek(toIsoDate(monday), timetable);
             refreshHomeworkIndicators(timetable);
+            refreshCurrentLessonHighlight();
         }
 
         function syncUrl() {
@@ -3942,6 +4037,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+    window.setInterval(() => {
+        refreshCurrentLessonHighlight();
+    }, 30000);
     void loadUserSettings().then((settings) => {
         const preferredSystem = setPreferredGradeSystem(settings.scholarHub.preferredGradeSystem);
         applyLessonTimesToTimetable(settings);

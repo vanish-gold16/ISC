@@ -838,6 +838,14 @@ body {
     pointer-events: none;
 }
 
+.hub-timetable--page .hub-timetable__cell--filled.is-current-lesson {
+    border-color: #FFA500;
+    box-shadow:
+        inset 0 0 0 1px #FFA500,
+        0 0 0 2px rgba(255, 165, 0, 0.22);
+    z-index: 1;
+}
+
 .hub-timetable__cell-body {
     display: flex;
     align-items: flex-end;
