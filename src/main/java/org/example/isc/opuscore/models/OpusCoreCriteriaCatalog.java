@@ -25,6 +25,7 @@ public class OpusCoreCriteriaCatalog {
         putShows();
         putAnime();
         putManga();
+        putBooks();
     }
 
     public void putMusic(){
@@ -32,53 +33,58 @@ public class OpusCoreCriteriaCatalog {
         criteria.add(new CriterionDTO(
                 1L,
                 "Structure / Rhythm",
-                "not done yet",
+                "The melody and emotional contrasts of individual sections of the song, " +
+                          "how well the different sections of the song sound harmoniously together throughout the entire length. " +
+                          "In the case of an album, the concept and arrangement of songs within the album.",
                 14,
                 5
         ));
         criteria.add((new CriterionDTO(
                 2L,
                 "Rhymes / Figures",
-                "not done yet",
+                "Lyrics score takes into account the specific characteristics of the musical genre or subgenre. " +
+                          "Different music has its own semantic and lyrical content.",
                 14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 3L,
                 "Realisation",
-                "not done yet",
+                "Quality of vocals, recitative, and the ability to work with selected melodies and bars, as well as the quality of mixing the song and instrumental.",
                 14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 4L,
                 "Individuality / Charisma",
-                "not done yet",
+                "The specificity of the artist's voice timbre and chosen performance style—how unique the artist is—and how well the artist immerses the listener in the emotions conveyed—whether I believe or don't believe the song.",
                 14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 5L,
                 "Relevance",
-                "not done yet",
+                "Determines how relevant a given work was at the time of its release. " +
+                          "Give extra points if the work itself introduced relevance to this type of music.",
                 14,
                 5
         )));
         criteria.add((new CriterionDTO(
                 6L,
                 "Vibe",
-                "not done yet",
+                "Your subjective perception and feelings about the release",
                 30,
                 5
         )));
         register(ArtTypeEnum.MUSIC, criteria);
     }
 
-    //TODO
+    // TODO
     private void putMovies(){
         register(ArtTypeEnum.MOVIE, new ArrayList<>());
     }
 
+    // TODO
     private void putShows(){
         register(ArtTypeEnum.SHOW, new ArrayList<>());
     }
@@ -237,6 +243,17 @@ public class OpusCoreCriteriaCatalog {
                 5
         ));
         register(ArtTypeEnum.MANGA, criteria);
+    }
+
+    private void putBooks(){
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add(new CriterionDTO(
+                27L,
+                "",
+                "(not done yet)",
+                0,
+                5
+        ));
     }
 
     private void register(ArtTypeEnum type, List<CriterionDTO> criteria) {
