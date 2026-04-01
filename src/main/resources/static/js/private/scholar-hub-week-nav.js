@@ -132,11 +132,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeSubjectUpcomingTriggers = Array.from(document.querySelectorAll("[data-close-subject-upcoming-modal]"));
     const closeSubjectHomeworkDetailTriggers = Array.from(document.querySelectorAll("[data-close-subject-homework-detail-modal]"));
     const homeworkFormRoots = Array.from(document.querySelectorAll("[data-homework-form-root]"));
+    const scheduleAverageCard = document.getElementById("schedule-average-card");
+    const scheduleAverageValue = document.getElementById("schedule-average-grade-value");
+    const scheduleAverageHint = document.getElementById("schedule-average-grade-hint");
+    const scheduleAverageSystemBadge = document.getElementById("schedule-average-grade-system");
 
     const homeworkCache = new Map();
     let gradeRecords = [];
     let gradesLoadPromise = null;
     let gradesLoaded = false;
+    let scheduleAverageNormalized = null;
+    let scheduleAverageLoadPromise = null;
+    let scheduleAverageLoaded = false;
     let activeLessonCell = null;
     let subjectUpcomingTab = "current";
     let activeHomeworkDetailEntry = null;
@@ -715,6 +722,81 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         return gradesLoadPromise;
+    }
+
+    function renderScheduleAverageWidget({ loading = false, error = false } = {}) {
+        if (!scheduleAverageCard || !scheduleAverageValue || !scheduleAverageHint) return;
+
+        const preferredSystem = getPreferredGradeSystem();
+        if (scheduleAverageSystemBadge) {
+            scheduleAverageSystemBadge.textContent = getGradeSystemLabel(preferredSystem);
+        }
+
+        if (loading) {
+            scheduleAverageValue.textContent = "...";
+            scheduleAverageHint.textContent = "Loading average across all subjects.";
+            return;
+        }
+
+        if (error) {
+            scheduleAverageValue.textContent = "N";
+            scheduleAverageHint.textContent = "Could not load average grade right now.";
+            return;
+        }
+
+        if (!Number.isFinite(scheduleAverageNormalized)) {
+            scheduleAverageValue.textContent = "N";
+            scheduleAverageHint.textContent = "No grades yet across all subjects.";
+            return;
+        }
+
+        scheduleAverageValue.textContent =
+            convertNormalizedToGradeValue(scheduleAverageNormalized, preferredSystem, { forAverage: true }) || "N";
+        scheduleAverageHint.textContent = `Across all subjects - ${getGradeSystemLabel(preferredSystem)}`;
+    }
+
+    async function refreshScheduleAverageWidget(force = false) {
+        if (!scheduleAverageCard) return;
+
+        if (!force && scheduleAverageLoaded) {
+            renderScheduleAverageWidget();
+            return;
+        }
+
+        if (!force && scheduleAverageLoadPromise) {
+            renderScheduleAverageWidget({ loading: true });
+            try {
+                await scheduleAverageLoadPromise;
+                renderScheduleAverageWidget();
+            } catch (error) {
+                console.error(error);
+                renderScheduleAverageWidget({ error: true });
+            }
+            return;
+        }
+
+        renderScheduleAverageWidget({ loading: true });
+
+        scheduleAverageLoadPromise = requestJson("/scholar-hub/grades/average", { method: "GET" })
+            .then((data) => {
+                const numericValue = data == null ? Number.NaN : Number(data);
+                scheduleAverageNormalized = Number.isFinite(numericValue) ? numericValue : null;
+                scheduleAverageLoaded = true;
+                return scheduleAverageNormalized;
+            })
+            .finally(() => {
+                scheduleAverageLoadPromise = null;
+            });
+
+        try {
+            await scheduleAverageLoadPromise;
+            renderScheduleAverageWidget();
+        } catch (error) {
+            console.error(error);
+            scheduleAverageNormalized = null;
+            scheduleAverageLoaded = false;
+            renderScheduleAverageWidget({ error: true });
+        }
     }
 
     function makeCacheKey(weekStart, dueDaySubjectId) {
@@ -2248,6 +2330,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(payload)
             });
             await loadGrades(true);
+            await refreshScheduleAverageWidget(true);
             renderSubjectGradesWidget();
             if (isSubjectGradesListModalOpen()) {
                 renderSubjectGradesListModal();
@@ -2272,6 +2355,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "DELETE"
             });
             await loadGrades(true);
+            await refreshScheduleAverageWidget(true);
             renderSubjectGradesWidget();
             if (isSubjectGradesListModalOpen()) {
                 renderSubjectGradesListModal();
@@ -3384,6 +3468,9 @@ document.addEventListener("DOMContentLoaded", () => {
             subjectHomeworkDetailGradeSystemInput.value = preferredSystem;
             syncHomeworkDetailGradeInput();
         }
+        if (scheduleAverageCard) {
+            renderScheduleAverageWidget();
+        }
         if (gradesLoaded) {
             renderSubjectGradesWidget();
         }
@@ -3392,6 +3479,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const preferredSystem = setPreferredGradeSystem(settings.scholarHub.preferredGradeSystem);
         applyLessonTimesToTimetable(settings);
         syncPreferredGradeSystemInputs(preferredSystem);
+        void refreshScheduleAverageWidget();
         if (gradesLoaded) {
             renderSubjectGradesWidget();
         }

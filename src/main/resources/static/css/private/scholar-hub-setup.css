@@ -378,6 +378,53 @@ body {
     height: 22px;
 }
 
+.grade-overview-card {
+    width: min(50%, 560px);
+    min-width: 320px;
+    align-self: flex-start;
+    gap: 14px;
+}
+
+.grade-overview-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.grade-overview-card__head h2 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.grade-overview-card__body {
+    display: grid;
+    gap: 10px;
+    padding: 18px 20px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top right, rgba(110, 168, 254, 0.22), transparent 46%),
+        linear-gradient(135deg, #eef4ff 0%, #f8fbff 48%, #eef8f4 100%);
+    border: 1px solid rgba(191, 208, 238, 0.9);
+}
+
+.grade-overview-card__value {
+    margin: 0;
+    font-size: clamp(40px, 5vw, 56px);
+    line-height: 0.95;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: #173468;
+}
+
+.grade-overview-card__hint {
+    margin: 0;
+    color: #5f77a3;
+    font-size: 13px;
+    font-weight: 700;
+}
+
 .hub-preview-card__footer-action--icon {
     width: 42px;
     min-width: 42px;
@@ -2219,6 +2266,16 @@ body {
     }
 
     .hub-preview-card__head {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+
+    .grade-overview-card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .grade-overview-card__head {
         grid-template-columns: 1fr;
         display: grid;
     }

@@ -11,7 +11,9 @@ import org.example.isc.main.secured.repositories.scholarhub.SubjectsRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GradeService {
@@ -56,6 +58,19 @@ public class GradeService {
     public void delete(Long id, String username) {
         Grade grade = getForUser(id, username);
         gradeRepository.delete(grade);
+    }
+
+    public Optional<BigDecimal> getAverageForUser(String username) {
+        List<Grade> grades = gradeRepository.findAllBySubjectUserUsername(username);
+        if (grades.isEmpty()) {
+            return Optional.empty();
+        }
+
+        BigDecimal total = grades.stream()
+                .map(Grade::getConverted)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return Optional.of(total.divide(BigDecimal.valueOf(grades.size()), 4, RoundingMode.HALF_UP));
     }
 
     private Subject requireSubject(Long subjectId, String username) {
