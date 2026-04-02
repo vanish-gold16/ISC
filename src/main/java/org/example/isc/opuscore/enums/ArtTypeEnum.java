@@ -6,5 +6,6 @@ public enum ArtTypeEnum {
     SHOW,
     GAME,
     ANIME,
-    MANGA
+    MANGA,
+    BOOK
 }

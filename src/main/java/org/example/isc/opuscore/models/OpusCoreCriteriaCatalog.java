@@ -79,58 +79,177 @@ public class OpusCoreCriteriaCatalog {
         register(ArtTypeEnum.MUSIC, criteria);
     }
 
-    // TODO
     private void putMovies(){
-        register(ArtTypeEnum.MOVIE, new ArrayList<>());
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add(new CriterionDTO(
+                7L,
+                "Plot",
+                "How well does the story come together, is there internal logic, " +
+                          "is the pace good, is the ending appropriate and acceptable",
+                18,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                8L,
+                "Characters",
+                "How well are the characters written, " +
+                          "their backstories, motivations for certain actions and interactions between them?",
+                13,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                9L,
+                "Directing / Audiovisuals",
+                "Composition, light, color, shots, scenes, editing, camera work, working with tension, accents, musical accompaniment.",
+                18,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                10L,
+                "World realism",
+                "How well the lore of the universe is explained to us, " +
+                          "how logical the events that take place or the fundamental \"laws\" are",
+                12,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                11L,
+                "Ideologic",
+                "Is there something beneath the surface. An idea, a thought, a moral that the author wants to convey?",
+                8,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                12L,
+                "Emotional impact",
+                "Does the film hit you? " +
+                          "It doesn't matter how: with pain, delight, horror, warmth, emptiness.",
+                8,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                13L,
+                "Own experience",
+                "Your subjective perception and feelings about. " +
+                          "Does it leave a lasting impression, does it have soul, does it have magic?",
+                23,
+                5
+        ));
+        register(ArtTypeEnum.MOVIE, criteria);
     }
 
-    // TODO
     private void putShows(){
-        register(ArtTypeEnum.SHOW, new ArrayList<>());
+        List<CriterionDTO> criteria = new ArrayList<>();
+        criteria.add(new CriterionDTO(
+                14L,
+                "Plot",
+                "How well does the story come together, is there internal logic, " +
+                          "is the pace good, is the ending appropriate and acceptable",
+                16,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                15L,
+                "Characters",
+                "How well are the characters written, " +
+                          "their backstories, motivations for certain actions and interactions between them.",
+                13,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                16L,
+                "Directing / Audiovisuals",
+                "Composition, light, color, shots, scenes, editing, camera work, working with tension, accents, musical accompaniment.",
+                16,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                17L,
+                "Duration",
+                "The length of the entire series is logical and the number of seasons is not artificially stretched out.",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                18L,
+                "World realism",
+                "How well the lore of the universe is explained to us, " +
+                          "how logical the events that take place or the fundamental \"laws\" are",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                19L,
+                "Ideologic",
+                "Is there something beneath the surface. An idea, a thought, a moral that the author wants to convey?",
+                8,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                20L,
+                "Emotional impact",
+                "Does the series hit you? " +
+                          "It doesn't matter how: with pain, delight, horror, warmth, emptiness.",
+                7,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                21L,
+                "Own experience",
+                "Your subjective perception and feelings about. " +
+                          "Does it leave a lasting impression, does it have soul, does it have magic?",
+                20,
+                5
+        ));
+        register(ArtTypeEnum.SHOW, criteria);
     }
 
     private void putGames(){
         List<CriterionDTO> criteria = new ArrayList<>();
 
         criteria.add(new CriterionDTO(
-                7L,
+                22L,
                 "Narrative and Directing",
-                "(not done yet)",
+                "Composition, lighting, color, camera angles, scenes, editing, camera work, tension, accents. " +
+                          "Constructing dialogue between the player and NPCs.",
                 19,
                 5
         ));
         criteria.add(new CriterionDTO(
-                8L,
+                23L,
                 "Gameplay",
-                "(not done yet)",
+                "How interesting and varied is every minute of the game." +
+                          "How interesting are the mechanics, quests, and side quests (not just fetch and serve).",
                 19,
                 5
         ));
         criteria.add(new CriterionDTO(
-                9L,
+                24L,
                 "Characters",
-                "(not done yet)",
+                "How well are the characters written, " +
+                          "their backstories, motivations for certain actions and interactions between them.",
                 14,
                 5
         ));
         criteria.add(new CriterionDTO(
-                10L,
+                25L,
                 "Audiovisuals",
-                "(not done yet)",
+                "The quality of graphics (not necessarily photorealism, the \"beauty\" itself is important), " +
+                          "as well as the musical accompaniment.",
                 14,
                 5
         ));
         criteria.add(new CriterionDTO(
-                11L,
+                26L,
                 "Technical",
-                "(not done yet)",
+                "Optimization, crashes, bugs, lags, and other technical issues.",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                12L,
+                27L,
                 "Own experience",
-                "(not done yet)",
+                "Your subjective perception and feelings about.",
                 24,
                 5
         ));
@@ -140,51 +259,56 @@ public class OpusCoreCriteriaCatalog {
     private void putAnime(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(
-                13L,
+                28L,
                 "Plot",
-                "not done yet",
+                "How well does the story come together, is there internal logic, " +
+                          "is the pace good, is the ending appropriate and acceptable",
                 20,
                 5
         ));
         criteria.add(new CriterionDTO(
-                14L,
+                29L,
                 "Characters",
-                "(not done yet)",
+                "How well are the characters written, " +
+                          "their backstories, motivations for certain actions and interactions between them.",
                 15,
                 5
         ));
         criteria.add(new CriterionDTO(
-                15L,
+                30L,
                 "World realism",
-                "(not done yet)",
+                "How well the lore of the universe is explained to us, " +
+                          "how logical the events that take place or the fundamental \"laws\" are",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                16L,
-                "Visual style",
-                "(not done yet)",
+                31L,
+                "Visual/Audio style",
+                "The quality of the drawing, animation and musical accompaniment",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                17L,
+                32L,
                 "Ideologic",
-                "(not done yet)",
+                "Is there something beneath the surface. An idea, a thought, a moral that the author wants to convey?",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                18L,
+                33L,
                 "Emotional impact",
-                "(not done yet)",
+                "Does it hit you? " +
+                        "It doesn't matter how: with pain, delight, horror, warmth, emptiness.",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                19L,
+                34L,
                 "Own experience",
-                "(not done yet)",
+                "Your subjective perception and feelings about. " +
+                        "Does it leave a lasting impression, does it have soul, does it have magic?",
                 25,
                 5
         ));
@@ -194,51 +318,56 @@ public class OpusCoreCriteriaCatalog {
     private void putManga(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(
-                20L,
+                35L,
                 "Plot",
-                "not done yet",
+                "How well does the story come together, is there internal logic, " +
+                        "is the pace good, is the ending appropriate and acceptable",
                 20,
                 5
         ));
         criteria.add(new CriterionDTO(
-                21L,
+                36L,
                 "Characters",
-                "(not done yet)",
+                "How well are the characters written, " +
+                        "their backstories, motivations for certain actions and interactions between them.",
                 15,
                 5
         ));
         criteria.add(new CriterionDTO(
-                22L,
+                37L,
                 "World realism",
-                "(not done yet)",
+                "How well the lore of the universe is explained to us, " +
+                        "how logical the events that take place or the fundamental \"laws\" are",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                23L,
+                38L,
                 "Visual style",
-                "(not done yet)",
+                "The quality of the drawing, animation and musical accompaniment",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                24L,
+                39L,
                 "Ideologic",
-                "(not done yet)",
+                "Is there something beneath the surface. An idea, a thought, a moral that the author wants to convey?",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                25L,
+                40L,
                 "Emotional impact",
-                "(not done yet)",
+                "Does it hit you? " +
+                        "It doesn't matter how: with pain, delight, horror, warmth, emptiness.",
                 10,
                 5
         ));
         criteria.add(new CriterionDTO(
-                26L,
+                41L,
                 "Own experience",
-                "(not done yet)",
+                "Your subjective perception and feelings about. " +
+                        "Does it leave a lasting impression, does it have soul, does it have magic?",
                 25,
                 5
         ));
@@ -248,12 +377,68 @@ public class OpusCoreCriteriaCatalog {
     private void putBooks(){
         List<CriterionDTO> criteria = new ArrayList<>();
         criteria.add(new CriterionDTO(
-                27L,
-                "",
-                "(not done yet)",
-                0,
+                42L,
+                "Plot",
+                "How well does the story come together, is there internal logic, " +
+                          "is the pace good, is the ending appropriate and acceptable",
+                18,
                 5
         ));
+        criteria.add(new CriterionDTO(
+                43L,
+                "Characters",
+                "How well are the characters written, " +
+                        "their backstories, motivations for certain actions and interactions between them.",
+                15,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                44L,
+                "Writing style / Language",
+                "",
+                15,
+                5
+                ));
+        criteria.add(new CriterionDTO(
+                45L,
+                "Structure / Pacing",
+                "",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                46L,
+                "World realism",
+                "How well the lore of the universe is explained to us, " +
+                        "how logical the events that take place or the fundamental \"laws\" are",
+                10,
+                5
+        ));
+
+        criteria.add(new CriterionDTO(
+                47L,
+                "Ideologic",
+                "Is there something beneath the surface. An idea, a thought, a moral that the author wants to convey?",
+                10,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                48L,
+                "Emotional impact",
+                "Does it hit you? " +
+                        "It doesn't matter how: with pain, delight, horror, warmth, emptiness.",
+                7,
+                5
+        ));
+        criteria.add(new CriterionDTO(
+                49L,
+                "Own experience",
+                "Your subjective perception and feelings about. " +
+                          "Does it leave a lasting impression, does it have soul, does it have magic?",
+                15,
+                5
+        ));
+        register(ArtTypeEnum.BOOK, criteria);
     }
 
     private void register(ArtTypeEnum type, List<CriterionDTO> criteria) {
