@@ -143,15 +143,15 @@ public class Review {
     }
 
     public String getDisplayPhotoUrl() {
-        String reviewPhoto = blankToNull(photoUrl);
-        if (reviewPhoto != null) {
-            return reviewPhoto;
-        }
         String artworkCover = artwork != null ? blankToNull(artwork.getCoverUrl()) : null;
         if (artworkCover != null) {
             return artworkCover;
         }
-        return blankToNull(artCoverUrl);
+        String snapshotCover = blankToNull(artCoverUrl);
+        if (snapshotCover != null) {
+            return snapshotCover;
+        }
+        return blankToNull(photoUrl);
     }
 
     public User getUser() {

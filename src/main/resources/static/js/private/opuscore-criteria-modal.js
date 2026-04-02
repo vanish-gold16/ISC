@@ -6,10 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeButton = modal?.querySelector(".criterion-modal__close");
     const interactiveSelector = "a, button, input, textarea, select, label";
     const fallbackDescription = "Description is not available yet.";
+    const closeDurationMs = 320;
     let lastFocusedElement = null;
+    let closeTimerId = 0;
 
     if (!modal || !title || !description) {
         return;
+    }
+
+    if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
     }
 
     function getCardPayload(card) {
@@ -31,12 +37,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return { name, details };
     }
 
+    function clearCloseTimer() {
+        if (!closeTimerId) {
+            return;
+        }
+
+        window.clearTimeout(closeTimerId);
+        closeTimerId = 0;
+    }
+
+    function finishClose() {
+        clearCloseTimer();
+        modal.hidden = true;
+
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+            lastFocusedElement.focus();
+        }
+    }
+
     function openModal(card) {
         const payload = getCardPayload(card);
         if (!payload) {
             return;
         }
 
+        clearCloseTimer();
         const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         lastFocusedElement = card instanceof HTMLElement ? card : activeElement;
         title.textContent = payload.name;
@@ -45,10 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.setAttribute("aria-hidden", "false");
         document.documentElement.classList.add("criterion-modal-open");
         document.body.classList.add("criterion-modal-open");
+        modal.classList.remove("is-open");
 
         requestAnimationFrame(() => {
             modal.classList.add("is-open");
-            closeButton?.focus();
+            window.setTimeout(() => {
+                closeButton?.focus();
+            }, 180);
         });
     }
 
@@ -59,13 +87,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         modal.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
-        modal.hidden = true;
         document.documentElement.classList.remove("criterion-modal-open");
         document.body.classList.remove("criterion-modal-open");
 
-        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
-            lastFocusedElement.focus();
-        }
+        clearCloseTimer();
+        closeTimerId = window.setTimeout(finishClose, closeDurationMs + 40);
     }
 
     document.addEventListener("click", (event) => {
