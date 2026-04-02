@@ -270,7 +270,102 @@ BEGIN
                     'SHOW',
                     'GAME',
                     'ANIME',
-                    'MANGA'
+                    'MANGA',
+                    'BOOK'
+                )
+            );
+END;
+$$;
+@@
+
+DO $$
+BEGIN
+    IF to_regclass('public.artworks') IS NULL THEN
+        RETURN;
+    END IF;
+
+    ALTER TABLE artworks DROP CONSTRAINT IF EXISTS artworks_type_check;
+
+    ALTER TABLE artworks
+        ALTER COLUMN type TYPE VARCHAR(20)
+        USING CASE type::text
+            WHEN '0' THEN 'MUSIC'
+            WHEN '1' THEN 'MOVIE'
+            WHEN '2' THEN 'SHOW'
+            WHEN '3' THEN 'GAME'
+            WHEN '4' THEN 'ANIME'
+            WHEN '5' THEN 'MANGA'
+            WHEN '6' THEN 'BOOK'
+            ELSE UPPER(type::text)
+        END;
+
+    ALTER TABLE artworks
+        ADD CONSTRAINT artworks_type_check
+            CHECK (
+                type IN (
+                    'MUSIC',
+                    'MOVIE',
+                    'SHOW',
+                    'GAME',
+                    'ANIME',
+                    'MANGA',
+                    'BOOK'
+                )
+            );
+END;
+$$;
+@@
+
+DO $$
+BEGIN
+    IF to_regclass('public.art_requests') IS NULL THEN
+        RETURN;
+    END IF;
+
+    ALTER TABLE art_requests DROP CONSTRAINT IF EXISTS art_requests_type_check;
+    ALTER TABLE art_requests DROP CONSTRAINT IF EXISTS art_requests_status_check;
+
+    ALTER TABLE art_requests
+        ALTER COLUMN type TYPE VARCHAR(20)
+        USING CASE type::text
+            WHEN '0' THEN 'MUSIC'
+            WHEN '1' THEN 'MOVIE'
+            WHEN '2' THEN 'SHOW'
+            WHEN '3' THEN 'GAME'
+            WHEN '4' THEN 'ANIME'
+            WHEN '5' THEN 'MANGA'
+            WHEN '6' THEN 'BOOK'
+            ELSE UPPER(type::text)
+        END,
+        ALTER COLUMN status TYPE VARCHAR(20)
+        USING CASE status::text
+            WHEN '0' THEN 'PENDING'
+            WHEN '1' THEN 'ACCEPTED'
+            WHEN '2' THEN 'REJECTED'
+            WHEN '3' THEN 'CHANGED'
+            ELSE UPPER(status::text)
+        END;
+
+    ALTER TABLE art_requests
+        ADD CONSTRAINT art_requests_type_check
+            CHECK (
+                type IN (
+                    'MUSIC',
+                    'MOVIE',
+                    'SHOW',
+                    'GAME',
+                    'ANIME',
+                    'MANGA',
+                    'BOOK'
+                )
+            ),
+        ADD CONSTRAINT art_requests_status_check
+            CHECK (
+                status IN (
+                    'PENDING',
+                    'ACCEPTED',
+                    'REJECTED',
+                    'CHANGED'
                 )
             );
 END;

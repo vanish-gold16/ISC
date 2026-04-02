@@ -15,6 +15,7 @@ public class Artwork {
     private Long id;
 
     @Column(name = "type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ArtTypeEnum type;
 
     @Column(name = "name", nullable = false)

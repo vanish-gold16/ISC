@@ -20,9 +20,11 @@ public class NewArtRequest {
     private User requester;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private ReviewStatusEnum status;
 
     @Column(name = "type")
+    @Enumerated(EnumType.STRING)
     private ArtTypeEnum type;
 
     @Column(name = "name")
