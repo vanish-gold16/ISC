@@ -372,6 +372,54 @@
             };
         }
 
+        function buildReviewPrefillState(art) {
+            const normalizedArt = normalizeArt(art);
+            if (!normalizedArt) {
+                return null;
+            }
+
+            return {
+                artworkId: normalizedArt.artworkId,
+                requestId: normalizedArt.requestId,
+                name: normalizedArt.name,
+                author: normalizedArt.author,
+                description: normalizedArt.description,
+                type: normalizedArt.type,
+                coverUrl: normalizedArt.coverUrl,
+                ts: Date.now()
+            };
+        }
+
+        function storeReviewPrefill(art) {
+            try {
+                const state = buildReviewPrefillState(art);
+                if (!state) {
+                    sessionStorage.removeItem(REVIEW_PREFILL_STORAGE_KEY);
+                    return;
+                }
+                sessionStorage.setItem(REVIEW_PREFILL_STORAGE_KEY, JSON.stringify(state));
+            } catch (error) {
+                sessionStorage.removeItem(REVIEW_PREFILL_STORAGE_KEY);
+            }
+        }
+
+        function buildReviewUrl(art) {
+            const normalizedArt = normalizeArt(art);
+            if (!normalizedArt) {
+                return '/opuscore/new-review';
+            }
+
+            if (typeof normalizedArt.requestId !== 'undefined' && typeof normalizedArt.artworkId === 'undefined') {
+                return '/opuscore/new-review?artRequestId=' + encodeURIComponent(String(normalizedArt.requestId));
+            }
+
+            if (typeof normalizedArt.artworkId !== 'undefined') {
+                return '/opuscore/new-review?artId=' + encodeURIComponent(String(normalizedArt.artworkId));
+            }
+
+            return '/opuscore/new-review';
+        }
+
         function isPendingRequestSelection(art) {
             return Boolean(
                 art
@@ -612,7 +660,10 @@
 
             copy.append(title, author, type);
             button.append(cover, copy);
-            button.addEventListener('click', () => selectArt(normalizedArt));
+            button.addEventListener('click', () => {
+                storeReviewPrefill(normalizedArt);
+                window.location.assign(buildReviewUrl(normalizedArt));
+            });
 
             return button;
         }
