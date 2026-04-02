@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const details = String(
             card.dataset.criterionDescription
-            || card.querySelector(".criteria-desc")?.textContent
             || fallbackDescription
         ).trim() || fallbackDescription;
 

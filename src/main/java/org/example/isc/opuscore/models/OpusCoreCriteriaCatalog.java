@@ -395,14 +395,14 @@ public class OpusCoreCriteriaCatalog {
         criteria.add(new CriterionDTO(
                 44L,
                 "Writing style / Language",
-                "",
+                "Language, prose quality, readability, uniqueness of author voice",
                 15,
                 5
                 ));
         criteria.add(new CriterionDTO(
                 45L,
                 "Structure / Pacing",
-                "",
+                "Flow of the narrative, balance, absence of dragging or rushing",
                 10,
                 5
         ));

@@ -176,11 +176,11 @@
                      tabindex="0"
                      role="button"
                      aria-haspopup="dialog"
-                     th:attr="data-criterion-name=${c.name},data-criterion-description=${c.description},aria-label=${'Open description for ' + (c.name != null ? c.name : 'criterion')}">
+                    th:attr="data-criterion-name=${c.name},data-criterion-description=${c.description},aria-label=${'Open description for ' + (c.name != null ? c.name : 'criterion')}">
                     <div class="criteria-header">
                         <div>
                             <div class="criteria-name" th:text="${c.name} ?: 'Criterion'">Criterion</div>
-                            <div class="criteria-desc" th:text="${c.description} ?: 'Description'">Description</div>
+                            <div class="criteria-more">Open description</div>
                         </div>
                         <div class="criteria-score">
                             <span class="criteria-score__value" th:text="${c.score} ?: '0'">0</span>
