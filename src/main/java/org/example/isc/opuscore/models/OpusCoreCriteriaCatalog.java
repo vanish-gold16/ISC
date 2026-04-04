@@ -9,6 +9,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class OpusCoreCriteriaCatalog {
@@ -458,6 +459,13 @@ public class OpusCoreCriteriaCatalog {
         return criteriaByType;
     }
 
+    public List<CriterionDTO> getByType(ArtTypeEnum type) {
+        if (type == null) {
+            return List.of();
+        }
+        return criteriaByType.getOrDefault(type, List.of());
+    }
+
     public CriterionDTO getById(Long id) {
         CriterionDTO criterion = criteriaById.get(id);
         if (criterion != null) {
@@ -468,5 +476,29 @@ public class OpusCoreCriteriaCatalog {
 
     public int getWeightById(Long id) {
         return getById(id).getWeight();
+    }
+
+    public Optional<CriterionDTO> findByTypeAndName(ArtTypeEnum type, String name) {
+        if (type == null || name == null) {
+            return Optional.empty();
+        }
+
+        String normalizedName = normalize(name);
+        if (normalizedName == null) {
+            return Optional.empty();
+        }
+
+        return getByType(type).stream()
+                .filter(criterion -> normalizedName.equals(normalize(criterion.getName())))
+                .findFirst();
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value.trim().replaceAll("\\s+", " ").toLowerCase();
+        return normalized.isEmpty() ? null : normalized;
     }
 }
