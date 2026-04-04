@@ -8,10 +8,13 @@ import org.example.isc.main.secured.repositories.UserRepository;
 import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.models.Review;
+import org.example.isc.opuscore.models.ReviewCriterion;
 import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ReviewService;
 import org.example.isc.opuscore.dto.NewReviewDTO;
+import org.example.isc.opuscore.dto.CriterionDTO;
+import org.example.isc.opuscore.dto.ReviewCriterionViewDTO;
 import org.example.isc.opuscore.models.OpusCoreCriteriaCatalog;
 import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -128,7 +132,7 @@ public class ReviewController {
         model.addAttribute("title", "OpusCore | Review");
         model.addAttribute("user", me);
         model.addAttribute("review", review);
-        model.addAttribute("criteriaScores", review.getCriteriaScores());
+        model.addAttribute("criteriaScores", buildCriteriaView(review));
         if (review.getUser() != null) {
             model.addAttribute("reviewAuthorId", review.getUser().getId());
             model.addAttribute("reviewAuthorUsername", review.getUser().getUsername());
@@ -241,6 +245,60 @@ public class ReviewController {
         model.addAttribute("selectedArtAuthor", author);
         model.addAttribute("selectedArtDescription", description);
         model.addAttribute("selectedArtCoverUrl", coverUrl);
+    }
+
+    private List<ReviewCriterionViewDTO> buildCriteriaView(Review review) {
+        if (review == null || review.getCriteriaScores() == null || review.getCriteriaScores().isEmpty()) {
+            return List.of();
+        }
+
+        return review.getCriteriaScores().stream()
+                .map(criterion -> toView(review, criterion))
+                .toList();
+    }
+
+    private ReviewCriterionViewDTO toView(Review review, ReviewCriterion criterion) {
+        CriterionDTO catalogCriterion = criteriaCatalog.findByTypeAndName(review.getType(), criterion.getName())
+                .orElse(null);
+
+        String name = firstNonBlank(
+                criterion.getName(),
+                catalogCriterion != null ? catalogCriterion.getName() : null,
+                "Criterion"
+        );
+        String description = firstNonBlank(
+                criterion.getDescription(),
+                catalogCriterion != null ? catalogCriterion.getDescription() : null,
+                "Description is not available yet."
+        );
+        int weight = criterion.getWeight() > 0
+                ? criterion.getWeight()
+                : (catalogCriterion != null ? catalogCriterion.getWeight() : 0);
+
+        return new ReviewCriterionViewDTO(name, description, criterion.getScore(), weight);
+    }
+
+    private String firstNonBlank(String first, String second, String fallback) {
+        String firstValue = blankToNull(first);
+        if (firstValue != null) {
+            return firstValue;
+        }
+
+        String secondValue = blankToNull(second);
+        if (secondValue != null) {
+            return secondValue;
+        }
+
+        return fallback;
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
 }

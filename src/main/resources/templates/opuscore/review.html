@@ -245,7 +245,7 @@
 
         <div class="review-section">
             <div class="section-title">Criteria scores</div>
-            <div class="criteria-grid" th:if="${criteriaScores != null}">
+            <div class="criteria-grid" th:if="${criteriaScores != null and !#lists.isEmpty(criteriaScores)}">
                 <div class="criteria-card"
                      th:each="c : ${criteriaScores}"
                      data-criterion-card="true"
@@ -268,7 +268,7 @@
                     </div>
                 </div>
             </div>
-            <div class="criteria-empty" th:if="${criteriaScores == null}">No criteria set yet.</div>
+            <div class="criteria-empty" th:if="${criteriaScores == null or #lists.isEmpty(criteriaScores)}">No criteria set yet.</div>
         </div>
     </section>
     </section>

@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -106,10 +107,34 @@ public class ImageService {
         Map uploadResult = cloudinary.uploader().upload(
                 photo.getBytes(),
                 Map.of("folder", "reviews",
-                        "public_id", "review_" + userId,
-                        "overwrite", true,
+                        "public_id", buildUniquePublicId("review", userId),
+                        "overwrite", false,
                         "resource_type", "image")
         );
         return  (String) uploadResult.get("secure_url");
+    }
+
+    public String uploadArtworkCover(MultipartFile photo, Long userId) throws IOException {
+        if (!Objects.requireNonNull(photo.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("Only images allowed");
+        }
+
+        if (photo.getSize() > 5_000_000) {
+            throw new IllegalArgumentException("File too large");
+        }
+
+        Map uploadResult = cloudinary.uploader().upload(
+                photo.getBytes(),
+                Map.of("folder", "artwork-covers",
+                        "public_id", buildUniquePublicId("artwork_cover", userId),
+                        "overwrite", false,
+                        "resource_type", "image")
+        );
+        return (String) uploadResult.get("secure_url");
+    }
+
+    private String buildUniquePublicId(String prefix, Long userId) {
+        String ownerPart = userId == null ? "anonymous" : userId.toString();
+        return prefix + "_" + ownerPart + "_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().replace("-", "");
     }
 }

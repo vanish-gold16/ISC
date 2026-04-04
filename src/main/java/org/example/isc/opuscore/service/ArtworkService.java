@@ -43,7 +43,7 @@ public class ArtworkService {
             if(dto.getImage().getSize() > MAX_ART_IMAGE_BYTES){
                 throw new IllegalArgumentException("Cover image must be 5 MB or smaller.");
             }
-            photoUrl = imageService.uploadReviewImage(dto.getImage(), me.getId());
+            photoUrl = imageService.uploadArtworkCover(dto.getImage(), me.getId());
         }
 
         String name = blankToNull(dto.getName());

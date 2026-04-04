@@ -2,6 +2,7 @@ package org.example.isc.opuscore.controller.art;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
@@ -10,11 +11,13 @@ import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ReviewService;
 import org.example.isc.opuscore.service.ArtworkService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -27,17 +30,20 @@ public class ArtRequestController {
     private final ArtworkService artworkService;
     private final NewArtRequestRepository newArtRequestRepository;
     private final ReviewService reviewService;
+    private final ImageService imageService;
 
     public ArtRequestController(
             UserRepository userRepository,
             ArtworkService artworkService,
             NewArtRequestRepository newArtRequestRepository,
-            ReviewService reviewService
+            ReviewService reviewService,
+            ImageService imageService
     ) {
         this.userRepository = userRepository;
         this.artworkService = artworkService;
         this.newArtRequestRepository = newArtRequestRepository;
         this.reviewService = reviewService;
+        this.imageService = imageService;
     }
 
     @GetMapping
@@ -116,6 +122,18 @@ public class ArtRequestController {
         log.info("Art request created");
 
         return "redirect:/opuscore/art-requests/" + requestId;
+    }
+
+    @PostMapping("/cover")
+    @ResponseBody
+    public ResponseEntity<String> uploadArtRequestCover(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication
+    ) throws IOException {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        return ResponseEntity.ok(imageService.uploadArtworkCover(file, me.getId()));
     }
 
 }

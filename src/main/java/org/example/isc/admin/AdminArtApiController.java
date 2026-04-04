@@ -71,7 +71,7 @@ public class AdminArtApiController {
             Authentication authentication
     ) throws IOException {
         User me = requireCurrentUser(authentication);
-        return ResponseEntity.ok(imageService.uploadReviewImage(file, me.getId()));
+        return ResponseEntity.ok(imageService.uploadArtworkCover(file, me.getId()));
     }
 
     @PatchMapping("/art-requests/{id}")

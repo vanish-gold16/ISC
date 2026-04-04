@@ -404,7 +404,7 @@
             coverUploadState.pending = true;
             uploadedImageUrlField.value = '';
 
-            let uploadPromise = fetch('/opuscore/new-review/cover', {
+            let uploadPromise = fetch('/opuscore/art-requests/cover', {
                 method: 'POST',
                 body: formData,
                 headers: csrfField && csrfField.value ? {
