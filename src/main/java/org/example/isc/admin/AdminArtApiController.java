@@ -11,6 +11,7 @@ import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
+import org.example.isc.opuscore.service.ArtworkCoverUrlPolicy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -89,7 +90,7 @@ public class AdminArtApiController {
         request.setName(answer.getName());
         request.setAuthor(answer.getAuthor());
         request.setDescription(blankToNull(answer.getDescription()));
-        request.setCoverUrl(blankToNull(answer.getImageUrl()));
+        request.setCoverUrl(ArtworkCoverUrlPolicy.normalizeArtworkCoverUrl(answer.getImageUrl()));
         request.setAdminNote(blankToNull(answer.getAdminNote()));
         request.setStatus(ReviewStatusEnum.CHANGED);
         request.setUpdatedAt(LocalDateTime.now());
@@ -118,7 +119,7 @@ public class AdminArtApiController {
         request.setName(dto.getName());
         request.setAuthor(dto.getAuthor());
         request.setDescription(blankToNull(dto.getDescription()));
-        request.setCoverUrl(blankToNull(dto.getImageUrl()));
+        request.setCoverUrl(ArtworkCoverUrlPolicy.normalizeArtworkCoverUrl(dto.getImageUrl()));
 
         if(request.getStatus() == ReviewStatusEnum.ACCEPTED ||
                 request.getStatus() == ReviewStatusEnum.REJECTED){

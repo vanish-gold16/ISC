@@ -15,6 +15,7 @@ import org.example.isc.opuscore.models.Review;
 import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.repositories.ReviewRepository;
+import org.example.isc.opuscore.service.ArtworkCoverUrlPolicy;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,7 @@ public class AdminService {
                 dto.getName(),
                 dto.getAuthor(),
                 dto.getDescription(),
-                dto.getImageUrl(),
+                ArtworkCoverUrlPolicy.normalizeArtworkCoverUrl(dto.getImageUrl()),
                 requester,
                 admin,
                 LocalDateTime.now()

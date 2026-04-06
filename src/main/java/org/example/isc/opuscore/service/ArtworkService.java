@@ -37,7 +37,7 @@ public class ArtworkService {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
 
-        String photoUrl = blankToNull(dto.getImageUrl());
+        String photoUrl = ArtworkCoverUrlPolicy.normalizeArtworkCoverUrl(dto.getImageUrl());
 
         if(photoUrl == null && dto.getImage() != null && !dto.getImage().isEmpty()){
             if(dto.getImage().getSize() > MAX_ART_IMAGE_BYTES){
