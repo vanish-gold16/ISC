@@ -169,6 +169,12 @@ public class AdminService {
 
         List<Review> reviews = reviewRepository.findAllByArtworkId(id);
         for (Review r : reviews) {
+            r.setArtName(r.getArtName());
+            r.setArtAuthor(r.getArtAuthor());
+            r.setArtDescription(r.getArtDescription());
+            r.setArtCoverUrl(r.getArtCoverUrl());
+            r.setArtwork(null);
+
             if (r.getStatus() == ReviewStatusEnum.ACCEPTED ||
                     r.getStatus() == ReviewStatusEnum.CHANGED ||
                     r.getStatus() == ReviewStatusEnum.PENDING) {
@@ -176,7 +182,7 @@ public class AdminService {
                 reviewRepository.save(r);
             }
         }
-
+        reviewRepository.saveAllAndFlush(reviews);
         artworkRepository.delete(artwork);
     }
 
