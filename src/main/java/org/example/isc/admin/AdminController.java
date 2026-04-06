@@ -39,6 +39,12 @@ public class AdminController {
         return "private/admin/management";
     }
 
+    @GetMapping("/edit-art")
+    public String editArt(Authentication authentication, Model model){
+        populateAdminModel(authentication, model, "Admin panel | Edit art", "edit-art");
+        return "private/admin/management";
+    }
+
     private void populateAdminModel(Authentication authentication, Model model, String title, String adminSection) {
         User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));

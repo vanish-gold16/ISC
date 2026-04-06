@@ -1,4 +1,4 @@
-package org.example.isc.opuscore.dto;
+package org.example.isc.opuscore.dto.art;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

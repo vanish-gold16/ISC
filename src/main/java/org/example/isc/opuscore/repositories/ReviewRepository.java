@@ -16,4 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Review> findTopByUserIdAndArtRequestIdOrderByIdDesc(Long userId, Long artRequestId);
 
     void deleteAllByArtRequestId(Long artRequestId);
+
+    List<Review> findAllByArtworkId(Long artworkId);
 }

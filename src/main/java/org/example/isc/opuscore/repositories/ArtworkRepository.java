@@ -1,6 +1,5 @@
 package org.example.isc.opuscore.repositories;
 
-import org.example.isc.opuscore.dto.ArtDropdownDTO;
 import org.example.isc.opuscore.models.Artwork;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

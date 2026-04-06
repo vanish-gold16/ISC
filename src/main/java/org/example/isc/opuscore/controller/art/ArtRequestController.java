@@ -6,7 +6,7 @@ import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.enums.RoleEnum;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.art.NewArtRequestDTO;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ReviewService;

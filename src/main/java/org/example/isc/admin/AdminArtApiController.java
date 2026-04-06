@@ -1,15 +1,19 @@
 package org.example.isc.admin;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.isc.admin.service.AdminService;
 import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.opuscore.dto.AdminArtAnswerDTO;
-import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.art.AdminArtAnswerDTO;
+import org.example.isc.opuscore.dto.art.ArtDTO;
+import org.example.isc.opuscore.dto.art.NewArtRequestDTO;
 import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
+import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.models.NewArtRequest;
+import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.service.ArtworkCoverUrlPolicy;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @RestController
 @RequestMapping("/admin/api")
 public class AdminArtApiController {
@@ -30,12 +35,14 @@ public class AdminArtApiController {
     private final NewArtRequestRepository newArtRequestRepository;
     private final AdminService adminService;
     private final ImageService imageService;
+    private final ArtworkRepository artworkRepository;
 
-    public AdminArtApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService, ImageService imageService) {
+    public AdminArtApiController(UserRepository userRepository, NewArtRequestRepository newArtRequestRepository, AdminService adminService, ImageService imageService, ArtworkRepository artworkRepository) {
         this.userRepository = userRepository;
         this.newArtRequestRepository = newArtRequestRepository;
         this.adminService = adminService;
         this.imageService = imageService;
+        this.artworkRepository = artworkRepository;
     }
 
     @GetMapping("/art-requests")
@@ -156,6 +163,37 @@ public class AdminArtApiController {
         }
     }
 
+    @GetMapping("/art/{id}")
+    public ResponseEntity<ArtDTO> getArt(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        requireCurrentUser(authentication);
+        return ResponseEntity.ok(toArtDTO(artworkRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + id))));
+    }
+
+    @PatchMapping("/art/{id}/edit")
+    public ResponseEntity<ArtDTO> editArt(
+            @Valid @RequestBody ArtDTO dto,
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        return ResponseEntity.ok(toArtDTO(adminService.editArt(dto, id, authentication)));
+    }
+
+    @DeleteMapping("/art/{id}/delete")
+    public ResponseEntity<Void> deleteArt(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        requireCurrentUser(authentication);
+
+        adminService.deleteArt(id);
+
+        return ResponseEntity.ok().build();
+    }
+
 //    @PostMapping("/admin/api/art-requests/{id}/request-changes")
 //    public ResponseEntity<AdminArtAnswerDTO> changeRequest(
 //            @Valid @RequestBody NewArtRequestDTO dto,
@@ -198,6 +236,21 @@ public class AdminArtApiController {
         }
         answer.setRequesterUsername(request.getRequester().getUsername());
         return answer;
+    }
+
+    private ArtDTO toArtDTO(Artwork artwork){
+        ArtDTO artDTO = new ArtDTO(
+                artwork.getId(),
+                artwork.getType(),
+                artwork.getName(),
+                artwork.getAuthor(),
+                artwork.getDescription(),
+                artwork.getCreatedAt()
+        );
+        if (artwork.getCoverUrl() != null) {
+            artDTO.setCoverUrl(artDTO.getCoverUrl());
+        }
+        return artDTO;
     }
 
     private String normalize(String value) {

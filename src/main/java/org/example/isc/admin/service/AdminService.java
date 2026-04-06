@@ -1,12 +1,14 @@
 package org.example.isc.admin.service;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.isc.main.enums.NotificationEnum;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.notification.NotificationService;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.opuscore.dto.NewArtRequestDTO;
-import org.example.isc.opuscore.dto.NewReviewDTO;
+import org.example.isc.opuscore.dto.art.ArtDTO;
+import org.example.isc.opuscore.dto.art.NewArtRequestDTO;
 import org.example.isc.opuscore.dto.RejectDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.Artwork;
@@ -16,14 +18,13 @@ import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;
 import org.example.isc.opuscore.repositories.ReviewRepository;
 import org.example.isc.opuscore.service.ArtworkCoverUrlPolicy;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class AdminService {
 
@@ -134,6 +135,51 @@ public class AdminService {
         return reviews;
     }
 
+    @Transactional
+    public Artwork editArt(
+            @Valid ArtDTO dto,
+            Long id,
+            Authentication authentication
+    ) {
+        User admin = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+
+        Artwork artwork = artworkRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + id));
+        if (dto == null){
+            log.error("Body of ArtDTO is empty");
+            throw new IllegalArgumentException("Body is empty!");
+        }
+
+        artwork.setApprover(admin);
+        artwork.setType(dto.getType());
+        artwork.setName(dto.getName());
+        artwork.setAuthor(dto.getAuthor());
+        artwork.setDescription(dto.getDescription());
+        artwork.setCoverUrl(ArtworkCoverUrlPolicy.normalizeArtworkCoverUrl(dto.getCoverUrl()));
+        artwork.setUpdatedAt(dto.getEditedAt());
+
+        return artworkRepository.save(artwork);
+    }
+
+    @Transactional
+    public void deleteArt(Long id) {
+        Artwork artwork = artworkRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found: " + id));
+
+        List<Review> reviews = reviewRepository.findAllByArtworkId(id);
+        for (Review r : reviews) {
+            if (r.getStatus() == ReviewStatusEnum.ACCEPTED ||
+                    r.getStatus() == ReviewStatusEnum.CHANGED ||
+                    r.getStatus() == ReviewStatusEnum.PENDING) {
+                r.setStatus(ReviewStatusEnum.REJECTED);
+                reviewRepository.save(r);
+            }
+        }
+
+        artworkRepository.delete(artwork);
+    }
+
     private String buildArtRequestStatusBody(NewArtRequest request) {
         String workName = request.getName() != null && !request.getName().isBlank()
                 ? request.getName()
@@ -146,6 +192,9 @@ public class AdminService {
             case PENDING -> workName + " is pending moderation.";
         };
     }
+
+
+
 
 //    @Transactional
 //    public NewArtRequest changeRequest(

@@ -37,6 +37,12 @@
                         <span class="admin-widget__eyebrow">Admin</span>
                         <span class="admin-widget__title">New Arts</span>
                     </a>
+                    <a class="admin-widget"
+                       th:classappend="${adminSection == 'edit-art' ? ' is-active' : ''}"
+                       th:href="@{/admin/edit-art}">
+                        <span class="admin-widget__eyebrow">Admin</span>
+                        <span class="admin-widget__title">Edit Art</span>
+                    </a>
                 </div>
             </div>
         </article>
@@ -46,6 +52,29 @@
             <p class="admin-screen-head__eyebrow">Art Moderation</p>
             <h1 class="admin-screen-head__title">New Arts Queue</h1>
             <p class="admin-screen-head__text">Review incoming work requests, fix metadata, and decide whether the work should enter the catalog.</p>
+            <div class="admin-screen-head__tabs">
+                <a class="admin-screen-head__tab"
+                   th:classappend="${adminSection == 'new-arts' ? ' is-active' : ''}"
+                   th:href="@{/admin/new-arts}">New arts</a>
+                <a class="admin-screen-head__tab"
+                   th:classappend="${adminSection == 'edit-art' ? ' is-active' : ''}"
+                   th:href="@{/admin/edit-art}">Edit art</a>
+            </div>
+        </article>
+
+        <article class="card admin-screen-head" th:if="${adminSection == 'edit-art'}">
+            <a class="admin-screen-head__back" th:href="@{/admin}">Back to dashboard</a>
+            <p class="admin-screen-head__eyebrow">Catalog Editor</p>
+            <h1 class="admin-screen-head__title">Edit Or Delete Art</h1>
+            <p class="admin-screen-head__text">Search through existing catalog items, update metadata, replace covers, or remove work from the catalog.</p>
+            <div class="admin-screen-head__tabs">
+                <a class="admin-screen-head__tab"
+                   th:classappend="${adminSection == 'new-arts' ? ' is-active' : ''}"
+                   th:href="@{/admin/new-arts}">New arts</a>
+                <a class="admin-screen-head__tab"
+                   th:classappend="${adminSection == 'edit-art' ? ' is-active' : ''}"
+                   th:href="@{/admin/edit-art}">Edit art</a>
+            </div>
         </article>
 
         <article class="card admin-screen-head" th:if="${adminSection == 'new-reviews'}">
@@ -170,6 +199,126 @@
             </article>
         </section>
 
+        <section class="admin-moderation" th:if="${adminSection == 'edit-art'}">
+            <input id="admin-csrf" type="hidden" th:value="${_csrf.token}" />
+
+            <article class="card admin-panel admin-panel--queue">
+                <div class="admin-panel__head">
+                    <div>
+                        <p class="admin-panel__eyebrow">Catalog</p>
+                        <h2 class="admin-panel__title">Existing artworks</h2>
+                    </div>
+                    <div class="admin-panel__meta">
+                        <span class="admin-pill" id="admin-edit-mode">Catalog search</span>
+                        <span class="admin-pill admin-pill--accent" id="admin-edit-count">Type to search</span>
+                    </div>
+                </div>
+                <form class="admin-queue-search" id="admin-edit-search-form">
+                    <input class="admin-field__input admin-queue-search__input"
+                           id="admin-edit-search"
+                           type="search"
+                           placeholder="Search by work name or author" />
+                    <div class="admin-queue-search__actions">
+                        <button class="btn btn--ghost" type="submit">Search</button>
+                        <button class="btn btn--ghost" type="button" id="admin-edit-search-reset">Reset</button>
+                    </div>
+                </form>
+                <div class="admin-queue" id="admin-edit-queue"></div>
+            </article>
+
+            <article class="card admin-panel admin-panel--editor">
+                <div class="admin-panel__head">
+                    <div>
+                        <p class="admin-panel__eyebrow">Editor</p>
+                        <h2 class="admin-panel__title">Catalog form</h2>
+                    </div>
+                    <div class="admin-panel__meta">
+                        <span class="admin-pill admin-pill--accent" id="admin-edit-status">Catalog item</span>
+                    </div>
+                </div>
+
+                <form class="admin-editor" id="admin-edit-form">
+                    <input id="admin-edit-art-id" type="hidden" />
+                    <input id="admin-edit-cover-url" type="hidden" />
+                    <input id="admin-edit-created-at" type="hidden" />
+
+                    <div class="admin-editor__empty" id="admin-edit-empty">
+                        <p class="admin-editor__empty-title" id="admin-edit-empty-title">Start with a search</p>
+                        <p class="admin-editor__empty-text" id="admin-edit-empty-text">Search by work name or author to open an existing catalog item.</p>
+                    </div>
+
+                    <div class="admin-editor__content" id="admin-edit-content" hidden>
+                        <div class="admin-editor__grid">
+                            <label class="admin-field">
+                                <span class="admin-field__label">Work name</span>
+                                <input class="admin-field__input" id="admin-edit-name" type="text" />
+                            </label>
+                            <label class="admin-field">
+                                <span class="admin-field__label">Author</span>
+                                <input class="admin-field__input" id="admin-edit-author" type="text" />
+                            </label>
+                        </div>
+
+                        <div class="admin-editor__grid">
+                            <label class="admin-field">
+                                <span class="admin-field__label">Type</span>
+                                <select class="admin-field__input" id="admin-edit-type">
+                                    <option value="" disabled>Select a type</option>
+                                    <option th:each="t : ${T(org.example.isc.opuscore.enums.ArtTypeEnum).values()}"
+                                            th:value="${t}"
+                                            th:text="${#strings.replace(t.name(), '_', ' ')}">Type</option>
+                                </select>
+                            </label>
+                            <label class="admin-field">
+                                <span class="admin-field__label">Art ID</span>
+                                <input class="admin-field__input admin-field__input--readonly admin-field__input--mono" id="admin-edit-art-number" type="text" readonly />
+                            </label>
+                        </div>
+
+                        <div class="admin-editor__grid">
+                            <label class="admin-field">
+                                <span class="admin-field__label">Created at</span>
+                                <input class="admin-field__input admin-field__input--readonly admin-field__input--mono" id="admin-edit-created-display" type="text" readonly />
+                            </label>
+                            <label class="admin-field">
+                                <span class="admin-field__label">Last edited</span>
+                                <input class="admin-field__input admin-field__input--readonly admin-field__input--mono" id="admin-edit-updated-display" type="text" readonly />
+                            </label>
+                        </div>
+
+                        <label class="admin-field">
+                            <span class="admin-field__label">Description</span>
+                            <textarea class="admin-field__input admin-field__input--textarea" id="admin-edit-description" rows="4" maxlength="1000"></textarea>
+                        </label>
+
+                        <div class="admin-preview">
+                            <div class="admin-preview__cover" id="admin-edit-cover" data-cover-frame>No cover</div>
+                            <div class="admin-preview__copy">
+                                <div class="admin-preview__label">Catalog snapshot</div>
+                                <p class="admin-preview__text" id="admin-edit-message">No art selected.</p>
+                            </div>
+                        </div>
+
+                        <label class="admin-field">
+                            <span class="admin-field__label">Cover</span>
+                            <input class="admin-cover-input" id="admin-edit-cover-file" type="file" accept="image/*" />
+                            <div class="admin-cover-tools">
+                                <button class="btn btn--ghost" type="button" id="admin-edit-cover-upload">Replace cover</button>
+                                <button class="btn btn--ghost" type="button" id="admin-edit-cover-remove">Remove cover</button>
+                            </div>
+                            <p class="admin-field__hint" id="admin-edit-cover-hint">Select an artwork to edit its cover.</p>
+                        </label>
+
+                        <div class="admin-actions">
+                            <button class="btn btn--primary" type="button" id="admin-edit-save">Save changes</button>
+                            <button class="btn btn--ghost admin-action--danger" type="button" id="admin-edit-delete">Delete art</button>
+                        </div>
+                    </div>
+                    <p class="admin-feedback" id="admin-edit-feedback">Search the catalog to load an artwork.</p>
+                </form>
+            </article>
+        </section>
+
         <article class="card admin-placeholder" th:if="${adminSection == 'new-reviews'}">
             <p class="admin-placeholder__eyebrow">Next step</p>
             <h2 class="admin-placeholder__title">Review moderation screen</h2>
@@ -215,7 +364,7 @@
 </div>
 
 <footer th:replace="~{private/blocks/private-footer :: footer}"></footer>
-<script th:if="${adminSection == 'new-arts'}" th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
+<script th:if="${adminSection == 'new-arts' or adminSection == 'edit-art'}" th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
 <script th:if="${adminSection == 'new-arts'}">
     (function () {
         const queue = document.getElementById('admin-art-queue');
@@ -1317,5 +1466,6 @@
         refreshQueue(null);
     })();
 </script>
+<script th:if="${adminSection == 'edit-art'}" th:src="@{/js/private/admin-edit-art.js}" src="/js/private/admin-edit-art.js"></script>
 </body>
 </html>

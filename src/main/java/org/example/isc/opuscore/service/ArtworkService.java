@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import org.example.isc.cloudinary.ImageService;
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.opuscore.dto.NewArtRequestDTO;
+import org.example.isc.opuscore.dto.art.NewArtRequestDTO;
 import org.example.isc.opuscore.enums.ReviewStatusEnum;
 import org.example.isc.opuscore.models.NewArtRequest;
 import org.example.isc.opuscore.repositories.NewArtRequestRepository;

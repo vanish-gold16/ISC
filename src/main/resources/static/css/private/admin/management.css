@@ -30,7 +30,7 @@ body {
 }
 
 .admin-hero__body {
-    max-width: 620px;
+    max-width: 860px;
     text-align: left;
 }
 
@@ -114,9 +114,45 @@ body {
     line-height: 1.6;
 }
 
+.admin-screen-head__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.admin-screen-head__tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background: rgba(255, 255, 255, 0.86);
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.admin-screen-head__tab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 24px rgba(37, 99, 235, 0.12);
+}
+
+.admin-screen-head__tab.is-active {
+    border-color: rgba(37, 99, 235, 0.5);
+    background: #1d4ed8;
+    color: #eff6ff;
+    box-shadow: 0 18px 30px rgba(37, 99, 235, 0.18);
+}
+
 .admin-widget-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(210px, 250px));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 18px;
     margin-top: 30px;
 }
@@ -469,6 +505,11 @@ body {
     color: #64748b;
     background: rgba(241, 245, 249, 0.96);
     cursor: default;
+}
+
+.admin-field__input--mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
 }
 
 .admin-field__input--textarea {

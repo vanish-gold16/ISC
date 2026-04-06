@@ -2,7 +2,7 @@ package org.example.isc.opuscore.controller.api;
 
 import org.example.isc.main.secured.models.users.User;
 import org.example.isc.main.secured.repositories.UserRepository;
-import org.example.isc.opuscore.dto.ArtDropdownDTO;
+import org.example.isc.opuscore.dto.art.ArtDropdownDTO;
 import org.example.isc.opuscore.models.Artwork;
 import org.example.isc.opuscore.repositories.ArtworkRepository;
 import org.springframework.http.ResponseEntity;

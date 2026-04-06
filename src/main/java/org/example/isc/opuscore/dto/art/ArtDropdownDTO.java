@@ -1,4 +1,4 @@
-package org.example.isc.opuscore.dto;
+package org.example.isc.opuscore.dto.art;
 
 import org.example.isc.opuscore.enums.ArtTypeEnum;
 
