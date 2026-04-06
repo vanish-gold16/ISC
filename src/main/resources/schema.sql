@@ -374,6 +374,38 @@ $$;
 
 DO $$
 BEGIN
+    IF to_regclass('public.reviews') IS NULL THEN
+        RETURN;
+    END IF;
+
+    ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_status_check;
+
+    ALTER TABLE reviews
+        ALTER COLUMN status TYPE VARCHAR(20)
+        USING CASE status::text
+            WHEN '0' THEN 'PENDING'
+            WHEN '1' THEN 'ACCEPTED'
+            WHEN '2' THEN 'REJECTED'
+            WHEN '3' THEN 'CHANGED'
+            ELSE UPPER(status::text)
+        END;
+
+    ALTER TABLE reviews
+        ADD CONSTRAINT reviews_status_check
+            CHECK (
+                status IN (
+                    'PENDING',
+                    'ACCEPTED',
+                    'REJECTED',
+                    'CHANGED'
+                )
+            );
+END;
+$$;
+@@
+
+DO $$
+BEGIN
     IF to_regclass('public.reviews') IS NULL OR to_regclass('public.review_criterion') IS NULL THEN
         RETURN;
     END IF;
