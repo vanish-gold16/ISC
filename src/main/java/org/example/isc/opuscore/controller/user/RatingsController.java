@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class RatingsController {
 
     @GetMapping
-    public String getMyRatings(
-            Authentication authentication,
-            Model model
-    ){
+    public String getMyRatings(){
         return "/opuscore/my-ratings";
     }
 

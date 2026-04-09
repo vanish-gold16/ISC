@@ -146,6 +146,41 @@ public class ReviewController {
         return "/opuscore/review";
     }
 
+    @GetMapping("/{id}/edit")
+    public String getEditReview(
+        @PathVariable Long id,
+        Authentication authentication,
+        Model model
+    ){
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found: " + id));
+
+        if (me.getId() != review.getUser().getId()){
+            throw new IllegalStateException("Wrong user for review");
+        }
+
+        model.addAttribute("user", me);
+        model.addAttribute("review", review);
+
+        return "/opuscore/edit-review";
+    }
+
+    @PathVariable("/{id}/edit")
+    public String editReview(
+        @PathVariable Long id,
+        @Valid @ModelAttribute("form") NewReviewDTO form,
+        Authentication authentication
+    ) throws IOException {
+        if (form == null) {
+            throw new IllegalArgumentException("Form is empty");
+        }
+        reviewService.editReview(form, authentication, id);
+
+        return "redirect:/opuscore/review";
+    }
+
     @PostMapping("/new-review")
     public String postNewReview(
             @Valid @ModelAttribute("form") NewReviewDTO form,

@@ -106,6 +106,65 @@ public class ReviewService {
         return review.getId();
     }
 
+    @Transactional
+    public Long editReview(
+        NewReviewDTO form,
+        Authentication authentication,
+        Long id
+    ) throws IOException {
+        User me = userRepository.findByUsernameIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Logged-in user not found: " + authentication.getName()));
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found: " + id));
+
+        if(form.getArtRequestId() != null){
+            newReviewForPendingArt(authentication, form);
+        }
+
+        if (form.getArtworkId() == null) {
+            throw new IllegalArgumentException("Artwork is required for a review.");
+        }
+
+        String photoUrl = blankToNull(form.getImageUrl());
+        if(photoUrl == null && form.getImage() != null && !form.getImage().isEmpty()) {
+            if (form.getImage().getSize() > MAX_REVIEW_IMAGE_BYTES) {
+                throw new IllegalArgumentException("Cover image must be 5 MB or smaller.");
+            }
+            photoUrl = imageService.uploadReviewImage(form.getImage(), me.getId());
+        }
+
+        String title = blankToNull(form.getTitle());
+        String body = blankToNull(form.getBody());
+        if (!form.isReview()) {
+            title = null;
+            body = null;
+        }
+
+        review.setReview(form.isReview());
+        review.setTitle(form.getTitle());
+        review.setBody(form.getBody());
+
+        review.setUser(me);
+
+        if (review.getCriteriaScores() != null) {
+            review.getCriteriaScores().forEach(reviewCriterion -> {
+                reviewCriterion.setReview(review);
+                if (reviewCriterion.getCriterionId() == null) {
+                    throw new IllegalArgumentException("Criterion id is missing");
+                }
+                var dto = criteriaCatalog.getById(reviewCriterion.getCriterionId());
+                reviewCriterion.setName(dto.getName());
+                reviewCriterion.setDescription(dto.getDescription());
+                reviewCriterion.setWeight(dto.getWeight());
+            });
+        }
+        review.setValue(countScore(review));
+        review.setStatus(ReviewStatusEnum.PENDING);
+        review.setPhotoUrl(photoUrl);
+
+        return reviewRepository.save(review).getId();
+    }
+
     public Long newReviewForPendingArt(
             Authentication authentication,
             NewReviewDTO form

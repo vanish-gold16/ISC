@@ -251,6 +251,14 @@ public class Review {
         this.artCoverUrl = artCoverUrl;
     }
 
+    public Long getArtRequestId() {
+        return artRequestId;
+    }
+
+    public void setArtRequestId(Long artRequestId) {
+        this.artRequestId = artRequestId;
+    }
+
     private String blankToNull(String value) {
         if (value == null) {
             return null;

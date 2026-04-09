@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}" href="/favicon.png" />
+    <title th:text="${review != null && review.artName != null ? 'OpusCore | Edit ' + review.artName : 'OpusCore | Edit Review'}">OpusCore | Edit Review</title>
+    <script>
+        (function () {
+            try {
+                const raw = sessionStorage.getItem('opuscore:transition');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (!state || typeof state.ts !== 'number' || Date.now() - state.ts > 2600) {
+                    sessionStorage.removeItem('opuscore:transition');
+                    return;
+                }
+                document.documentElement.classList.add('oc-entry-pending');
+                if ('scrollRestoration' in history) {
+                    history.scrollRestoration = 'manual';
+                }
+                window.scrollTo(0, 0);
+            } catch (error) {
+                sessionStorage.removeItem('opuscore:transition');
+            }
+        })();
+    </script>
+    <style>
+        html, body {
+            min-height: 100%;
+            background: #05070b;
+        }
+
+        body {
+            margin: 0;
+            background:
+                linear-gradient(180deg, rgba(5, 7, 11, 0.24) 0%, rgba(5, 7, 11, 0.66) 100%),
+                radial-gradient(circle at top, rgba(108, 142, 255, 0.16), transparent 42%),
+                url('/images/private/opuscore-bg.png') center / cover no-repeat fixed,
+                #05070b;
+            color: #eef0f6;
+        }
+
+        html.oc-entry-pending,
+        html.oc-entry-pending body {
+            overflow: hidden;
+        }
+
+        html.oc-entry-pending .topbar,
+        html.oc-entry-pending .page {
+            opacity: 0;
+        }
+
+        .criterion-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2600;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(4, 7, 11, 0.34);
+            backdrop-filter: blur(18px) saturate(1.1);
+            -webkit-backdrop-filter: blur(18px) saturate(1.1);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity 260ms cubic-bezier(0.18, 0.9, 0.2, 1),
+                visibility 0s linear 260ms;
+        }
+
+        .criterion-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition:
+                opacity 320ms cubic-bezier(0.18, 0.9, 0.2, 1),
+                visibility 0s linear 0s;
+        }
+
+        .criterion-modal[hidden] {
+            display: none !important;
+        }
+
+        .criterion-modal__backdrop {
+            position: absolute;
+            inset: 0;
+        }
+
+        .criterion-modal__dialog {
+            position: relative;
+            z-index: 1;
+            width: min(640px, calc(100vw - 32px));
+            max-height: min(78vh, 720px);
+            padding: 28px;
+            overflow: auto;
+            opacity: 0;
+            transform: translate3d(0, 28px, 0) scale(0.92);
+            transition:
+                opacity 320ms cubic-bezier(0.18, 0.9, 0.2, 1),
+                transform 560ms cubic-bezier(0.18, 0.9, 0.2, 1);
+            box-shadow:
+                0 36px 110px rgba(0, 0, 0, 0.38),
+                0 12px 32px rgba(108, 142, 255, 0.12);
+        }
+
+        .criterion-modal.is-open .criterion-modal__dialog {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        @media (max-width: 960px) {
+            .criterion-modal {
+                padding: 16px;
+            }
+
+            .criterion-modal__dialog {
+                width: min(100%, calc(100vw - 24px));
+                padding: 22px;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/opuscore/main.css}" href="/css/opuscore/main.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/new-post.css}" href="/css/opuscore/new-post.css" />
+    <link rel="stylesheet" th:href="@{/css/opuscore/edit-review.css}" href="/css/opuscore/edit-review.css" />
+    <style>
+        body > .criterion-modal {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 2600 !important;
+        }
+    </style>
+</head>
+<body>
+
+<header th:replace="~{/opuscore/blocks/header :: header}"></header>
+
+<main class="container page new-review-page edit-review-page"
+      th:with="displayCover=${review != null ? review.displayPhotoUrl : null},
+               displayName=${review != null && review.artName != null ? review.artName : 'Untitled work'},
+               displayAuthor=${review != null && review.artAuthor != null ? review.artAuthor : 'Unknown creator'},
+               displayDescription=${review != null ? review.artDescription : null},
+               currentScore=${review != null ? review.value : 0},
+               isFullReview=${review != null && review.review != null ? review.review : false}">
+    <section class="page-content">
+        <section class="new-review">
+            <section class="new-review__header edit-review__hero">
+                <div class="edit-review__hero-copy">
+                    <p class="new-review__eyebrow">Review editor</p>
+                    <h1 class="new-review__title">Edit your review</h1>
+                    <p class="new-review__subtitle">
+                        Update the text and criteria scores for this work. The linked work stays fixed so the review keeps its original target.
+                    </p>
+                    <div class="edit-review__meta">
+                        <span class="edit-review__meta-pill" th:text="${review != null && review.type != null ? review.type : 'ART'}">ART</span>
+                        <span class="edit-review__meta-pill" th:if="${review != null && review.artRequestId != null}">
+                            Pending request
+                        </span>
+                        <span class="edit-review__meta-pill" th:if="${review != null && review.status != null}"
+                              th:text="${'Status: ' + review.status}">Status: PENDING</span>
+                    </div>
+                </div>
+
+                <div class="edit-review__hero-actions">
+                    <a class="btn" th:href="@{/opuscore/{id}(id=${review.id})}" href="/opuscore/1">Back to review</a>
+                    <a class="btn btn--ghost" href="/opuscore/my-ratings">My ratings</a>
+                </div>
+            </section>
+
+            <form class="new-review__form glass-panel edit-review__form"
+                  th:action="@{/opuscore/{id}/edit(id=${review.id})}"
+                  method="post"
+                  id="edit-review-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input id="artworkId" type="hidden" name="artworkId" th:value="${review != null && review.artwork != null ? review.artwork.id : ''}" />
+                <input id="artRequestId" type="hidden" name="artRequestId" th:value="${review != null && review.artRequestId != null ? review.artRequestId : ''}" />
+                <input id="artType" type="hidden" name="artType" th:value="${review != null && review.type != null ? review.type : ''}" />
+                <input id="value" type="hidden" name="value" th:value="${currentScore}" />
+                <input id="imageUrl" type="hidden" name="imageUrl" th:value="${review != null && review.photoUrl != null ? review.photoUrl : ''}" />
+
+                <section class="review-preview glass-panel">
+                    <div class="review-preview__cover" data-cover-frame>
+                        <th:block th:if="${displayCover != null}">
+                            <img th:src="${displayCover}" th:alt="${displayName}" data-cover-image alt="Cover" />
+                        </th:block>
+                        <th:block th:if="${displayCover == null}">
+                            <span th:text="${#strings.toUpperCase(#strings.substring(displayName, 0, #strings.length(displayName) > 1 ? 2 : 1))}">AR</span>
+                        </th:block>
+                    </div>
+
+                    <div class="review-preview__copy">
+                        <div class="review-preview__topline">
+                            <span class="review-preview__type">Edit mode</span>
+                            <div class="review-preview__average">
+                                <span class="review-preview__average-label">Saved score</span>
+                                <div class="review-preview__average-value">
+                                    <span th:text="${currentScore}">0</span>
+                                    <span class="review-preview__average-max">/100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 class="review-preview__title" th:text="${displayName}">Untitled work</h2>
+                        <p class="review-preview__author" th:text="${displayAuthor}">Unknown creator</p>
+                        <p class="review-preview__description"
+                           th:classappend="${displayDescription == null or #strings.isEmpty(displayDescription)} ? ' is-placeholder' : ''"
+                           th:text="${displayDescription != null && !#strings.isEmpty(displayDescription) ? displayDescription : 'Description has not been added yet.'}">
+                            Description has not been added yet.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="edit-review__lock-note glass-panel">
+                    <div class="edit-review__lock-icon" aria-hidden="true">#</div>
+                    <div class="edit-review__lock-copy">
+                        <p class="edit-review__lock-title">Work selection is locked</p>
+                        <p class="edit-review__lock-text">This editor changes the existing review only. If you need a different work, create a new review instead of re-linking this one.</p>
+                    </div>
+                </section>
+
+                <div class="field field--switch">
+                    <label for="review">Is it a full review?</label>
+                    <label class="switch">
+                        <input id="review" type="checkbox" name="review" th:checked="${isFullReview}" />
+                        <span class="switch__track"></span>
+                    </label>
+                    <p class="field__hint" data-review-switch-hint>Turn on for long-form review, off for short rating.</p>
+                </div>
+
+                <div class="field" id="title-field" th:hidden="${!isFullReview}">
+                    <label for="title">Review headline</label>
+                    <input id="title"
+                           class="input"
+                           type="text"
+                           name="title"
+                           th:value="${review != null && review.title != null ? review.title : ''}"
+                           placeholder="Your verdict in one line"
+                           maxlength="50" />
+                </div>
+
+                <div class="field" id="body-field" th:hidden="${!isFullReview}">
+                    <label for="body">Review body</label>
+                    <textarea id="body"
+                              class="input input--textarea input--tall"
+                              rows="8"
+                              name="body"
+                              placeholder="Write your review..."
+                              maxlength="2000"
+                              th:text="${review != null && review.body != null ? review.body : ''}"></textarea>
+                    <p class="field__hint">Max 2000 characters.</p>
+                </div>
+
+                <div class="criteria-section glass-panel">
+                    <div class="criteria-section__title">Criteria</div>
+                    <p class="criteria-section__hint">Adjust the saved scores. Every slider keeps the original weight for total score calculation.</p>
+                    <div class="criteria-grid" id="criteria-grid" th:if="${review != null && review.criteriaScores != null && !#lists.isEmpty(review.criteriaScores)}">
+                        <div class="criteria-card glass-panel"
+                             th:each="criterion, stat : ${review.criteriaScores}"
+                             th:with="catalogCriterion=${@opusCoreCriteriaCatalog.findByTypeAndName(review.type, criterion.name).orElse(null)},
+                                      criterionWeight=${criterion.weight > 0 ? criterion.weight : (catalogCriterion != null ? catalogCriterion.weight : 1)}"
+                             data-criterion-card="true"
+                             tabindex="0"
+                             role="button"
+                             aria-haspopup="dialog"
+                             th:attr="data-criterion-name=${criterion.name != null ? criterion.name : 'Criterion'},
+                                      data-criterion-description=${criterion.description != null ? criterion.description : 'Description is not available yet.'},
+                                      aria-label=${'Open description for ' + (criterion.name != null ? criterion.name : 'criterion')}">
+                            <div class="criteria-header">
+                                <div>
+                                    <div class="criteria-name" th:text="${criterion.name != null ? criterion.name : 'Criterion'}">Criterion</div>
+                                    <div class="criteria-more">Open description</div>
+                                </div>
+                                <div class="criteria-score">
+                                    <span class="criteria-score__value" data-score th:text="${criterion.score}">0</span>
+                                    <span class="criteria-score__max">/10</span>
+                                </div>
+                            </div>
+                            <input type="hidden"
+                                   th:name="${'criteria[' + stat.index + '].criterionId'}"
+                                   th:value="${catalogCriterion != null ? catalogCriterion.id : ''}" />
+                            <div class="criteria-slider-wrap"
+                                 th:style="${'--slider-percent:' + criterion.score * 10 + '%'}">
+                                <input class="criteria-slider"
+                                       type="range"
+                                       min="0"
+                                       max="10"
+                                       step="1"
+                                       th:name="${'criteria[' + stat.index + '].score'}"
+                                       th:value="${criterion.score}"
+                                       th:attr="data-weight=${criterionWeight}" />
+                                <span class="criteria-slider-star" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="criteria-empty" id="criteria-empty"
+                         th:if="${review == null || review.criteriaScores == null || #lists.isEmpty(review.criteriaScores)}">
+                        Criteria were not loaded for this review.
+                    </div>
+                </div>
+
+                <div class="score-dock" aria-live="polite" aria-atomic="true">
+                    <div class="score-dock__label">Updated score</div>
+                    <div class="score-dock__value">
+                        <span id="value-display"
+                              th:classappend="${currentScore == 100} ? ' oc-score--perfect' : ''"
+                              th:text="${currentScore}">0</span>
+                        <span class="score-dock__max">/100</span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn--submit" type="submit" id="review-submit-button">Save changes</button>
+                    <a class="btn" th:href="@{/opuscore/{id}(id=${review.id})}" href="/opuscore/1">Cancel</a>
+                </div>
+
+                <p class="form-error" id="review-submit-feedback" hidden></p>
+            </form>
+        </section>
+    </section>
+    <aside th:replace="~{/opuscore/blocks/right-sidebar :: rightSidebar('my-ratings')}"></aside>
+</main>
+
+<div class="criterion-modal" id="criterion-modal" hidden aria-hidden="true" data-criterion-modal>
+    <div class="criterion-modal__backdrop" data-criterion-modal-close></div>
+    <div class="criterion-modal__dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="criterion-modal-title" aria-describedby="criterion-modal-description">
+        <div class="criterion-modal__head">
+            <div>
+                <p class="criterion-modal__eyebrow">Criterion</p>
+                <h2 class="criterion-modal__title" id="criterion-modal-title" data-criterion-modal-title>Criterion</h2>
+            </div>
+            <button class="criterion-modal__close" type="button" aria-label="Close criterion description" data-criterion-modal-close>&times;</button>
+        </div>
+        <div class="criterion-modal__body">
+            <p class="criterion-modal__description" id="criterion-modal-description" data-criterion-modal-description>Description is not available yet.</p>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/private/opuscore-cover-frames.js}" src="/js/private/opuscore-cover-frames.js"></script>
+<script th:src="@{/js/private/opuscore-criteria-modal.js(v='20260402d')}" src="/js/private/opuscore-criteria-modal.js?v=20260402d"></script>
+<script th:src="@{/js/private/opuscore-transition.js}" src="/js/private/opuscore-transition.js"></script>
+<script>
+    (function () {
+        const reviewToggle = document.getElementById('review');
+        const switchWrap = reviewToggle ? reviewToggle.closest('.switch') : null;
+        const titleField = document.getElementById('title-field');
+        const bodyField = document.getElementById('body-field');
+        const titleInput = document.getElementById('title');
+        const bodyInput = document.getElementById('body');
+        const hint = document.querySelector('[data-review-switch-hint]');
+        const grid = document.getElementById('criteria-grid');
+        const totalField = document.getElementById('value');
+        const totalDisplay = document.getElementById('value-display');
+        const submitButton = document.getElementById('review-submit-button');
+        const submitFeedback = document.getElementById('review-submit-feedback');
+
+        function setSubmitFeedback(message) {
+            if (!submitFeedback) {
+                return;
+            }
+
+            if (!message) {
+                submitFeedback.hidden = true;
+                submitFeedback.textContent = '';
+                return;
+            }
+
+            submitFeedback.hidden = false;
+            submitFeedback.textContent = message;
+        }
+
+        function syncReviewMode() {
+            if (!reviewToggle || !switchWrap || !titleField || !bodyField || !titleInput || !bodyInput) {
+                return;
+            }
+
+            const isFullReview = reviewToggle.checked;
+
+            switchWrap.classList.toggle('is-on', isFullReview);
+            titleField.hidden = !isFullReview;
+            bodyField.hidden = !isFullReview;
+            titleInput.disabled = !isFullReview;
+            bodyInput.disabled = !isFullReview;
+
+            if (!isFullReview) {
+                titleInput.value = '';
+                bodyInput.value = '';
+            }
+
+            if (hint) {
+                hint.textContent = isFullReview
+                    ? 'Turn on for long-form review, off for score-only rating.'
+                    : 'Score-only rating: review headline and body are hidden.';
+            }
+        }
+
+        function updateSliderVisual(slider) {
+            if (!slider) {
+                return;
+            }
+
+            const min = Number(slider.min || 0);
+            const max = Number(slider.max || 10);
+            const value = Number(slider.value || 0);
+            const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+            slider.closest('.criteria-slider-wrap')?.style.setProperty('--slider-percent', percent + '%');
+        }
+
+        function updateTotal() {
+            if (!grid || !totalField || !totalDisplay) {
+                return;
+            }
+
+            const sliders = grid.querySelectorAll('.criteria-slider');
+            let total = 0;
+
+            sliders.forEach((slider) => {
+                const weight = Number(slider.dataset.weight || 1);
+                total += Number(slider.value) * weight;
+                updateSliderVisual(slider);
+            });
+
+            const normalizedTotal = Math.max(0, Math.min(100, Math.round(total / 10)));
+            totalField.value = normalizedTotal;
+            totalDisplay.textContent = normalizedTotal;
+            totalDisplay.classList.toggle('oc-score--perfect', normalizedTotal === 100);
+
+            const canSubmit = sliders.length > 0;
+            if (submitButton) {
+                submitButton.disabled = !canSubmit;
+            }
+            setSubmitFeedback(canSubmit ? null : 'Criteria are missing for this review, so the updated score cannot be submitted.');
+        }
+
+        if (switchWrap && reviewToggle) {
+            switchWrap.addEventListener('click', (event) => {
+                if (event.target === reviewToggle) {
+                    return;
+                }
+
+                event.preventDefault();
+                reviewToggle.checked = !reviewToggle.checked;
+                reviewToggle.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+
+            reviewToggle.addEventListener('change', syncReviewMode);
+        }
+
+        if (grid) {
+            grid.addEventListener('input', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLInputElement) || !target.classList.contains('criteria-slider')) {
+                    return;
+                }
+
+                const valueEl = target.closest('.criteria-card')?.querySelector('[data-score]');
+                if (valueEl) {
+                    valueEl.textContent = target.value;
+                }
+
+                updateTotal();
+            });
+        }
+
+        syncReviewMode();
+        updateTotal();
+    })();
+</script>
+</body>
+</html>
