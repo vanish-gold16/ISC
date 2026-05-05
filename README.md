@@ -145,6 +145,7 @@ CREATE DATABASE isc_db;
 ```
 
 Edit the provided `.env.properties` in the project root and fill in your real credentials.
+You can also put the same keys in a local `.env` file.
 
 Example:
 
@@ -158,6 +159,9 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 APP_SECRET=your-app-secret
 ```
+
+`DB_URL` must be a JDBC URL, so it should start with `jdbc:`. Plain PostgreSQL URLs that start with
+`postgresql://` or `postgres://` are accepted and normalized automatically.
 
 `application.properties` reads these values automatically, and `.env.properties` is ignored by git.
 

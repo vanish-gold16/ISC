@@ -167,7 +167,7 @@ public class ReviewController {
         return "/opuscore/edit-review";
     }
 
-    @PathVariable("/{id}/edit")
+    @PatchMapping("/{id}/edit")
     public String editReview(
         @PathVariable Long id,
         @Valid @ModelAttribute("form") NewReviewDTO form,
